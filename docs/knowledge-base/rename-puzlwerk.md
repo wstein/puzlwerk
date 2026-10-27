@@ -43,8 +43,9 @@ unchanged. Historical uses of the former brand are not active imports.
 | `specs/001-core-foundation/spec.md`, `contracts/solver.md`, `specs/002-solver-2x2/spec.md` | Active brand; the **unimplemented proposed** protocol label/examples become `puzlwerk.solver`. No implemented runtime wire format changes |
 | `docs/knowledge-base/rename-puzlwerk.md` | This inventory, exceptions, external handoff and validation record |
 
-`AGENTS.md`, CI, build command names and other specs were inspected: they contain
-no old-name literal to change. The existing CI runs the same renamed workspace
+`AGENTS.md` now permanently records the lowercase technical/display naming rules,
+context-aware edits and provenance exceptions. CI, build command names and other
+specs were inspected: they contain no old-name literal to change. The existing CI runs the same renamed workspace
 checks and packed-consumer test; no gratuitous workflow edit is needed.
 
 ## Deliberately preserved history and provenance
@@ -65,7 +66,7 @@ unchanged. All ten newly compiled ReScript modules also match the previously
 verified pre-rename compiled modules byte for byte. Remaining old-name hits are
 limited to historical ADRs, the original source URL and this explanatory inventory.
 
-## External references — report only
+## External references — original audit and coordinated follow-up
 
 Read-only audit of current remote branches:
 
@@ -92,7 +93,10 @@ Do **not** bulk-rewrite Cubistry's hashed `research/architecture/requirements-pu
 related `manifest-m1-*.json` references, or the archived `research/m1-acceptance/requirements.json`.
 Those are original evidence and should keep their names, bytes and hashes. Likewise
 retain source URLs in historical PRs/records; update current guidance separately.
-No external repository file, issue or PR was changed by this task.
+The initial technical rename changed no external repository. The separately
+authorized ecosystem follow-up now adds naming guidance and updates active
+references in one Draft PR per affected repository; their delivery references
+and validation are recorded below. Historical evidence remains unchanged.
 
 ## Acceptance and verification
 
@@ -113,3 +117,22 @@ Spelling, relative documentation links, diff checks and the final old-name audit
 are checked before delivery. GitHub CI status belongs to the Draft PR checks;
 passing local tests alone is not a claim that remote CI finished. Human review remains required; the observed repository operation is separate
 from this technical PR. No automatic merge.
+
+## Ecosystem follow-up classification
+
+- **A — preserve:** existing ADR history, original source URLs/commit references,
+  Cubistry's dated M1 decision/acceptance wording, all hashed research snapshots
+  and manifests, and the source comment in `packages/cube-core/res/PwCore.res`.
+  That complete source file is hash-bound by the M1 manifests; changing a branding
+  comment would invalidate evidence without changing behavior.
+- **B — update:** permanent AGENTS naming rules in all five repositories, current
+  architecture/repository links in sister AGENTS files, and Cubistry's README and
+  current naming paragraphs in `SHARED_CUBE_M1.md` / `FRAMEWORK_ROADMAP.md`.
+- **C — uncertain:** no unresolved name occurrence after checking the source
+  context and hash bindings. New uncertain cases must be reported, not rewritten.
+
+The dated `FRAMEWORK_SERVICE_PROPOSALS.md` decision reference and the original
+`M1_ACCEPTANCE.md` PR scope remain historical. No new dependencies, changes to
+`@cubistry/*`, solver implementation or application behavior are authorized by
+this naming follow-up. Cubacle uses `develop`; its upstream-mirror `main` is not
+an integration target. Every PR remains Draft for human review.
