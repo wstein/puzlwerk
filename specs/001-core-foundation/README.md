@@ -26,3 +26,14 @@ Color-only cube representations cannot express all piece identities, exact desti
 - The solver boundary does not depend on UI or rendering.
 
 **Gate:** Human review of spec, plan and tasks before any production implementation.
+
+## Review artifacts
+
+- [Feature specification and acceptance criteria](spec.md)
+- [Research, alternatives and open questions](research.md)
+- [Domain model and mathematical conventions](data-model.md)
+- [Proposed solver contract](contracts/solver.md)
+- [Phased implementation and validation plan](plan.md)
+- [Blocked atomic implementation tasks](tasks.md)
+
+All artifacts and related ADRs remain proposed until human review.
