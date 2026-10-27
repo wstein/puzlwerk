@@ -1,0 +1,15 @@
+{
+  "name": "puzwerk",
+  "sources": [
+    {
+      "dir": "packages/solver-2x2/res",
+      "subdirs": true
+    }
+  ],
+  "package-specs": {
+    "module": "esmodule",
+    "in-source": true
+  },
+  "suffix": ".res.mjs",
+  "dependencies": []
+}
