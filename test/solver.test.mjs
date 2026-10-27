@@ -173,6 +173,39 @@ test("rejects malformed, impossible or incompatible states and implicit modes", 
   await assert.rejects(create2x2Solver(bytes.subarray(1), print), /length/);
 });
 
+test("validates optical symmetry metadata without normalizing physical poses", async () => {
+  for (const symmetry of [
+    undefined,
+    null,
+    "not-an-array",
+    [],
+    [1],
+    [0, 1],
+    [0, 0],
+    [0, 1, 2],
+    [-1, 0],
+    [0, 2.5],
+    [0, 1, 2, 3, 4],
+  ]) {
+    const bad = clone(print);
+    bad.stickers[0].equivalentQuarterTurns = symmetry;
+    await assert.rejects(create2x2Solver(bytes, bad), /Invalid optical symmetry/);
+  }
+  for (const symmetry of [[0], [2, 0], [3, 1, 0, 2]]) {
+    const symmetric = clone(print);
+    symmetric.stickers[0].equivalentQuarterTurns = symmetry;
+    const bound = await create2x2Solver(bytes, symmetric),
+      target = rotateAll(solved, 0);
+    const result = bound.solve2x2(solved, target, { mode: "exactPhysical" });
+    assert.ok(result.moveCount > 0);
+    assert.deepEqual(
+      stickers(symmetric, replay(solved, result.moves)),
+      stickers(symmetric, target),
+    );
+    assert.deepEqual(symmetric.stickers[0].equivalentQuarterTurns, symmetry);
+  }
+});
+
 test("Cubistry 42→43 witness baseline and direct full-physical transition", async () => {
   const fixture = JSON.parse(
     await readFile(new URL("fixtures/cubistry-42-43.json", import.meta.url), "utf8"),

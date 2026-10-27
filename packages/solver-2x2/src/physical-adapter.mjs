@@ -135,6 +135,14 @@ export function bindPrint(raw) {
         sticker.materialId.length > 0,
       "Invalid immutable sticker reference",
     );
+    const symmetry = sticker.equivalentQuarterTurns;
+    demand(
+      Array.isArray(symmetry) &&
+        symmetry.every(Number.isInteger) &&
+        new Set(symmetry).size === symmetry.length &&
+        ["0", "0,2", "0,1,2,3"].includes([...symmetry].sort((a, b) => a - b).join(",")),
+      "Invalid optical symmetry: expected a C4 subgroup",
+    );
     stickerIds.add(sticker.id);
     seen[slot].add(face);
   }

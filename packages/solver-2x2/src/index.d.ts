@@ -15,7 +15,7 @@ export interface PhysicalPrint {
     readonly up: Vec3;
     readonly assetId: string;
     readonly materialId: string;
-    readonly equivalentQuarterTurns?: readonly number[];
+    readonly equivalentQuarterTurns: readonly number[];
   }[];
 }
 export interface PhysicalState {

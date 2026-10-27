@@ -100,7 +100,9 @@ See the preserved [source contract](https://github.com/wstein/cubistry/blob/f2d2
 - Each body's orientation is its three source basis vectors in world coordinates:
   transformed component `i` is `sum(v[j] * basis[j][i])`.
 - The immutable print owns eight permanent numeric cubie IDs and 24 permanent
-  sticker IDs, local normal/up vectors and asset/material references.
+  sticker IDs, local normal/up vectors and asset/material references. Its required
+  `equivalentQuarterTurns` arrays must be unique C4 subgroups `{0}`, `{0,2}` or
+  `{0,1,2,3}`. Neither mode uses glyph symmetry to normalize physical poses.
 - Complete states own only cubie positions/body frames and refer to that print.
   There are no independently movable/reorientable sticker fields.
 - Validation rejects unknown versions/sizes, duplicate/unknown IDs, occupied slots,
