@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync, cpSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,20 +15,55 @@ const packed = JSON.parse(
 const generated = packed.files.filter((file) => file.path.endsWith(".res.mjs"));
 if (generated.length !== 10)
   throw new Error("Packed consumer must include all ten compiled ReScript modules");
+const consumer = {
+  name: "puzwerk-isolated-consumer",
+  version: "0.0.0",
+  private: true,
+  type: "module",
+  dependencies: { "@puzwerk/solver-2x2": `file:${join(dir, packed.filename)}` },
+};
+const packageMeta = JSON.parse(
+  readFileSync(join(root, "packages/solver-2x2/package.json"), "utf8"),
+);
+const rootLock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+const runtime = rootLock.packages["node_modules/@rescript/runtime"];
+if (
+  Object.keys(packageMeta.dependencies).length !== 1 ||
+  runtime.version !== packageMeta.dependencies["@rescript/runtime"]
+) {
+  throw new Error("Update isolated consumer lock for runtime dependency changes");
+}
+writeFileSync(join(dir, "package.json"), JSON.stringify(consumer));
+// npm ci caches locked tarballs, not necessarily registry metadata. Give this
+// isolated consumer a real lock with the same runtime URL and integrity so it
+// neither needs cached package metadata nor resolves a different dependency.
 writeFileSync(
-  join(dir, "package.json"),
+  join(dir, "package-lock.json"),
   JSON.stringify({
-    private: true,
-    type: "module",
-    dependencies: {
-      "@puzwerk/solver-2x2": `file:${join(dir, packed.filename)}`,
+    name: consumer.name,
+    version: consumer.version,
+    lockfileVersion: 3,
+    requires: true,
+    packages: {
+      "": {
+        name: consumer.name,
+        version: consumer.version,
+        dependencies: consumer.dependencies,
+      },
+      "node_modules/@puzwerk/solver-2x2": {
+        version: packed.version,
+        resolved: consumer.dependencies["@puzwerk/solver-2x2"],
+        integrity: packed.integrity,
+        license: packageMeta.license,
+        dependencies: packageMeta.dependencies,
+      },
+      "node_modules/@rescript/runtime": runtime,
     },
   }),
 );
-// Root npm ci already cached the only runtime dependency; do not fetch new code.
 execFileSync(
   "npm",
-  ["install", "--offline", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"],
+  ["ci", "--offline", "--omit=dev", "--ignore-scripts", "--no-audit", "--no-fund"],
   { cwd: dir, stdio: "pipe" },
 );
 cpSync(
