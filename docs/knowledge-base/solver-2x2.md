@@ -196,6 +196,8 @@ npm run test:package
 Node's built-in tests (which compile ReScript first). It does not claim TypeScript
 analysis of every imported ReScript-generated module. `test:package` builds, packs
 locally and installs the artifact offline into an isolated temporary consumer using
-the runtime dependency cached by `npm ci`. No registry publication occurs. CI uses
+the exact runtime tarball/integrity pinned by the root lockfile and cached by
+`npm ci`. Its generated consumer lock avoids relying on cached registry metadata.
+No registry publication occurs. CI uses
 Node 24 and the same lockfile/checks. No test framework/runtime UI dependency,
 exhaustive benchmark or table generation is added.
