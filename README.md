@@ -1,4 +1,4 @@
-# PuzWerk
+# PuzlWerk
 
 Coordinate-based twisty-puzzle model and virtual cube engine, designed for solver interoperability.
 
@@ -10,7 +10,7 @@ Coordinate-based twisty-puzzle model and virtual cube engine, designed for solve
 - Goal predicates for color-only, position-sensitive and orientation-sensitive puzzles.
 - Interoperability contracts for the Cubacle Rust CLI solver.
 
-PuzWerk owns the canonical puzzle-model design and the separately scoped reusable [2×2 solver extraction](docs/knowledge-base/solver-2x2.md). Cubacle remains an independent optional Rust solver provider. Visualization clients should consume the shared model rather than duplicate cube logic.
+PuzlWerk owns the canonical puzzle-model design and the separately scoped reusable [2×2 solver extraction](docs/knowledge-base/solver-2x2.md). Cubacle remains an independent optional Rust solver provider. Visualization clients should consume the shared model rather than duplicate cube logic.
 
 ## Development
 
@@ -44,3 +44,10 @@ npm run test:package
 See [API, provenance, license and integration requirements](docs/knowledge-base/solver-2x2.md).
 The package is private and AGPL-3.0-or-later; it is not a published canonical core.
 The broader foundation plan and unrelated framework phases retain their approval gates.
+
+## Rename coordination
+
+The target repository is `wstein/puzlwerk` and private packages use `@puzlwerk/*`.
+The maintainer performs the GitHub repository rename separately; this technical
+rename does not publish packages or change repository settings. See the
+[rename inventory and external follow-ups](docs/knowledge-base/rename-puzlwerk.md).

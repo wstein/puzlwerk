@@ -1,4 +1,4 @@
-# Solver interoperability: PuzWerk ↔ Cubacle
+# Solver interoperability: PuzlWerk ↔ Cubacle
 
 **Status: proposal, not an implemented interface.**
 
@@ -20,4 +20,4 @@ The symmetry subgroup is a property of the goal/physical piece, **not** permissi
 3. Correct position with wrong orientation fails an orientation-sensitive goal.
 4. 90° and 180° symmetric goals accept only their defined equivalent poses.
 5. Invalid moves and unsupported goal features are rejected explicitly.
-6. Solver output replays deterministically through PuzWerk to a verified goal state.
+6. Solver output replays deterministically through PuzlWerk to a verified goal state.
