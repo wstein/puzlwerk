@@ -10,7 +10,7 @@ Coordinate-based twisty-puzzle model and virtual cube engine, designed for solve
 - Goal predicates for color-only, position-sensitive and orientation-sensitive puzzles.
 - Interoperability contracts for the Cubacle Rust CLI solver.
 
-PuzWerk owns the canonical puzzle model; Cubacle owns solver search, pruning and heuristics. Visualization clients should consume the shared model rather than duplicate cube logic.
+PuzWerk owns the canonical puzzle-model design and the separately scoped reusable [2×2 solver extraction](docs/knowledge-base/solver-2x2.md). Cubacle remains an independent optional Rust solver provider. Visualization clients should consume the shared model rather than duplicate cube logic.
 
 ## Development
 
@@ -27,3 +27,20 @@ Read [AGENTS.md](AGENTS.md) and [the knowledge base](docs/knowledge-base/README.
 
 - [Cubacle](https://github.com/wstein/cubacle) — Rust solver and CLI.
 - CubeLab and CubeAssembler — consumers/integration candidates; exact contracts to be reviewed.
+
+## Reusable 2×2 solver (private package)
+
+The [scoped migration](specs/002-solver-2x2/spec.md) reuses CubeLab's existing
+ReScript algorithm/table. Choose `rotationEquivalent` or `exactPhysical` explicitly;
+only the former guarantees HTM optimality in the rotation quotient. The composed
+exact-frame solution does not claim HTM optimality. No application is migrated here.
+
+```sh
+npm ci
+npm run check
+npm run test:package
+```
+
+See [API, provenance, license and integration requirements](docs/knowledge-base/solver-2x2.md).
+The package is private and AGPL-3.0-or-later; it is not a published canonical core.
+The broader foundation plan and unrelated framework phases retain their approval gates.
