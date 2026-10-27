@@ -30,4 +30,11 @@ Record each accepted architectural choice as an ADR under `docs/adr/`, with cont
 
 ## Foundation specification under review
 
-[001 core foundation](../../specs/001-core-foundation/spec.md) contains the proposed requirements; [research](../../specs/001-core-foundation/research.md) tracks Q1–Q7, source pins and alternatives. Proposed ADRs [0002](../adr/0002-coordinates-and-moves.md), [0003](../adr/0003-identity-and-goal-symmetry.md) and [0004](../adr/0004-versioned-solver-boundary.md) cover frames/moves, physical identity/goal symmetry and solver interchange. None is accepted by this index. All implementation phases remain blocked pending explicit human approval.
+[001 core foundation](../../specs/001-core-foundation/spec.md) contains the proposed requirements; [research](../../specs/001-core-foundation/research.md) tracks Q1–Q7, source pins and alternatives. Proposed ADRs [0002](../adr/0002-coordinates-and-moves.md), [0003](../adr/0003-identity-and-goal-symmetry.md) and [0004](../adr/0004-versioned-solver-boundary.md) cover frames/moves, physical identity/goal symmetry and solver interchange. None is accepted by this index. All 001 foundation implementation phases remain blocked pending explicit human approval.
+
+## Scoped 2×2 solver migration
+
+The maintainer separately authorized [the existing CubeLab solver extraction](solver-2x2.md)
+for #5 after the Cubistry pilot. [ADR 0005](../adr/0005-reusable-2x2-solver.md)
+records the narrow package/compatibility proposal. This does not approve the other
+001 milestones, a general physical core, package publication or consumer migration.
