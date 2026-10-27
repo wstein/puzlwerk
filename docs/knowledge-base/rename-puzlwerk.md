@@ -136,3 +136,23 @@ The dated `FRAMEWORK_SERVICE_PROPOSALS.md` decision reference and the original
 `@cubistry/*`, solver implementation or application behavior are authorized by
 this naming follow-up. Cubacle uses `develop`; its upstream-mirror `main` is not
 an integration target. Every PR remains Draft for human review.
+
+## Ecosystem Draft PRs
+
+| Repository | Draft PR | Changed files | Validation |
+| --- | --- | --- | --- |
+| PuzlWerk | [#14](https://github.com/wstein/puzlwerk/pull/14) | Existing technical rename plus permanent `AGENTS.md` conventions and this inventory | Fresh install, build/format, public TypeScript contract, 10 solver/replay groups and offline packed consumer pass |
+| CubeLab | [#25](https://github.com/wstein/cubelab/pull/25) | `AGENTS.md` | Documentation spelling, relative links, source/dependency preservation and diff checks pass; no PR CI configured |
+| Cubistry | [#29](https://github.com/wstein/cubistry/pull/29) | `AGENTS.md`, `README.md`, `docs/FRAMEWORK_ROADMAP.md`, `docs/SHARED_CUBE_M1.md` | Fresh `npm run check`, independent proof/design checks, spelling and local links pass; browser/documentation CI passes |
+| CubeAssembler | [#34](https://github.com/wstein/cube-assembler/pull/34) | `AGENTS.md` | Fresh install, typecheck/lint/format/build and 1,141 passing unit tests; spelling/links/diff checks pass; browser CI status is in the PR |
+| Cubacle | [#3](https://github.com/wstein/cubacle/pull/3) | `AGENTS.md` on `develop` | Documentation spelling/links/diff pass; local Rust commands unavailable because `cargo` is absent; existing CI runs them, see actual PR checks |
+
+All sister diffs are documentation-only. Their runtime code, manifests/lockfiles,
+existing `@cubistry/*` names, assets, fixtures, licenses, hashes, research and ADR
+history are byte-identical to their respective base commits. No package dependency
+or application import was added, and no external issue or historical PR was edited.
+The naming guidance does not authorize consumption of an unreleased package.
+
+Recommended human merge order: accept #14 first, then review/merge the four sister
+PRs independently once their applicable checks are satisfied. Cubacle targets
+`develop`, never the upstream-mirror `main`. No merge is performed by this task.
