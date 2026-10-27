@@ -1,5 +1,5 @@
 {
-  "name": "puzwerk",
+  "name": "puzlwerk",
   "sources": [
     {
       "dir": "packages/solver-2x2/res",

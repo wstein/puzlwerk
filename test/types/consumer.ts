@@ -3,7 +3,7 @@ import {
   type PhysicalPrint,
   type PhysicalState,
   type HTMMove,
-} from "@puzwerk/solver-2x2";
+} from "@puzlwerk/solver-2x2";
 async function consumer(
   bytes: Uint8Array,
   print: PhysicalPrint,

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { create2x2Solver, TABLE_URL } from "@puzwerk/solver-2x2";
+import { create2x2Solver, TABLE_URL } from "@puzlwerk/solver-2x2";
 import {
   clone,
   initial,

@@ -4,11 +4,11 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 const root = fileURLToPath(new URL("../", import.meta.url));
-const dir = mkdtempSync(join(tmpdir(), "puzwerk-consumer-"));
+const dir = mkdtempSync(join(tmpdir(), "puzlwerk-consumer-"));
 const packed = JSON.parse(
   execFileSync(
     "npm",
-    ["pack", "--workspace", "@puzwerk/solver-2x2", "--pack-destination", dir, "--json"],
+    ["pack", "--workspace", "@puzlwerk/solver-2x2", "--pack-destination", dir, "--json"],
     { cwd: root, encoding: "utf8" },
   ),
 )[0];
@@ -16,11 +16,11 @@ const generated = packed.files.filter((file) => file.path.endsWith(".res.mjs"));
 if (generated.length !== 10)
   throw new Error("Packed consumer must include all ten compiled ReScript modules");
 const consumer = {
-  name: "puzwerk-isolated-consumer",
+  name: "puzlwerk-isolated-consumer",
   version: "0.0.0",
   private: true,
   type: "module",
-  dependencies: { "@puzwerk/solver-2x2": `file:${join(dir, packed.filename)}` },
+  dependencies: { "@puzlwerk/solver-2x2": `file:${join(dir, packed.filename)}` },
 };
 const packageMeta = JSON.parse(
   readFileSync(join(root, "packages/solver-2x2/package.json"), "utf8"),
@@ -50,9 +50,9 @@ writeFileSync(
         version: consumer.version,
         dependencies: consumer.dependencies,
       },
-      "node_modules/@puzwerk/solver-2x2": {
+      "node_modules/@puzlwerk/solver-2x2": {
         version: packed.version,
-        resolved: consumer.dependencies["@puzwerk/solver-2x2"],
+        resolved: consumer.dependencies["@puzlwerk/solver-2x2"],
         integrity: packed.integrity,
         license: packageMeta.license,
         dependencies: packageMeta.dependencies,
@@ -76,7 +76,7 @@ writeFileSync(
   `
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {create2x2Solver,TABLE_URL} from '@puzwerk/solver-2x2';
+import {create2x2Solver,TABLE_URL} from '@puzlwerk/solver-2x2';
 import {initial,replay,poses,stickers} from './physical-replay.mjs';
 const f=JSON.parse(await readFile(new URL('./fixture.json',import.meta.url),'utf8'));
 const start=initial(f.print),[a,b]=f.witnesses.map(w=>replay(start,w.word));
