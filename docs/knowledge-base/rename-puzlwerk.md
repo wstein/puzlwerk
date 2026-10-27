@@ -13,12 +13,16 @@ was merged. This records a naming change, not a solver or architecture change.
 | Root npm/ReScript project | `puzwerk` | `puzlwerk` |
 | Private solver package | `@puzwerk/solver-2x2` | `@puzlwerk/solver-2x2` |
 
-The maintainer performs the **actual GitHub repository rename separately** at the
-coordinated release point. This PR changes no repository settings or Git remote,
-does not publish npm packages, and does not claim npm namespace ownership.
-Active issue links target the future repository name; until the maintainer
-renames the repository those destination URLs may not resolve. The Draft PR is
-created in the existing repository. Coordinate that operation with acceptance.
+The actual GitHub repository rename is a **separate maintainer operation**.
+This PR changes no repository settings or Git remote, does not publish npm
+packages, and does not claim npm namespace ownership.
+
+During this work GitHub began reporting the canonical repository as
+`wstein/puzlwerk`. Read-only API checks of both old and new URLs returned the
+same repository ID, `1435899236`; Git also reported the old URL's redirect. The
+external rename was observed, not executed by this task. Active links use the
+new canonical repository; historical source URLs keep their original text.
+The existing local origin remains the old, redirecting URL.
 
 The solver package remains private at version 0.1.0. No old-scope alias, new API,
 new feature or consumer migration is introduced. Existing `cubistry.print` and
@@ -107,5 +111,5 @@ all body/sticker poses. Dependency versions and upstream hashes are unchanged.
 
 Spelling, relative documentation links, diff checks and the final old-name audit
 are checked before delivery. GitHub CI status belongs to the Draft PR checks;
-passing local tests alone is not a claim that remote CI finished. Human review
-and the coordinated repository operation remain separate; no automatic merge.
+passing local tests alone is not a claim that remote CI finished. Human review remains required; the observed repository operation is separate
+from this technical PR. No automatic merge.
