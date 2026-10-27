@@ -27,3 +27,7 @@ PuzWerk defines state, transformations, validation and serialization. Cubacle (R
 ## Decision process
 
 Record each accepted architectural choice as an ADR under `docs/adr/`, with context, alternatives, consequences and date. Unresolved questions stay proposals, not implicit requirements.
+
+## Foundation specification under review
+
+[001 core foundation](../../specs/001-core-foundation/spec.md) contains the proposed requirements; [research](../../specs/001-core-foundation/research.md) tracks Q1–Q7, source pins and alternatives. Proposed ADRs [0002](../adr/0002-coordinates-and-moves.md), [0003](../adr/0003-identity-and-goal-symmetry.md) and [0004](../adr/0004-versioned-solver-boundary.md) cover frames/moves, physical identity/goal symmetry and solver interchange. None is accepted by this index. All implementation phases remain blocked pending explicit human approval.
