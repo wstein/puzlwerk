@@ -1,6 +1,6 @@
 # Reusable 2×2 solver
 
-Status: scoped implementation for [#5](https://github.com/wstein/puzwerk/issues/5),
+Status: scoped implementation for [#5](https://github.com/wstein/puzlwerk/issues/5),
 subject to Draft PR acceptance. The maintainer authorized this migration on
 2026-10-27 after Cubistry pilot PRs #20, #22 and #24 were merged. This does not
 approve the general 001 foundation milestones or consumer integration.
@@ -12,7 +12,7 @@ See [feature acceptance](../../specs/002-solver-2x2/spec.md),
 
 ## Ownership and provenance
 
-The private package `@puzwerk/solver-2x2` makes PuzWerk the maintained location
+The private package `@puzlwerk/solver-2x2` makes PuzlWerk the maintained location
 for this reusable solver extraction. CubeLab remains an independent application;
 its working solver is not deleted or changed. No package is published here.
 The original CubeLab implementation at revision
@@ -67,7 +67,7 @@ isolated consumer. The packed artifact includes the compiled modules; consumers
 do not need a compiler. Caller code owns loading and deployment paths:
 
 ```js
-import { create2x2Solver, TABLE_URL } from '@puzwerk/solver-2x2'
+import { create2x2Solver, TABLE_URL } from '@puzlwerk/solver-2x2'
 const bytes = new Uint8Array(await (await fetch(TABLE_URL)).arrayBuffer())
 const solver = await create2x2Solver(bytes, immutablePrint)
 const result = solver.solve2x2(currentState, completeTarget, {
@@ -89,7 +89,7 @@ UI scheduling and cancellation policy belong to the consumer, not this package.
 
 ## State and coordinate boundary
 
-There is no executable canonical PuzWerk core yet. Rather than add a second
+There is no executable canonical PuzlWerk core yet. Rather than add a second
 physical model, an explicit compatibility adapter accepts the **existing**
 `cubistry.print@1` and `cubistry.state@1` wire profiles. Their strings are
 `schema: "cubistry.print"` / `"cubistry.state"` with integer `version: 1`.
@@ -159,7 +159,7 @@ word is `U R' U' F2 R2 U R F' U F'`. Independent replay verifies all bodies/stic
 and the four upright front asset references for 42 and 43. No visual rendering,
 font loading or browser counter integration is claimed by this headless fixture.
 
-After this PuzWerk PR is accepted, a separately reviewed Cubistry PR may replace
+After this PuzlWerk PR is accepted, a separately reviewed Cubistry PR may replace
 `inverse(witness[current]) + witness[target]` with this package, using
 `mode: 'exactPhysical'` and the chosen **complete** target witness. It must:
 
@@ -174,8 +174,8 @@ After this PuzWerk PR is accepted, a separately reviewed Cubistry PR may replace
 
 No Cubistry, CubeLab or Cubacle file is changed by this migration. Cubacle stays
 an independent optional Rust provider. Broader monorepo work
-[#8](https://github.com/wstein/puzwerk/issues/8),
-[#9](https://github.com/wstein/puzwerk/issues/9), Zettelkasten/Pages work and the
+[#8](https://github.com/wstein/puzlwerk/issues/8),
+[#9](https://github.com/wstein/puzlwerk/issues/9), Zettelkasten/Pages work and the
 3×3 Supercube are not implemented here.
 
 ## License and validation
@@ -183,7 +183,7 @@ an independent optional Rust provider. Broader monorepo work
 The solver package is **AGPL-3.0-or-later**, with CubeLab's LICENSE and NOTICE
 retained and full text in COPYING. The unrelated 4×4 source mentioned in upstream
 NOTICE is not included. The counter fixture has separate provenance and AGPL text.
-This does not relicense the entire PuzWerk repository or authorize a permissive
+This does not relicense the entire PuzlWerk repository or authorize a permissive
 license for downstream derived code; consumers must review distribution obligations.
 
 ```sh

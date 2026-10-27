@@ -1,4 +1,4 @@
-# PuzWerk knowledge base
+# PuzlWerk knowledge base
 
 This directory is the canonical project context for architectural decisions and cross-repository coordination. Keep facts, proposals and decisions distinct.
 
@@ -13,7 +13,7 @@ This directory is the canonical project context for architectural decisions and 
 
 ## Architecture boundaries
 
-PuzWerk defines state, transformations, validation and serialization. Cubacle (Rust) implements search and optimization; adapters must have versioned, tested contracts. CubeLab and CubeAssembler are potential consumers.
+PuzlWerk defines state, transformations, validation and serialization. Cubacle (Rust) implements search and optimization; adapters must have versioned, tested contracts. CubeLab and CubeAssembler are potential consumers.
 
 ## Questions requiring a decision
 
@@ -38,3 +38,10 @@ The maintainer separately authorized [the existing CubeLab solver extraction](so
 for #5 after the Cubistry pilot. [ADR 0005](../adr/0005-reusable-2x2-solver.md)
 records the narrow package/compatibility proposal. This does not approve the other
 001 milestones, a general physical core, package publication or consumer migration.
+
+## Project naming
+
+Use PuzlWerk and `@puzlwerk/*` for active references. The
+[technical rename inventory](rename-puzlwerk.md) records historical exceptions,
+the coordinated GitHub operation and separate consumer follow-ups. Existing ADRs
+and source provenance retain their original wording and hashes.

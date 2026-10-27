@@ -1,12 +1,12 @@
 # 002 — Existing 2×2 solver migration
 
-Status: implementation authorized by the maintainer's attached migration work item on 2026-10-27; Draft PR review and merge remain human gates. References: PuzWerk #5, #8, #9 and Cubistry #23.
+Status: implementation authorized by the maintainer's attached migration work item on 2026-10-27; Draft PR review and merge remain human gates. References: PuzlWerk #5, #8, #9 and Cubistry #23.
 
 ## Scope and prerequisites
 
 Cubistry pilot PRs #20/#22/#24 are merged. This authorization is limited to extracting the existing CubeLab solver/table into a headless package. It does not approve the broader 001 foundation milestones, the #9 monorepo design, consumer migration, package publication or repository renaming.
 
-PuzWerk currently has no executable canonical core. Do not implement a second physical engine: the package accepts the existing Cubistry v1 physical print/state wire format through an explicit adapter. CubeLab corner coordinates stay private solver coordinates. They are not a new canonical PuzWerk state model. The proposed 001 codec remains proposed.
+PuzlWerk currently has no executable canonical core. Do not implement a second physical engine: the package accepts the existing Cubistry v1 physical print/state wire format through an explicit adapter. CubeLab corner coordinates stay private solver coordinates. They are not a new canonical PuzlWerk state model. The proposed 001 codec remains proposed.
 
 ## Acceptance
 

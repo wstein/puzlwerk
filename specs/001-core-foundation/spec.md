@@ -5,7 +5,7 @@ Date: 2026-10-27. Source: [Issue #3](https://github.com/wstein/puzwerk/issues/3)
 
 ## Problem and scope
 
-PuzWerk provides the canonical ReScript puzzle model consumed by Cubacle (Rust search), CubeLab and CubeAssembler. Colors cannot stand in for physical identity or orientation. Consumers need reproducible transformations and goal evaluation without sharing rendering or search implementations.
+PuzlWerk provides the canonical ReScript puzzle model consumed by Cubacle (Rust search), CubeLab and CubeAssembler. Colors cannot stand in for physical identity or orientation. Consumers need reproducible transformations and goal evaluation without sharing rendering or search implementations.
 
 The proposed foundation models NxNxN shell pieces for integer N ≥ 2, with an initial **certified compatibility range 2–7**. Larger sizes are representable subject to explicit resource limits but have no compatibility or performance claim until certified. Non-cubic, bandaged, shape-changing and deformable puzzles are out of scope. Inner and wide moves are proposed explicitly in [ADR 0002](../../docs/adr/0002-coordinates-and-moves.md); this PR requests approval rather than assuming existing consumers agree.
 
@@ -44,7 +44,7 @@ As a consumer, I can transform states without rendering or solving.
 As a solver consumer, I negotiate a supported profile before submitting a versioned goal.
 
 - Unsupported identities, orientation goals, sizes, frames or move sets return `unsupported` before search; there is no color-only fallback (AC12).
-- Every solved response replays in PuzWerk from the requested initial state under the negotiated legal moves and satisfies the original goal (AC13).
+- Every solved response replays in PuzlWerk from the requested initial state under the negotiated legal moves and satisfies the original goal (AC13).
 - Time/budget exhaustion is `unknown`, never `unsatisfiable`; UNSAT requires a complete method for the exact negotiated finite problem (AC14).
 - Canonical definition/state/goal round trips are deterministic and lossless for supported profiles, including invisible sticker identities (AC15).
 

@@ -1,12 +1,12 @@
 # Proposed Cubacle solver contract v1
 
-Status: Proposed; requires PuzWerk and Cubacle maintainer approval. No current Cubacle protocol support is asserted. Related: [ADR 0004](../../../docs/adr/0004-versioned-solver-boundary.md).
+Status: Proposed; requires PuzlWerk and Cubacle maintainer approval. No current Cubacle protocol support is asserted. Related: [ADR 0004](../../../docs/adr/0004-versioned-solver-boundary.md).
 
 ## Boundary and versioning
 
-PuzWerk owns definitions, states, goals, move application and final verification. Cubacle owns search, pruning, heuristics and its resource accounting. A transport adapter invokes an explicitly configured executable; no arbitrary shell strings. Initial proposed transport: one bounded UTF-8 JSON request on stdin and one JSON response on stdout per process; diagnostics on stderr. A capability probe is a separate process request. Streaming progress and binary transport are deferred.
+PuzlWerk owns definitions, states, goals, move application and final verification. Cubacle owns search, pruning, heuristics and its resource accounting. A transport adapter invokes an explicitly configured executable; no arbitrary shell strings. Initial proposed transport: one bounded UTF-8 JSON request on stdin and one JSON response on stdout per process; diagnostics on stderr. A capability probe is a separate process request. Streaming progress and binary transport are deferred.
 
-Every envelope contains `protocol: "puzwerk.solver"`, `version: {major:1,minor:0}`, and an opaque request ID echoed exactly. Major mismatch rejects; minor is negotiated to the highest mutually advertised revision and never inferred. Unknown fields in a negotiated schema are errors; additive fields require a new advertised minor revision. Unknown enum values/features always reject.
+Every envelope contains `protocol: "puzlwerk.solver"`, `version: {major:1,minor:0}`, and an opaque request ID echoed exactly. Major mismatch rejects; minor is negotiated to the highest mutually advertised revision and never inferred. Unknown fields in a negotiated schema are errors; additive fields require a new advertised minor revision. Unknown enum values/features always reject.
 
 Canonical JSON is UTF-8, lexicographically sorted object keys, no insignificant whitespace, integer numeric values in their schema bounds, no duplicate keys, no negative zero, and ID-keyed arrays sorted by ID. Semantic arrays (move sequence, matrix rows, goal-child sequence) preserve order. Wire strings use JSON escaping, ASCII IDs, and Unicode metadata without normalization. Hashes are SHA-256 of those canonical bytes, lowercase hexadecimal, prefixed `sha256:`. Hash fields are excluded from their own hashed document. Definition/state/goal identity uses canonical documents, never process-specific object hashes.
 
@@ -15,7 +15,7 @@ Canonical JSON is UTF-8, lexicographically sorted object keys, no insignificant 
 Example (envelopes abbreviated only by omitting no required fields):
 
 ```json
-{"protocol":"puzwerk.solver","version":{"major":1,"minor":0},"requestId":"cap-1","kind":"capabilities"}
+{"protocol":"puzlwerk.solver","version":{"major":1,"minor":0},"requestId":"cap-1","kind":"capabilities"}
 ```
 
 Response payload must advertise backend name/version/source revision, protocol revisions, coordinate convention IDs, supported size ranges, move-policy features, goal node kinds, sticker/pose symmetry support, fixed/global goal frames, reachability checks, metrics, budget/cancellation support and input/output limits. An empty supported set is valid. Never infer rich goal support from generic NxN or color solving support.
@@ -24,7 +24,7 @@ Response payload must advertise backend name/version/source revision, protocol r
 
 ```json
 {
-  "protocol":"puzwerk.solver",
+  "protocol":"puzlwerk.solver",
   "version":{"major":1,"minor":0},
   "requestId":"solve-1",
   "kind":"solve",
@@ -45,7 +45,7 @@ This is a **shape illustration, not a valid conformance fixture**: placeholder h
 
 ## Outcomes and errors
 
-Every result echoes request ID, negotiated version, backend identity, all three request hashes, outcome, elapsed milliseconds, expanded nodes if measured (otherwise null), and effective limits/metric. `solved` adds canonical moves, final-state hash and optimality `proven|notProven`; proven requires the advertised exhaustive optimization method and metric. Zero moves is a valid already-satisfied solution. PuzWerk recomputes both the final hash and goal truth; a backend assertion alone is never success.
+Every result echoes request ID, negotiated version, backend identity, all three request hashes, outcome, elapsed milliseconds, expanded nodes if measured (otherwise null), and effective limits/metric. `solved` adds canonical moves, final-state hash and optimality `proven|notProven`; proven requires the advertised exhaustive optimization method and metric. Zero moves is a valid already-satisfied solution. PuzlWerk recomputes both the final hash and goal truth; a backend assertion alone is never success.
 
 - `unsatisfiable`: only a complete algorithm covering the exact definition, state, legal move set, frame and goal, with named method/version and completeness scope. Search cutoffs, unsupported features and bounded-depth exhaustion return `unknown` instead. A declared complete method requires a separately audited conformance record; no unverifiable generic “UNSAT” claim is accepted as proof.
 - `unknown`: reason `timeout|nodeLimit|memoryLimit|depthLimit|cancelled|incompleteMethod`; no implication about existence.
@@ -72,6 +72,6 @@ Identical inputs must decode, transform, serialize and evaluate identically. A s
 7. Unsupported exact goal or size returns unsupported; no search fallback.
 8. Time/node/memory/cancel outcomes never UNSAT; fake solved response rejected on replay.
 9. Fixed-frame versus global-rotation goals, wide/inner mapping, and all-layer rotation rejection when forbidden.
-10. A genuinely complete tiny restricted problem may establish UNSAT conformance; no new solver is required in PuzWerk.
+10. A genuinely complete tiny restricted problem may establish UNSAT conformance; no new solver is required in PuzlWerk.
 
 Compatibility fixtures and a machine-readable schema are future approved tasks. This document defines their semantics; examples must not be mistaken for a deployed protocol.
