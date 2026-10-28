@@ -1,6 +1,7 @@
 # ADR 0006: Canonical notes and curated publishing views
 
-Status: Proposed for Stage 1 acceptance
+Status: Accepted
+Accepted: 2026-10-28
 Date: 2026-10-28
 
 ## Context
@@ -10,7 +11,7 @@ share one directory. A future documentation site must not become another editabl
 source. Issues [#10](https://github.com/wstein/puzlwerk/issues/10) and
 [#15](https://github.com/wstein/puzlwerk/issues/15) authorize the scoped migration.
 
-## Proposed decision
+## Decision
 
 Keep existing documents and links. Add atomic Markdown notes with stable IDs,
 explicit maturity, source links and reciprocal related links. Keep decisions in
@@ -29,6 +30,6 @@ paths, needs disciplined source/status links and requires a future route resolve
 
 Astro Starlight is the requested Stage 2 default, not an installed dependency or
 deployment decision in this PR. This ADR changes no solver, goal semantics, prior
-ADR status, licensing or research verdict. Human acceptance is still required.
+ADR status, licensing or research verdict. This ADR is accepted for the canonical knowledge architecture; deployment and subsequent implementation stages remain separately approval-gated.
 See [the conventions](../knowledge-base/CONVENTIONS.md) and
 [Stage 1 specification](../../specs/003-knowledge-base/spec.md).
