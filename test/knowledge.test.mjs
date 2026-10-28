@@ -66,3 +66,14 @@ test('same-page links accept existing headings and reject missing headings', t =
   f.edit(note, s => s + '\n[Missing](#absent)\n');
   assert.match(f.check().errors.join('\n'), /Broken heading anchor/);
 });
+
+test('curated document routes reject traversal and missing sources', t => {
+  const f = fixture(t);
+  f.edit(kb + 'publication.json', s => { const d = JSON.parse(s); d.documents[0].slug = '../escape'; return JSON.stringify(d); });
+  assert.match(f.check().errors.join('\n'), /Invalid curated document mapping/);
+});
+test('curated document mapping rejects a nonexistent source', t => {
+  const f = fixture(t);
+  f.edit(kb + 'publication.json', s => { const d = JSON.parse(s); d.documents[0].path = 'docs/missing.md'; return JSON.stringify(d); });
+  assert.match(f.check().errors.join('\n'), /Invalid curated document mapping/);
+});

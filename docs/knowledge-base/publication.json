@@ -5,13 +5,30 @@
     "developer": [
       {
         "label": "Physical state and goals",
-        "notes": ["pw-20261028-001", "pw-20261028-002"]
+        "notes": [
+          "pw-20261028-001",
+          "pw-20261028-002"
+        ]
       },
       {
         "label": "Architecture and scope",
-        "notes": ["pw-20261028-003"]
+        "notes": [
+          "pw-20261028-003"
+        ]
       }
     ],
     "user": []
-  }
+  },
+  "documents": [
+    {
+      "path": "docs/knowledge-base/solver-2x2.md",
+      "title": "2\u00d72 solver reference",
+      "slug": "reference/solver-2x2"
+    },
+    {
+      "path": "docs/knowledge-base/CONVENTIONS.md",
+      "title": "Knowledge authoring guide",
+      "slug": "guides/knowledge-authoring"
+    }
+  ]
 }
