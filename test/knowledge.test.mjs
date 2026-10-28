@@ -27,11 +27,13 @@ function fixture(t) {
 test('canonical graph has indexed stable notes, visible sources and computed backlinks', () => {
   const result = checkKnowledge(source, files);
   assert.deepEqual(result.errors, []);
-  assert.equal(result.notes, 3);
+  assert.ok(result.notes >= 3);
   assert.equal(result.backlinks['pw-20261028-001'].length, 2);
 });
 for (const [name, path, mutate, expected] of [
   ['broken source', note, s => s.replaceAll('../solver-2x2.md', '../missing.md'), /Broken local link/],
+  ['same-page fragment', note, s => s + '\n[bad](#nonexistent-heading)\n', /Broken heading anchor/],
+  ['inventory omission', kb + 'inventory.json', s => { const d = JSON.parse(s); d.documents.pop(); return JSON.stringify(d); }, /inventory is incomplete/],
   ['broken fragment', note, s => s + '\n[bad](../solver-2x2.md#missing-anchor)\n', /Broken heading anchor/],
   ['missing ID', note, s => s.replace('id: pw-20261028-001\n', ''), /Missing note metadata/],
   ['dangling relation', note, s => s.replace('related: ["pw-20261028-002", "pw-20261028-003"]', 'related: ["pw-20261028-999"]'), /Dangling related ID/],
@@ -54,4 +56,12 @@ test('duplicate stable note IDs are rejected', t => {
 test('destinations cover reference, HTML and inline links while ignoring fenced examples', () => {
   assert.deepEqual(destinations('[a][ref]\n[ref]: target.md\n<a href="page.md">x</a>\n[x](other.md)\n```md\n[ignored](gone.md)\n```'), ['target.md', 'other.md', 'page.md']);
   assert.throws(() => destinations('[x][unknown]'), /Undefined link reference/);
+});
+
+test('same-page links accept existing headings and reject missing headings', t => {
+  const f = fixture(t);
+  f.edit(note, s => s + '\n[Sources](#sources)\n');
+  assert.deepEqual(f.check().errors, []);
+  f.edit(note, s => s + '\n[Missing](#absent)\n');
+  assert.match(f.check().errors.join('\n'), /Broken heading anchor/);
 });

@@ -71,7 +71,7 @@ export function checkKnowledge(root, files) {
       if (/^[a-z]+:/i.test(target)) throw Error(`Unsupported link scheme: ${target}`);
       const [path, fragment] = target.split('#');
       const decoded = decodeURIComponent(path.split('?')[0]);
-      const absolute = decoded.startsWith('/') ? resolve(root, '.' + decoded) : resolve(root, dirname(file), decoded);
+      const absolute = !decoded ? resolve(root, file) : decoded.startsWith('/') ? resolve(root, '.' + decoded) : resolve(root, dirname(file), decoded);
       if (relative(root, absolute).startsWith('..')) throw Error(`Link escapes repository: ${target}`);
       if (!existsSync(absolute)) throw Error(`Broken local link: ${target}`);
       if (fragment && statSync(absolute).isFile() && /\.md$/i.test(absolute) && !anchors(readFileSync(absolute, 'utf8')).has(decodeURIComponent(fragment))) throw Error(`Broken heading anchor: ${target}`);
@@ -98,6 +98,8 @@ export function checkKnowledge(root, files) {
   report('inventory', () => {
     const inventory = JSON.parse(read(kb + 'inventory.json'));
     if (inventory.version !== 1 || !/^[a-f0-9]{40}$/.test(inventory.baseline)) throw Error('Invalid inventory version/baseline');
+    const pathDigest = createHash('sha256').update(inventory.documents.map(entry => entry.path).sort().join('\n') + '\n').digest('hex');
+    if (pathDigest !== inventory.markdownPathsSha256) throw Error('Baseline Markdown inventory is incomplete or changed');
     const seen = new Set();
     for (const entry of inventory.documents) {
       if (seen.has(entry.path) || !files.includes(entry.path)) throw Error(`Missing/duplicate baseline document: ${entry.path}`);

@@ -18,6 +18,8 @@ Status: Stage 1 implementation for human acceptance; see the
 
 Existing knowledge paths remain valid. The [baseline inventory](inventory.json)
 classifies every pre-migration Markdown document and records its original hash.
+A committed SHA-256 of the sorted baseline path set detects omitted inventory
+records; changing that fingerprint requires a reviewed inventory migration.
 `preserve` means byte-identical; navigation updates and explicit status annotations
 are separately identified. The [inventory review](INVENTORY.md) explains ownership,
 overlaps and unresolved questions. New files are additions to that baseline.
