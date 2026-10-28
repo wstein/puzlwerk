@@ -14,11 +14,12 @@ function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'puzlwerk-knowledge-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   for (const path of [...files, kb + 'inventory.json', kb + 'publication.json',
-    'packages/solver-2x2/package.json', 'test/helpers/physical-replay.mjs',
-    'test/solver.test.mjs', 'scripts/verify-package.mjs', 'packages/solver-2x2/provenance.json']) {
+    'packages/solver-2x2/package.json', 'packages/solver-2x2/src/index.d.ts', 'test/helpers/physical-replay.mjs',
+    'test/solver.test.mjs', 'test/fixtures/cubistry-42-43.json', 'scripts/verify-package.mjs', 'packages/solver-2x2/provenance.json']) {
     mkdirSync(dirname(join(root, path)), { recursive: true });
     copyFileSync(join(source, path), join(root, path));
   }
+  assert.deepEqual(checkKnowledge(root, files).errors, [], 'Fixture must be valid before mutation');
   return {
     check: () => checkKnowledge(root, files),
     edit: (path, fn) => writeFileSync(join(root, path), fn(readFileSync(join(root, path), 'utf8'))),
