@@ -111,6 +111,11 @@ export function checkKnowledge(root, files) {
   report('publication', () => {
     const pub = JSON.parse(read(kb + 'publication.json'));
     if (pub.version !== 1 || pub.status !== 'proposed' || Object.keys(pub.views).sort().join() !== 'developer,user') throw Error('Invalid publication version/status/views');
+    const paths = new Set(), slugs = new Set();
+    for (const doc of pub.documents ?? []) {
+      if (!files.includes(doc.path) || doc.path.startsWith(kb + 'notes/') || !doc.title || !/^(?:guides|reference|architecture)\/[a-z0-9-]+$/.test(doc.slug) || paths.has(doc.path) || slugs.has(doc.slug)) throw Error('Invalid curated document mapping');
+      paths.add(doc.path); slugs.add(doc.slug);
+    }
     for (const [view, groups] of Object.entries(pub.views)) {
       if (!Array.isArray(groups)) throw Error('Invalid navigation groups');
       const seen = new Set();

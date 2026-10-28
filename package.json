@@ -16,7 +16,9 @@
     "typecheck": "tsc -p test/types/tsconfig.json",
     "test:package": "npm run build && node scripts/verify-package.mjs",
     "docs:check": "node scripts/check-knowledge.mjs",
-    "test:docs": "node --test test/knowledge.test.mjs"
+    "test:docs": "node --test test/knowledge.test.mjs",
+    "docs:build": "npm --prefix docs/site run build",
+    "docs:links": "node docs/site/check-built.mjs"
   },
   "devDependencies": {
     "rescript": "12.3.1",

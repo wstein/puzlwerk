@@ -65,7 +65,9 @@ Stage 2 should add guides/reference/architecture navigation by referencing their
 existing canonical files. Keep note IDs available as page metadata and stable
 anchors, with a reviewed ID-to-route mapping; source-relative links are not assumed
 to work unchanged in a static site. No Astro, Starlight, Hugo or deployment workflow
-is added in Stage 1.
+is added in Stage 1. The separate [Stage 2 publishing view](../site/README.md)
+consumes this selection, using optional `documents` mappings (`path`, `title`,
+`slug`) for existing guides/reference. Note selection remains ID-based.
 
 ## Validation and editing
 

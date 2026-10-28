@@ -2,3 +2,9 @@ node_modules/
 lib/
 **/*.res.mjs
 **/.compiler.log
+
+# Disposable curated documentation build inputs and output
+docs/site/src/content/docs/
+docs/site/dist/
+docs/site/.astro/
+docs/site/test-results/
