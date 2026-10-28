@@ -40,3 +40,10 @@
 - Apply exact-case, context-aware edits to active references; never use global case-insensitive replacements.
 - Preserve historical ADR wording, immutable snapshots, source URLs/revisions/hashes, quotations and license/copyright notices. Classify old-name occurrences as historical, active or uncertain; report uncertain cases for review instead of silently changing them.
 - Naming-only work does not authorize a solver/application change, package publication or migration. Preserve existing `@cubistry/*` packages.
+
+## Knowledge authoring
+
+- Follow [knowledge conventions](docs/knowledge-base/CONVENTIONS.md); use stable IDs, explicit maturity, sources and reciprocal related links for atomic notes.
+- Keep requirements in specs, decisions in ADRs, API details in their reference and immutable evidence at its source. Preserve existing paths and historical provenance.
+- Run `npm run docs:check` and `npm run test:docs` for documentation changes. Publication metadata selects public content; it does not authorize deployment or imply unselected notes are private.
+- The maintainer's optimistic stacked-development policy permits dependent Draft PR implementation while review is pending. Keep each dependent branch based on its immediate parent; do not infer merge, deployment, destructive branch or protection-setting approval.

@@ -16,6 +16,14 @@ PuzlWerk owns the canonical puzzle-model design and the separately scoped reusab
 
 Read [AGENTS.md](AGENTS.md) and [the knowledge base](docs/knowledge-base/README.md). Work proceeds specification-first, with small focused conventional commits, tests, pull requests and human review. No implementation is authorized by this bootstrap alone.
 
+## Knowledge navigation
+
+The [canonical knowledge index](docs/knowledge-base/README.md) links atomic notes,
+API reference, proposed decisions and specifications. See the
+[inventory and status review](docs/knowledge-base/INVENTORY.md) before interpreting
+historical roadmap text as current implementation status. Documentation checks:
+`npm run docs:check` and `npm run test:docs`.
+
 ## Initial roadmap
 
 1. Specify core coordinates, piece identity, orientations and move semantics in `specs/001-core-foundation/`.
