@@ -1,0 +1,60 @@
+name: Curated documentation
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy accepted main to production Pages (maintainer approval)'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: docs-pages-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: docs/site/package-lock.json
+      - run: npm run docs:check
+      - run: npm run test:docs
+      - run: npm ci --prefix docs/site
+      - run: npm run docs:build
+      - run: npm run docs:links
+      - run: npx playwright install --with-deps chromium
+        working-directory: docs/site
+      - run: npm run test:e2e
+        working-directory: docs/site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/site/dist
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: documentation-browser-failure
+          path: docs/site/test-results/
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy explicitly approved main
+        id: deployment
+        uses: actions/deploy-pages@v4
