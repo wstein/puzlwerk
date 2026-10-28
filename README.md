@@ -1,6 +1,6 @@
 # PuzlWerk
 
-Coordinate-based twisty-puzzle model and virtual cube engine, designed for solver interoperability.
+Rendering-independent twisty-puzzle foundation for physical state models, legal moves, and reusable solvers.
 
 ## Scope
 
@@ -11,6 +11,11 @@ Coordinate-based twisty-puzzle model and virtual cube engine, designed for solve
 - Interoperability contracts for the Cubacle Rust CLI solver.
 
 PuzlWerk owns the canonical puzzle-model design and the separately scoped reusable [2×2 solver extraction](docs/knowledge-base/solver-2x2.md). Cubacle remains an independent optional Rust solver provider. Visualization clients should consume the shared model rather than duplicate cube logic.
+
+## Ecosystem boundary
+
+PuzlWerk supplies reusable mathematical puzzle models, move/state semantics, and solver interfaces. It does not own browser rendering, 3D viewers, animations, application runtimes, or print-design UIs. [Cubistry](https://github.com/wstein/cubistry) consumes the foundation for its cube-display framework and visualizer; upper-layer applications such as the planned time-focused ChronoCube consume Cubistry. Dependencies flow from applications to Cubistry to PuzlWerk, never backward. This describes the intended architectural boundary, not a claim that all planned modules are implemented.
+
 
 ## Development
 
