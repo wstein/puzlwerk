@@ -1,5 +1,12 @@
 # Reusable 2×2 solver
 
+> Integration status, 2026-10-28: [Cubistry PR #31](https://github.com/wstein/cubistry/pull/31)
+> is merged and consumes this package in `exactPhysical` mode. The original
+> migration/next-step account below is retained as context, not an outstanding
+> consumer implementation task. See the [scope note](notes/pw-20261028-003-package-and-foundation.md)
+> and [inventory review](INVENTORY.md). This does not close the source issues.
+
+
 Status: scoped implementation for [#5](https://github.com/wstein/puzlwerk/issues/5),
 subject to Draft PR acceptance. The maintainer authorized this migration on
 2026-10-27 after Cubistry pilot PRs #20, #22 and #24 were merged. This does not

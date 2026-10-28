@@ -1,0 +1,156 @@
+{
+  "version": 1,
+  "baseline": "c0826027e5c4b369edbee0f05d239fc7f35e737a",
+  "documents": [
+    {
+      "path": ".github/pull_request_template.md",
+      "kind": "workflow",
+      "disposition": "preserve",
+      "baselineSha256": "bec9da1c5da9d6173398d364a36133c10bf1e8caf9ea7a9040143e0a880836a6"
+    },
+    {
+      "path": "AGENTS.md",
+      "kind": "workflow",
+      "disposition": "update-navigation",
+      "baselineSha256": "434d0267242eceb0a8d4a75c75f57fc2817419bc47190b70c4db6ed286dc717d"
+    },
+    {
+      "path": "README.md",
+      "kind": "index",
+      "disposition": "update-navigation",
+      "baselineSha256": "c1ad16f53b92e6cdc71a3bf88d12762825633f945c92943882c53484e98e4c8a"
+    },
+    {
+      "path": "docs/adr/0001-engine-boundaries.md",
+      "kind": "decision",
+      "disposition": "preserve",
+      "baselineSha256": "6679f6d5ae866d40f108445fbcd2c11e8a1aca3a96a2a83f7e8a79d2653f7366"
+    },
+    {
+      "path": "docs/adr/0002-coordinates-and-moves.md",
+      "kind": "decision",
+      "disposition": "preserve",
+      "baselineSha256": "76a4390b7b69d4bd86a34fc5a956aafe9711012bff4eb8d643014a1818186cff"
+    },
+    {
+      "path": "docs/adr/0003-identity-and-goal-symmetry.md",
+      "kind": "decision",
+      "disposition": "preserve",
+      "baselineSha256": "f9d50141b8b5d4d109596cafcf099704668e6d379d74024ce40a8ea6f0178ab2"
+    },
+    {
+      "path": "docs/adr/0004-versioned-solver-boundary.md",
+      "kind": "decision",
+      "disposition": "preserve",
+      "baselineSha256": "c42480f78d8f54b7a562c32d72c40c33601af1d442d9fc934ea0177f1dc85825"
+    },
+    {
+      "path": "docs/adr/0005-reusable-2x2-solver.md",
+      "kind": "decision",
+      "disposition": "preserve",
+      "baselineSha256": "0ce3f8a32cb1c4c3c7785f6e9cef2020903304873152c16135cfb382929c8eed"
+    },
+    {
+      "path": "docs/adr/README.md",
+      "kind": "workflow",
+      "disposition": "preserve",
+      "baselineSha256": "d47a649f1cb54220b1739adc1e90c5be417d5f638239ebb00cfe35597243dbf9"
+    },
+    {
+      "path": "docs/knowledge-base/README.md",
+      "kind": "index",
+      "disposition": "update-navigation",
+      "baselineSha256": "e7e1be7bf3a6814d1b0f1662e3db95a1c0524f38bc46964ca56d14c56fbdb5e2"
+    },
+    {
+      "path": "docs/knowledge-base/architecture.md",
+      "kind": "design-context",
+      "disposition": "preserve",
+      "baselineSha256": "2d0c8927875ec656f5a547dd1e823274f5b88012d86f264e2c751bc9038e603c"
+    },
+    {
+      "path": "docs/knowledge-base/rename-puzlwerk.md",
+      "kind": "historical-record",
+      "disposition": "preserve",
+      "baselineSha256": "6e3373c86b1e2f11f28613dcd5fb0e35d01e245f9bcdb7d297d0977c26a7d203"
+    },
+    {
+      "path": "docs/knowledge-base/repository-metadata.md",
+      "kind": "workflow",
+      "disposition": "preserve",
+      "baselineSha256": "a493e01ab67350ca5ba3527a95b469b9ff96685d526918491685bd98777eb4af"
+    },
+    {
+      "path": "docs/knowledge-base/solver-2x2.md",
+      "kind": "reference",
+      "disposition": "annotate-status",
+      "baselineSha256": "8f5619ff1049e11826c2e8e94fcad097192dcd6974970f9d7c8ce3ec3b2739f0"
+    },
+    {
+      "path": "docs/knowledge-base/solver-contract.md",
+      "kind": "design-context",
+      "disposition": "preserve",
+      "baselineSha256": "998e9c1cd9b32d4d385cf84b12ff4dbcac61715f441a95c702a86c40020a5328"
+    },
+    {
+      "path": "docs/knowledge-base/workflow.md",
+      "kind": "workflow",
+      "disposition": "preserve",
+      "baselineSha256": "669f1d1a83a00b5159ee5b4b82dbb0aa4b76ee5bda776af7a2369e045e482195"
+    },
+    {
+      "path": "specs/001-core-foundation/README.md",
+      "kind": "specification",
+      "disposition": "preserve",
+      "baselineSha256": "0ea56343e21af3c539d53e04930373f338adde47d44d71d0fce89bc0e57a8418"
+    },
+    {
+      "path": "specs/001-core-foundation/contracts/solver.md",
+      "kind": "specification",
+      "disposition": "preserve",
+      "baselineSha256": "7610da214e3400dc900156d4661ea36edd3d9891cf5d208efdd5e9c346126211"
+    },
+    {
+      "path": "specs/001-core-foundation/data-model.md",
+      "kind": "specification",
+      "disposition": "preserve",
+      "baselineSha256": "24a2877c8dabd88a876f9393c37e10ce362a0cc63589e01d88cfe1d9091b9378"
+    },
+    {
+      "path": "specs/001-core-foundation/plan.md",
+      "kind": "specification",
+      "disposition": "preserve",
+      "baselineSha256": "be3e718d7375ef5c173edd916c9fbf4daa195cac12c4e3a6b7d1c98c8aa5e086"
+    },
+    {
+      "path": "specs/001-core-foundation/research.md",
+      "kind": "specification",
+      "disposition": "preserve",
+      "baselineSha256": "1108f4f4626c223207e52405d6de0c016eda2de1bcb2deac36362a71c1b00295"
+    },
+    {
+      "path": "specs/001-core-foundation/spec.md",
+      "kind": "specification",
+      "disposition": "preserve",
+      "baselineSha256": "650eac35f17c9a31c1b13156a17a014741e23b5fe2f5707967797c38c89a101d"
+    },
+    {
+      "path": "specs/001-core-foundation/tasks.md",
+      "kind": "specification",
+      "disposition": "preserve",
+      "baselineSha256": "14fce386041fc0c89879c233befcf00f36cee74666684b794542da166d4f131d"
+    },
+    {
+      "path": "specs/002-solver-2x2/spec.md",
+      "kind": "specification",
+      "disposition": "preserve",
+      "baselineSha256": "9f58bb1d6f3da8f583f91874e786d32661538719e9e22514be0422d50c68eafe"
+    },
+    {
+      "path": "test/fixtures/NOTICE.md",
+      "kind": "provenance",
+      "disposition": "preserve",
+      "baselineSha256": "7e531073e5ab88cfbaf17c34fee926c72f28f558afb3ec4e79614405efc974b4"
+    }
+  ]
+}

@@ -1,47 +1,53 @@
 # PuzlWerk knowledge base
 
-This directory is the canonical project context for architectural decisions and cross-repository coordination. Keep facts, proposals and decisions distinct.
+Canonical Git-versioned project knowledge. Facts, proposals, requirements and
+historical evidence have different authorities; an index link never accepts an ADR.
 
-## Domain concepts
+## Start here
 
-- **Piece identity:** distinguishes pieces even when stickers/colors are identical.
-- **Position:** coordinate-defined slot in a puzzle state.
-- **Orientation:** a piece's pose relative to a specified reference frame.
-- **Orientation equivalence:** symmetry subgroup defining when distinct poses satisfy the same goal (e.g. 90° or 180° rotational symmetry).
-- **Move legality:** physical allowed transformations; separate from solved-state equivalence.
-- **Goal predicate:** configurable condition for colors, identities, positions and orientations.
+- [Conventions, metadata and public views](CONVENTIONS.md)
+- [Inventory, ownership and unresolved contradictions](INVENTORY.md)
+- [Machine-readable baseline inventory](inventory.json)
+- [Proposed curated navigation](publication.json)
+- [Stage 1 scope and acceptance](../../specs/003-knowledge-base/spec.md)
 
-## Architecture boundaries
+## Atomic notes
 
-PuzlWerk defines state, transformations, validation and serialization. Cubacle (Rust) implements search and optimization; adapters must have versioned, tested contracts. CubeLab and CubeAssembler are potential consumers.
+- [pw-20261028-001 — Physical identity survives visual equivalence](notes/pw-20261028-001-identity-and-equivalence.md)
+- [pw-20261028-002 — Exact replay and shortest-path guarantees are separate claims](notes/pw-20261028-002-replay-and-optimality.md)
+- [pw-20261028-003 — An implemented scoped package does not approve the general foundation](notes/pw-20261028-003-package-and-foundation.md)
 
-## Questions requiring a decision
+Each note has stable identity, maturity, visible sources and reciprocal related
+links. `npm run docs:check` validates the graph and computes backlinks without
+maintaining another content database. All notes remain public repository content;
+publication candidates are a proposed curated view, not deployment permission.
 
-1. Coordinate convention and reference frames for NxNxN cubes and nonstandard puzzles.
-2. Piece types, indistinguishability and equivalence classes.
-3. Representation of orientation groups and symmetry subgroups.
-4. Move notation, serialization and ReScript/Rust interoperability.
-5. Ownership of goal predicates and solver capability negotiation.
-6. Compatibility fixtures and performance budgets.
+## Canonical reference and context
 
-## Decision process
+- [Scoped 2×2 API, modes, physical profile, metrics, provenance and license](solver-2x2.md)
+- [Architecture and ownership design intent](architecture.md)
+- [Proposed Cubacle solver contract overview](solver-contract.md)
+- [Development workflow and initial work order](workflow.md)
+- [Repository metadata proposal](repository-metadata.md)
+- [Historical rename inventory](rename-puzlwerk.md)
 
-Record each accepted architectural choice as an ADR under `docs/adr/`, with context, alternatives, consequences and date. Unresolved questions stay proposals, not implicit requirements.
+The private scoped solver is implemented and Cubistry PR #31 is merged. The general
+NxN foundation and Cubacle rich-goal protocol remain proposals. The implemented
+package is not an npm publication or general core release. Use lowercase
+`puzlwerk`, `@puzlwerk/*` and `wstein/puzlwerk` for active technical references;
+historical ADRs and source hashes keep their original wording.
 
-## Foundation specification under review
+## Decisions, specifications and open questions
 
-[001 core foundation](../../specs/001-core-foundation/spec.md) contains the proposed requirements; [research](../../specs/001-core-foundation/research.md) tracks Q1–Q7, source pins and alternatives. Proposed ADRs [0002](../adr/0002-coordinates-and-moves.md), [0003](../adr/0003-identity-and-goal-symmetry.md) and [0004](../adr/0004-versioned-solver-boundary.md) cover frames/moves, physical identity/goal symmetry and solver interchange. None is accepted by this index. All 001 foundation implementation phases remain blocked pending explicit human approval.
+- [ADR index](../adr/README.md): ADRs 0001–0005 retain their recorded statuses.
+- [Proposed ADR 0006: canonical knowledge and curated views](../adr/0006-canonical-knowledge.md)
+- [001 foundation specification](../../specs/001-core-foundation/README.md)
+- [Foundation research/Q1–Q7](../../specs/001-core-foundation/research.md): frames,
+  move notation, identity/symmetry, capability negotiation, reachability,
+  compatibility fixtures and performance budgets still need their scoped decisions.
+- [002 solver extraction requirements](../../specs/002-solver-2x2/spec.md)
 
-## Scoped 2×2 solver migration
-
-The maintainer separately authorized [the existing CubeLab solver extraction](solver-2x2.md)
-for #5 after the Cubistry pilot. [ADR 0005](../adr/0005-reusable-2x2-solver.md)
-records the narrow package/compatibility proposal. This does not approve the other
-001 milestones, a general physical core, package publication or consumer migration.
-
-## Project naming
-
-Use PuzlWerk and `@puzlwerk/*` for active references. The
-[technical rename inventory](rename-puzlwerk.md) records historical exceptions,
-the coordinated GitHub operation and separate consumer follow-ups. Existing ADRs
-and source provenance retain their original wording and hashes.
+No accepted architecture is silently inferred or overwritten by this migration.
+Stage 2 Starlight implementation may proceed in a dependent Draft PR under the
+maintainer's optimistic stacking policy. Merge, settings and production deployment
+remain explicit approval boundaries. The website must reuse these canonical sources.

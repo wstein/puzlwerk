@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "status": "proposed",
+  "views": {
+    "developer": [
+      {
+        "label": "Physical state and goals",
+        "notes": ["pw-20261028-001", "pw-20261028-002"]
+      },
+      {
+        "label": "Architecture and scope",
+        "notes": ["pw-20261028-003"]
+      }
+    ],
+    "user": []
+  }
+}
