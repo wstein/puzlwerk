@@ -140,6 +140,16 @@ test("the center reference kernel covers all 2048 legal tuples with bounded exac
       assert.deepEqual(Centers.apply(zero(), alg)._0, tuple);
     }
   }
+  for (const malformed of [
+    null,
+    "000000",
+    [0, 0, 0, 0, 0],
+    [2, 0, 0, 0, 0, 0, 0],
+    [1, , 1, 0, 0, 0],
+    Array(6),
+    [0.5, 1.5, 0, 0, 0, 0],
+  ])
+    assert.equal(centerKernelReference(malformed).status, "invalid");
   for (const generator of stats.generators) {
     const parsed = Parser.parse(3, generator.word)._0;
     assert.equal(
