@@ -16,7 +16,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Pinned: Playwright 1.56 browser dependencies are installed per Ubuntu release.
+    runs-on: ubuntu-24.04
     env:
       ASTRO_TELEMETRY_DISABLED: '1'
     steps:
