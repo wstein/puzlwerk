@@ -53,6 +53,22 @@ ADRs/specification; no second architecture manual is created. There is no automa
 wholesale note export. Add new curation only through reviewed metadata changes.
 Changing a stable route requires compatibility redirects/links, not ID reuse.
 
+## Curation workflow
+
+1. Write or update the canonical note or document first. A note is publishable only
+   with `publication: developer-candidate` (or `user-candidate`), the matching
+   `audience`, and status `proposed` or `verified`.
+2. Add its stable ID to a navigation group in
+   [publication.json](../knowledge-base/publication.json), or add a `documents`
+   entry (`path`, `title`, `slug` under `guides/`, `reference/` or `architecture/`)
+   for an existing non-note document. Never reference copied content.
+3. Run `npm run docs:check`, `npm run test:docs`, `npm run docs:build` and
+   `npm run docs:links`, then the browser checks above.
+4. Open a PR with only the selection change and its sources. Reviewers check the
+   rendered pages in the uploaded CI Pages artifact.
+5. To remove a page, drop it from the selection. The canonical file stays public
+   in the repository. Inbound links to the old route need a replacement link.
+
 ## Publishing approval
 
 GitHub Pages is already configured for Actions; this task changes no setting.
