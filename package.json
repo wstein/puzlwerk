@@ -9,7 +9,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "rescript build",
+    "build": "rescript build && npm run build --workspace @puzlwerk/solver-3x3-picture",
     "test": "npm run build && node --test test/*.test.mjs",
     "format:check": "rescript format --check",
     "check": "npm run format:check && npm run typecheck && npm test",

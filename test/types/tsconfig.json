@@ -11,6 +11,7 @@
     ]
   },
   "files": [
-    "consumer.ts"
+    "consumer.ts",
+    "picture-consumer.ts"
   ]
 }

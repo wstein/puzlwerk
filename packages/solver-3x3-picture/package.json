@@ -1,0 +1,30 @@
+{
+  "name": "@puzlwerk/solver-3x3-picture",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.mjs"
+    }
+  },
+  "scripts": {
+    "build": "rescript build"
+  },
+  "dependencies": {
+    "@rescript/runtime": "12.3.1"
+  },
+  "files": [
+    "src/",
+    "res/upstream/**/*.res",
+    "res/upstream/**/*.res.mjs",
+    "LICENSE",
+    "NOTICE",
+    "UPSTREAM-NOTICE",
+    "provenance.json",
+    "rescript.json",
+    "README.md"
+  ]
+}
