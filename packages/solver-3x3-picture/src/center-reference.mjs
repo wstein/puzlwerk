@@ -96,17 +96,19 @@ function table() {
 }
 /** A legal exact reference, not a shortest route; a checked fallback may traverse it. */
 export function centerKernelReference(orientations) {
+  // Copy densely first: sparse holes would otherwise be skipped as zeros.
+  const values = Array.isArray(orientations) ? Array.from(orientations) : null;
   if (
-    !Array.isArray(orientations) ||
-    !Centers.validOrientations(orientations) ||
-    orientations.reduce((a, b) => a + b, 0) % 2
+    !values ||
+    !Centers.validOrientations(values) ||
+    values.reduce((a, b) => a + b, 0) % 2
   )
     return Object.freeze({
       status: "invalid",
       reason: "Expected an even-parity physical center kernel tuple",
     });
   const data = table();
-  let at = Centers.encode(orientations);
+  let at = Centers.encode(values);
   const words = [];
   while (at !== 0) {
     words.push(data.edges[data.edgeIndex[at]].word);
