@@ -64,3 +64,7 @@ The target repository is `wstein/puzlwerk` and private packages use `@puzlwerk/*
 The maintainer performs the GitHub repository rename separately; this technical
 rename does not publish packages or change repository settings. See the
 [rename inventory and external follow-ups](docs/knowledge-base/rename-puzlwerk.md).
+
+## Bounded 3×3 picture solver
+
+The private [center-aware solver package](docs/knowledge-base/solver-3x3-picture.md) reuses the reviewed CubeLab implementation for calendar integration. Physical centers, goal symmetry and budget failures are explicit; ordinary 2×2 behavior remains unchanged.
