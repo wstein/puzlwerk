@@ -56,8 +56,9 @@ Changing a stable route requires compatibility redirects/links, not ID reuse.
 ## Curation workflow
 
 1. Write or update the canonical note or document first. A note is publishable only
-   with `publication: developer-candidate` (or `user-candidate`), the matching
-   `audience`, and status `proposed` or `verified`.
+   with `audience: developer`, `publication: developer-candidate` and status
+   `proposed` or `verified`. The site currently renders only the developer view;
+   the user view is validated but intentionally empty and not built.
 2. Add its stable ID to a navigation group in
    [publication.json](../knowledge-base/publication.json), or add a `documents`
    entry (`path`, `title`, `slug` under `guides/`, `reference/` or `architecture/`)
