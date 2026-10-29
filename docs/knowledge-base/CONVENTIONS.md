@@ -1,8 +1,8 @@
 # Knowledge conventions
 
-Status: Stage 1 implementation for human acceptance; see the
+Status: Stage 1 merged in PR #17 (2026-10-28); see the
 [scope and acceptance criteria](../../specs/003-knowledge-base/spec.md) and
-[proposed ADR 0006](../adr/0006-canonical-knowledge.md).
+[accepted ADR 0006](../adr/0006-canonical-knowledge.md).
 
 ## One source per responsibility
 
