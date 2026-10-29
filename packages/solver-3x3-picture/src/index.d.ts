@@ -23,3 +23,24 @@ export type PictureResult = Readonly<
 export declare const PICTURE_SOLVER_API_VERSION: 1;
 /** Run in a worker; the caller imposes a hard deadline and handles cancellation. */
 export declare function solvePicture3x3(request: PictureRequest): PictureResult;
+/** Metadata/reference construction only: no shortest-path or executed-route bound. */
+export declare function centerKernelReference(
+  orientations: readonly number[],
+): Readonly<
+  | {
+      status: "reference";
+      moves: readonly FaceMove[];
+      htm: number;
+      maximumReferenceMoves: number;
+    }
+  | { status: "invalid"; reason: string }
+>;
+export declare function centerKernelReferenceStatistics(): Readonly<{
+  states: number;
+  maximumReferenceMoves: number;
+  generators: readonly {
+    word: string;
+    delta: readonly number[];
+    htm: number;
+  }[];
+}>;

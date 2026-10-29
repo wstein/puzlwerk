@@ -34,3 +34,8 @@ npm exec --package=rescript@12.3.1 -- rescript build
 
 Canonical reference and acceptance:
 https://github.com/wstein/puzlwerk/tree/feat/3x3-picture-solver/specs/005-solver-3x3-picture
+
+`centerKernelReference` constructs an exact, bounded source-history reference
+for legal center-only differences. It is not a short-solution claim. If a
+consumer uses its inverse as a physical fallback, those moves must be counted.
+The underlying 2,048-state kernel is checked; its constructed maximum is 286 HTM.

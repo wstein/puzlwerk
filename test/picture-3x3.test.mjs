@@ -107,3 +107,45 @@ test("retained ReScript sources match their pinned CubeLab provenance", () => {
       file.path,
     );
 });
+
+test("the center reference kernel covers all 2048 legal tuples with bounded exact words", async () => {
+  const { centerKernelReference, centerKernelReferenceStatistics } =
+    await import("../packages/solver-3x3-picture/src/index.mjs");
+  const stats = centerKernelReferenceStatistics();
+  assert.equal(stats.states, 2048);
+  assert.equal(stats.maximumReferenceMoves, 286);
+  for (let coordinate = 0; coordinate < 4096; coordinate++) {
+    const tuple = Centers.decode(coordinate),
+      answer = centerKernelReference(tuple);
+    if (tuple.reduce((a, b) => a + b, 0) % 2) {
+      assert.equal(answer.status, "invalid");
+      continue;
+    }
+    assert.equal(answer.status, "reference");
+    assert(answer.htm <= 286);
+    const count = [0, 0, 0, 0, 0, 0];
+    for (const token of answer.moves) {
+      const at = "ULFRBD".indexOf(token[0]);
+      count[at] =
+        (count[at] + (token.endsWith("2") ? 2 : token.endsWith("'") ? 3 : 1)) %
+        4;
+    }
+    assert.deepEqual(count, tuple);
+    if (coordinate % 127 === 0) {
+      const alg = Parser.parse(3, answer.moves.join(" "))._0;
+      assert.equal(
+        Codec.render(Executor.applyAlg(Codec.parse(3, solved)._0, alg)._0),
+        solved,
+      );
+      assert.deepEqual(Centers.apply(zero(), alg)._0, tuple);
+    }
+  }
+  for (const generator of stats.generators) {
+    const parsed = Parser.parse(3, generator.word)._0;
+    assert.equal(
+      Codec.render(Executor.applyAlg(Codec.parse(3, solved)._0, parsed)._0),
+      solved,
+    );
+    assert.deepEqual(Centers.apply(zero(), parsed)._0, generator.delta);
+  }
+});

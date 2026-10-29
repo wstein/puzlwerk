@@ -63,5 +63,12 @@
       "path": "res/upstream/State/StateTypes.res",
       "sha256": "4eabd092fdd4405a686b25b9e982eec06853f022728d5061a2c3f713c065dd7e"
     }
-  ]
+  ],
+  "referenceMacros": {
+    "repository": "https://github.com/wstein/cubistry",
+    "revision": "2455cef82040822bb601191c801e4052602c0db9",
+    "path": "research/date-3x3/center-corrections.json",
+    "adjacentPairConstruction": "(R U)^105 and proper cube symmetries; independently verified ordinary identity and center deltas",
+    "constructedReferenceMaximumHTM": 286
+  }
 }

@@ -89,3 +89,8 @@ export function solvePicture3x3(request) {
     centerOrientationsAfter: Object.freeze([...after._0]),
   });
 }
+
+export {
+  centerKernelReference,
+  centerKernelReferenceStatistics,
+} from "./center-reference.mjs";

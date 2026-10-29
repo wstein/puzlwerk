@@ -64,3 +64,20 @@ The source provenance regression checks all twelve retained modules byte for
 byte. Package regressions cover malformed inputs, physical parity, optical
 symmetry, exhausted budgets, normal move/inverse replay and a six-move positive
 case with identical colors but different printed-center orientations.
+
+## Exact source-reference compaction
+
+`centerKernelReference(orientations)` constructs a legal word for an even-parity
+center tuple while restoring every ordinary cubie. It uses known single-half,
+opposite-quarter and adjacent-quarter kernel words; the adjacent reference is
+`(R U)^105` under cube symmetries. A weighted 2,048-state kernel table limits the
+reference to 286 HTM. This is a bound on these constructed references, not an
+optimal center solution or a bound on calendar animation routes.
+
+A calendar can append that kernel word to its canonical target source word and
+adopt it **only after exact all-sticker replay equality with the actual pose**.
+It compresses an ever-growing history without resetting hidden centers. A
+reference may still be used by a fallback's inverse, so such fallback motion
+must be counted honestly; the kernel reference is not advertised as a short
+executed path. Tests check the complete even/odd tuple inventory, generator
+identity, center deltas and representative full-word replays.
