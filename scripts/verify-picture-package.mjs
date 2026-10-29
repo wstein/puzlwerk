@@ -20,6 +20,9 @@ try {
   )[0];
   if (packed.files.filter((f) => f.path.endsWith(".res.mjs")).length !== 12)
     throw Error("Expected twelve compiled upstream modules");
+  for (const required of ["LICENSE", "COPYING", "NOTICE", "UPSTREAM-NOTICE"])
+    if (!packed.files.some((f) => f.path === required))
+      throw Error(`Packed picture package is missing ${required}`);
   const meta = JSON.parse(
     readFileSync("packages/solver-3x3-picture/package.json"),
   );

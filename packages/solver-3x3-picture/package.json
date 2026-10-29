@@ -21,6 +21,7 @@
     "res/upstream/**/*.res",
     "res/upstream/**/*.res.mjs",
     "LICENSE",
+    "COPYING",
     "NOTICE",
     "UPSTREAM-NOTICE",
     "provenance.json",
