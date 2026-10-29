@@ -40,7 +40,7 @@ historical ADRs and source hashes keep their original wording.
 ## Decisions, specifications and open questions
 
 - [ADR index](../adr/README.md): ADRs 0001–0005 retain their recorded statuses.
-- [Proposed ADR 0006: canonical knowledge and curated views](../adr/0006-canonical-knowledge.md)
+- [Accepted ADR 0006: canonical knowledge and curated views](../adr/0006-canonical-knowledge.md)
 - [001 foundation specification](../../specs/001-core-foundation/README.md)
 - [Foundation research/Q1–Q7](../../specs/001-core-foundation/research.md): frames,
   move notation, identity/symmetry, capability negotiation, reachability,
@@ -48,6 +48,6 @@ historical ADRs and source hashes keep their original wording.
 - [002 solver extraction requirements](../../specs/002-solver-2x2/spec.md)
 
 No accepted architecture is silently inferred or overwritten by this migration.
-Stage 2 Starlight implementation may proceed in a dependent Draft PR under the
-maintainer's optimistic stacking policy. Merge, settings and production deployment
-remain explicit approval boundaries. The website must reuse these canonical sources.
+The Stage 2 [Starlight publishing view](../site/README.md) is merged (PR #18) and
+reuses these canonical sources. Settings changes and production deployment remain
+explicit approval boundaries.

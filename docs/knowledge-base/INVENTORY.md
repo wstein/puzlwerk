@@ -61,10 +61,12 @@ from the original records. No external repository has been edited by Stage 1.
 
 ## Open decisions and follow-ups
 
-1. Human review of the three notes, conventions and proposed ADR 0006.
+1. Resolved 2026-10-28: the three notes and conventions merged in PR #17, and
+   ADR 0006 is accepted.
 2. Explicit disposition of earlier proposed ADRs, especially 0005; no inferred
    approval from a code merge.
-3. Stage 2 route mapping, curated guides/reference navigation and search. Proposed
-   publication metadata authorizes no deployment or wholesale note export.
+3. Resolved 2026-10-28: Stage 2 route mapping, curated navigation and search merged
+   in PR #18. Publication metadata still authorizes no deployment or wholesale
+   note export.
 4. Later backlog/reference audits may update current status pages; dated evidence,
    historical names, licenses and proof/source hashes remain preserved.
