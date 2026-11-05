@@ -30,7 +30,7 @@ These pins establish reproducible audit targets, **not** verified adapter compat
 
 ## Open questions and disposition
 
-- **Q1 (approval blocker):** Approve frame/face-up table and 2–7 certification scope? Confirm each consumer mapping with pinned fixtures before compatibility claims.
+- **Q1 (approved 2026-11-05 by the owner, narrowed scope):** The frame, the doubled coordinates and the frame/face-up table are approved. Certification covers N=2 and N=3 first; sizes 4–7 need a separate approval and remain uncertified until then. Confirm each consumer mapping with pinned fixtures before compatibility claims. No code is unblocked by this decision: T005 still depends on T004 (build, Q6) and the ADR review.
 - **Q2 (notation milestone blocker):** Approve legal multi-layer policy; which notation aliases, slices and global rotations should public text parsing support? AST semantics are complete without aliases.
 - **Q3 (Cubacle adapter blocker):** Which proposed goal nodes, exact reference frames, sizes and moves does Cubacle actually support? Assign a Cubacle maintainer to approve its capability response and required follow-up issue. Unsupported is acceptable; silent weakening is not.
 - **Q4 (reachability milestone blocker):** Which size/policy combinations receive complete reachability checks? Start with replay certificates and documented invariants; unknown is an intentional result.
