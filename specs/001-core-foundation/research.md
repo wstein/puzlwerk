@@ -21,7 +21,7 @@ These pins establish reproducible audit targets, **not** verified adapter compat
 | Topic | Proposed choice | Alternatives and tradeoffs | Record |
 | --- | --- | --- | --- |
 | Coordinates | Right-handed integer doubled lattice | 0-based indexing is compact but obscures centered rotations; floats introduce rounding | ADR 0002 |
-| Pose | Explicit proper 3×3 integer matrix | 0–23 orientation indices smaller but require a shared table; quaternions inappropriate for exact discrete equality | ADR 0003 |
+| Pose | Explicit proper 3×3 integer matrix (the one core pose; other formats are adapters) | 0–23 orientation indices smaller but require a shared table; quaternions inappropriate for exact discrete equality | ADR 0003 |
 | Identity | Stable physical IDs independent of colors | Facelet-only compact representation loses equal-color identities and sticker-up | ADR 0003 |
 | Symmetry | Goal comparison via explicit groups | Normalizing physical states loses information; arbitrary angle lists need not be groups | ADR 0003 |
 | Wire | Versioned bounded canonical JSON | Binary codec more compact but less reviewable; JS object ABI excludes Rust | ADR 0004 |
