@@ -8,8 +8,6 @@ Use a right-handed puzzle frame: +X right (R), +Y up (U), +Z front (F). A viewer
 
 For face-local coordinates, outward normal n and up u define right r=u×n, so r×u=n. Proposed defaults: F(n=+Z,u=+Y), B(−Z,+Y), R(+X,+Y), L(−X,+Y), U(+Y,−Z), D(−Y,+Z). Record this table in every legacy adapter; never infer it from image orientation. Face centers on odd cubes are modeled physical pieces, not discarded reference markers.
 
-Q1 disposition (owner decision, 2026-11-05): the frame, the doubled centered integer coordinates and the face-up table above are approved. Certification covers N=2 and N=3 first; sizes 4–7 are representable but not certified until a separate approval. The status of the ADRs is unchanged.
-
 A global rotation is a member of the 24 proper signed permutation matrices. It transforms positions, poses and puzzle-frame goal vectors together when changing the reference frame. A camera motion transforms none of them. A physical whole-cube rotation changes the state only if explicitly permitted as a move. Goal acceptance up to a global rotation is a third, independent operation.
 
 ## Definition
@@ -24,15 +22,7 @@ Piece kind derives from exposed faces: corner (3), edge (2), center (1). Mechani
 
 `PuzzleState`: definition ID and one pose for every piece. A pose consists of piece ID, current shell position p, and orientation O mapping piece-local vectors into puzzle coordinates. O belongs to SO(3,Z), the 24 proper signed permutation matrices: integer entries −1/0/1, OᵀO=I, det O=+1. Wire format uses its row-major nine entries, avoiding an undocumented orientation-number table.
 
-Layout: entry (i,j) is row i, column j of O, and column j is the image O·e_j of piece-local axis j in puzzle coordinates. The wire lists row 0 first. Cubistry v1 `BodyFrame` and the PuzlWerk 2×2 adapter store the images O·e_j as rows, that is Oᵀ; reading those nine numbers as row-major O yields O⁻¹. Identity and half turns satisfy Oᵀ=O, so conversion fixtures must include quarter turns and 120° rotations. Cubistry v1 `BodyFrame`, Cubacle `pose24`, the Orbit64 frame rank and quaternions are adapters; SO(3,Z) is the only pose in the core.
-
-Consistency: every piece starts at its home slot h with O=I. Each move maps `(p,O)` to `(Rp,RO)`, so p=O·h holds for every piece in every reachable state. Structural validation rejects a state that violates it.
-
-Canonical bytes contain integers only: no decimal point, no exponent, no negative zero. Decoders reject `-0`, and adapters from JavaScript numbers normalize `-0` to `0` before encoding.
-
-A sticker's physical world normal is On and its world up is Ou. A center's orientation is retained even when its color hides it.
-
-Center twist has no field of its own. It is a derived view of O: for a center with outward normal n, twist r∈{0,1,2,3} counts clockwise quarter turns seen from outside, so O is the rotation about n by −90°·r (right-hand about +n) relative to the home orientation. This is certified for N=3 (six fixed centers). For N≥4 only a smoke test applies; the rule p=O·h already fixes the pose of non-fixed centers. Terminology: C1, C2 and C4 count the accepted quarter turns, while consumers use goal periods 1, 2 and 4. C1 is period 4 (exact), C2 is period 2 and C4 is period 1 (any twist). Never equate C1 with period 1. State equality compares all IDs, positions and O exactly, independent of record/array order. It does not quotient by visual symmetry or global rotation. Optical equivalence is only a goal comparison.
+A sticker's physical world normal is On and its world up is Ou. A center's orientation is retained even when its color hides it. State equality compares all IDs, positions and O exactly, independent of record/array order. It does not quotient by visual symmetry or global rotation. Optical equivalence is only a goal comparison.
 
 ## Moves
 
@@ -59,7 +49,7 @@ Example: two red edge pieces A and B can exchange matching color observations wi
 
 ## Validation and limits
 
-Return separate results for decoding, structural validity, mechanics invariants and reachability: `verified` (with legal replay witness or approved complete method), `disproved` (with applicable invariant/method evidence), or `unknown`. Structural pass is not a reachability certificate. Reject invalid types (including numeric strings/booleans), nonfinite/fractional coordinates, missing/duplicate IDs, reflections, poses with p≠O·h, negative zero, occupied-slot collisions, non-outward posed stickers and invalid symmetry groups. Check definition/profile consistency first. Orbit and twist/parity checks must identify their applicable size/move policy; do not generalize a 3×3 parity test to arbitrary NxN moves.
+Return separate results for decoding, structural validity, mechanics invariants and reachability: `verified` (with legal replay witness or approved complete method), `disproved` (with applicable invariant/method evidence), or `unknown`. Structural pass is not a reachability certificate. Reject invalid types (including numeric strings/booleans), nonfinite/fractional coordinates, missing/duplicate IDs, reflections, occupied-slot collisions, non-outward posed stickers and invalid symmetry groups. Check definition/profile consistency first. Orbit and twist/parity checks must identify their applicable size/move policy; do not generalize a 3×3 parity test to arbitrary NxN moves.
 
 Default untrusted-input limits proposed: 16 MiB JSON, N≤64, 100,000 goal nodes, depth≤64 and 1,000,000 response moves; caller may lower these, and solver advertises stricter limits. Reject before large allocations where possible. Larger puzzles need a separately negotiated profile. No validator or solver may downgrade unknown reachability to UNSAT.
 

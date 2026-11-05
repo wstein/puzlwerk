@@ -21,7 +21,7 @@ These pins establish reproducible audit targets, **not** verified adapter compat
 | Topic | Proposed choice | Alternatives and tradeoffs | Record |
 | --- | --- | --- | --- |
 | Coordinates | Right-handed integer doubled lattice | 0-based indexing is compact but obscures centered rotations; floats introduce rounding | ADR 0002 |
-| Pose | Explicit proper 3×3 integer matrix (the one core pose; other formats are adapters) | 0–23 orientation indices smaller but require a shared table; quaternions inappropriate for exact discrete equality | ADR 0003 |
+| Pose | Explicit proper 3×3 integer matrix | 0–23 orientation indices smaller but require a shared table; quaternions inappropriate for exact discrete equality | ADR 0003 |
 | Identity | Stable physical IDs independent of colors | Facelet-only compact representation loses equal-color identities and sticker-up | ADR 0003 |
 | Symmetry | Goal comparison via explicit groups | Normalizing physical states loses information; arbitrary angle lists need not be groups | ADR 0003 |
 | Wire | Versioned bounded canonical JSON | Binary codec more compact but less reviewable; JS object ABI excludes Rust | ADR 0004 |
@@ -30,7 +30,7 @@ These pins establish reproducible audit targets, **not** verified adapter compat
 
 ## Open questions and disposition
 
-- **Q1 (approved 2026-11-05 by the owner, narrowed scope):** The frame, the doubled coordinates and the frame/face-up table are approved. Certification covers N=2 and N=3 first; sizes 4–7 need a separate approval and remain uncertified until then. Confirm each consumer mapping with pinned fixtures before compatibility claims. No code is unblocked by this decision: T005 still depends on T004 (build, Q6) and the ADR review.
+- **Q1 (approval blocker):** Approve frame/face-up table and 2–7 certification scope? Confirm each consumer mapping with pinned fixtures before compatibility claims.
 - **Q2 (notation milestone blocker):** Approve legal multi-layer policy; which notation aliases, slices and global rotations should public text parsing support? AST semantics are complete without aliases.
 - **Q3 (Cubacle adapter blocker):** Which proposed goal nodes, exact reference frames, sizes and moves does Cubacle actually support? Assign a Cubacle maintainer to approve its capability response and required follow-up issue. Unsupported is acceptable; silent weakening is not.
 - **Q4 (reachability milestone blocker):** Which size/policy combinations receive complete reachability checks? Start with replay certificates and documented invariants; unknown is an intentional result.
