@@ -1,0 +1,11 @@
+# Origin of test/fixtures/conformance/f3-2x2-v1.json. Checked by test/conformance-fixtures.test.mjs
+# and by `python3 -I scripts/conformance-fixtures.py provenance|check`.
+# Replay of the two witnesses of the pinned Cubistry print (see that file for its own source revision).
+source_repository=https://github.com/wstein/puzlwerk
+source_commit=b791c344dc689433c01833376e35307f72711e06
+input_path=test/fixtures/cubistry-42-43.json
+input_sha256=12c3a56de4900d65183d576116d351cf64f991969fb2c41ffa3c55877c9f7d4d
+output_sha256=e9e23ffe389de2fae6a75cfa5ca34c79a283ef398b8a5eabd1ba3ef70be71cd1
+license=AGPL-3.0-or-later
+generator=scripts/conformance-fixtures.py
+regenerate=python3 -I scripts/conformance-fixtures.py check --flix <flix-orbit64 checkout> --cubacle <cubacle checkout>

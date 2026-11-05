@@ -1,0 +1,215 @@
+{
+  "fixture": "F3",
+  "title": "Cubistry v1 2x2 witnesses: BodyFrame cubies mapped to core poses",
+  "convention": {
+    "bodyFrame": "cubie.orientation of cubistry.state: rows are the images of the piece axes; the core O is its transposed matrix",
+    "n2": "N=2 positions are -1 and 1 in both models, no scaling",
+    "check": "position = O.home for every cubie"
+  },
+  "witnesses": [
+    {
+      "value": 42,
+      "word": "F2 U R2 L U L U' F U'",
+      "cubies": [
+        {
+          "id": 0,
+          "home": [-1, -1, -1],
+          "position": [-1, 1, 1],
+          "bodyFrame": [
+            [0, 0, -1],
+            [1, 0, 0],
+            [0, -1, 0]
+          ],
+          "o": [0, 1, 0, 0, 0, -1, -1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 1,
+          "home": [-1, -1, 1],
+          "position": [-1, -1, -1],
+          "bodyFrame": [
+            [0, 0, 1],
+            [0, 1, 0],
+            [-1, 0, 0]
+          ],
+          "o": [0, 0, -1, 0, 1, 0, 1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 2,
+          "home": [-1, 1, -1],
+          "position": [-1, -1, 1],
+          "bodyFrame": [
+            [0, 0, -1],
+            [-1, 0, 0],
+            [0, 1, 0]
+          ],
+          "o": [0, -1, 0, 0, 0, 1, -1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 3,
+          "home": [-1, 1, 1],
+          "position": [-1, 1, -1],
+          "bodyFrame": [
+            [0, 0, 1],
+            [0, 1, 0],
+            [-1, 0, 0]
+          ],
+          "o": [0, 0, -1, 0, 1, 0, 1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 4,
+          "home": [1, -1, -1],
+          "position": [1, 1, 1],
+          "bodyFrame": [
+            [0, 0, 1],
+            [-1, 0, 0],
+            [0, -1, 0]
+          ],
+          "o": [0, -1, 0, 0, 0, -1, 1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 5,
+          "home": [1, -1, 1],
+          "position": [1, -1, 1],
+          "bodyFrame": [
+            [0, -1, 0],
+            [0, 0, -1],
+            [1, 0, 0]
+          ],
+          "o": [0, 0, 1, -1, 0, 0, 0, -1, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 6,
+          "home": [1, 1, -1],
+          "position": [1, -1, -1],
+          "bodyFrame": [
+            [0, 0, -1],
+            [0, -1, 0],
+            [-1, 0, 0]
+          ],
+          "o": [0, 0, -1, 0, -1, 0, -1, 0, 0],
+          "oEqualsTransposed": true
+        },
+        {
+          "id": 7,
+          "home": [1, 1, 1],
+          "position": [1, 1, -1],
+          "bodyFrame": [
+            [1, 0, 0],
+            [0, 0, -1],
+            [0, 1, 0]
+          ],
+          "o": [1, 0, 0, 0, 0, 1, 0, -1, 0],
+          "oEqualsTransposed": false
+        }
+      ]
+    },
+    {
+      "value": 43,
+      "word": "R2 U2 F' U' R U F' L U'",
+      "cubies": [
+        {
+          "id": 0,
+          "home": [-1, -1, -1],
+          "position": [-1, 1, 1],
+          "bodyFrame": [
+            [0, 0, -1],
+            [1, 0, 0],
+            [0, -1, 0]
+          ],
+          "o": [0, 1, 0, 0, 0, -1, -1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 1,
+          "home": [-1, -1, 1],
+          "position": [-1, -1, -1],
+          "bodyFrame": [
+            [0, 0, 1],
+            [0, 1, 0],
+            [-1, 0, 0]
+          ],
+          "o": [0, 0, -1, 0, 1, 0, 1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 2,
+          "home": [-1, 1, -1],
+          "position": [-1, -1, 1],
+          "bodyFrame": [
+            [0, 0, -1],
+            [-1, 0, 0],
+            [0, 1, 0]
+          ],
+          "o": [0, -1, 0, 0, 0, 1, -1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 3,
+          "home": [-1, 1, 1],
+          "position": [-1, 1, -1],
+          "bodyFrame": [
+            [0, 0, 1],
+            [0, 1, 0],
+            [-1, 0, 0]
+          ],
+          "o": [0, 0, -1, 0, 1, 0, 1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 4,
+          "home": [1, -1, -1],
+          "position": [1, 1, 1],
+          "bodyFrame": [
+            [0, 0, 1],
+            [-1, 0, 0],
+            [0, -1, 0]
+          ],
+          "o": [0, -1, 0, 0, 0, -1, 1, 0, 0],
+          "oEqualsTransposed": false
+        },
+        {
+          "id": 5,
+          "home": [1, -1, 1],
+          "position": [1, -1, 1],
+          "bodyFrame": [
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]
+          ],
+          "o": [1, 0, 0, 0, 1, 0, 0, 0, 1],
+          "oEqualsTransposed": true
+        },
+        {
+          "id": 6,
+          "home": [1, 1, -1],
+          "position": [1, -1, -1],
+          "bodyFrame": [
+            [0, 0, -1],
+            [0, -1, 0],
+            [-1, 0, 0]
+          ],
+          "o": [0, 0, -1, 0, -1, 0, -1, 0, 0],
+          "oEqualsTransposed": true
+        },
+        {
+          "id": 7,
+          "home": [1, 1, 1],
+          "position": [1, 1, -1],
+          "bodyFrame": [
+            [0, 1, 0],
+            [1, 0, 0],
+            [0, 0, -1]
+          ],
+          "o": [0, 1, 0, 1, 0, 0, 0, 0, -1],
+          "oEqualsTransposed": true
+        }
+      ]
+    }
+  ]
+}

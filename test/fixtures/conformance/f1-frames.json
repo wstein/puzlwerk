@@ -1,0 +1,364 @@
+{
+  "fixture": "F1",
+  "title": "Whole-cube rotations as SO(3,Z), the transposed Cubistry v1 BodyFrame and the Orbit64 frame rank",
+  "convention": {
+    "frame": "+X right, +Y up, +Z front, right-handed",
+    "o": "row-major nine integers; column j is O.e_j; a piece starts with O=I, hence p=O.home",
+    "bodyFrame": "Cubistry v1 BodyFrame: the same rotation stored as the transposed matrix, row-major",
+    "slots": "the physical faces occupying the reference slots U R F D L B (Orbit64 frame rank)",
+    "turns": "clockwise quarter turns applied as x, then z, then y (rotation about the positive axis by -1)",
+    "class": "identity, half (180 degrees), quarter (90 degrees), third (120 degrees about a corner diagonal)"
+  },
+  "faces": [
+    {
+      "face": "U",
+      "normal": [0, 1, 0],
+      "up": [0, 0, -1],
+      "right": [1, 0, 0]
+    },
+    {
+      "face": "R",
+      "normal": [1, 0, 0],
+      "up": [0, 1, 0],
+      "right": [0, 0, -1]
+    },
+    {
+      "face": "F",
+      "normal": [0, 0, 1],
+      "up": [0, 1, 0],
+      "right": [1, 0, 0]
+    },
+    {
+      "face": "D",
+      "normal": [0, -1, 0],
+      "up": [0, 0, 1],
+      "right": [1, 0, 0]
+    },
+    {
+      "face": "L",
+      "normal": [-1, 0, 0],
+      "up": [0, 1, 0],
+      "right": [0, 0, 1]
+    },
+    {
+      "face": "B",
+      "normal": [0, 0, -1],
+      "up": [0, 1, 0],
+      "right": [-1, 0, 0]
+    }
+  ],
+  "rotations": [
+    {
+      "rank": 0,
+      "turns": {
+        "x": 0,
+        "z": 0,
+        "y": 0
+      },
+      "slots": "U R F D L B",
+      "class": "identity",
+      "o": [1, 0, 0, 0, 1, 0, 0, 0, 1],
+      "bodyFrame": [1, 0, 0, 0, 1, 0, 0, 0, 1],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 1,
+      "turns": {
+        "x": 0,
+        "z": 0,
+        "y": 1
+      },
+      "slots": "U B R D F L",
+      "class": "quarter",
+      "o": [0, 0, -1, 0, 1, 0, 1, 0, 0],
+      "bodyFrame": [0, 0, 1, 0, 1, 0, -1, 0, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 2,
+      "turns": {
+        "x": 0,
+        "z": 0,
+        "y": 2
+      },
+      "slots": "U L B D R F",
+      "class": "half",
+      "o": [-1, 0, 0, 0, 1, 0, 0, 0, -1],
+      "bodyFrame": [-1, 0, 0, 0, 1, 0, 0, 0, -1],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 3,
+      "turns": {
+        "x": 0,
+        "z": 0,
+        "y": 3
+      },
+      "slots": "U F L D B R",
+      "class": "quarter",
+      "o": [0, 0, 1, 0, 1, 0, -1, 0, 0],
+      "bodyFrame": [0, 0, -1, 0, 1, 0, 1, 0, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 4,
+      "turns": {
+        "x": 1,
+        "z": 0,
+        "y": 0
+      },
+      "slots": "F R D B L U",
+      "class": "quarter",
+      "o": [1, 0, 0, 0, 0, 1, 0, -1, 0],
+      "bodyFrame": [1, 0, 0, 0, 0, -1, 0, 1, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 5,
+      "turns": {
+        "x": 1,
+        "z": 0,
+        "y": 1
+      },
+      "slots": "F U R B D L",
+      "class": "third",
+      "o": [0, 1, 0, 0, 0, 1, 1, 0, 0],
+      "bodyFrame": [0, 0, 1, 1, 0, 0, 0, 1, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 6,
+      "turns": {
+        "x": 1,
+        "z": 0,
+        "y": 2
+      },
+      "slots": "F L U B R D",
+      "class": "half",
+      "o": [-1, 0, 0, 0, 0, 1, 0, 1, 0],
+      "bodyFrame": [-1, 0, 0, 0, 0, 1, 0, 1, 0],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 7,
+      "turns": {
+        "x": 1,
+        "z": 0,
+        "y": 3
+      },
+      "slots": "F D L B U R",
+      "class": "third",
+      "o": [0, -1, 0, 0, 0, 1, -1, 0, 0],
+      "bodyFrame": [0, 0, -1, -1, 0, 0, 0, 1, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 8,
+      "turns": {
+        "x": 2,
+        "z": 0,
+        "y": 0
+      },
+      "slots": "D R B U L F",
+      "class": "half",
+      "o": [1, 0, 0, 0, -1, 0, 0, 0, -1],
+      "bodyFrame": [1, 0, 0, 0, -1, 0, 0, 0, -1],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 9,
+      "turns": {
+        "x": 2,
+        "z": 0,
+        "y": 1
+      },
+      "slots": "D F R U B L",
+      "class": "half",
+      "o": [0, 0, 1, 0, -1, 0, 1, 0, 0],
+      "bodyFrame": [0, 0, 1, 0, -1, 0, 1, 0, 0],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 10,
+      "turns": {
+        "x": 2,
+        "z": 0,
+        "y": 2
+      },
+      "slots": "D L F U R B",
+      "class": "half",
+      "o": [-1, 0, 0, 0, -1, 0, 0, 0, 1],
+      "bodyFrame": [-1, 0, 0, 0, -1, 0, 0, 0, 1],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 11,
+      "turns": {
+        "x": 2,
+        "z": 0,
+        "y": 3
+      },
+      "slots": "D B L U F R",
+      "class": "half",
+      "o": [0, 0, -1, 0, -1, 0, -1, 0, 0],
+      "bodyFrame": [0, 0, -1, 0, -1, 0, -1, 0, 0],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 12,
+      "turns": {
+        "x": 3,
+        "z": 0,
+        "y": 0
+      },
+      "slots": "B R U F L D",
+      "class": "quarter",
+      "o": [1, 0, 0, 0, 0, -1, 0, 1, 0],
+      "bodyFrame": [1, 0, 0, 0, 0, 1, 0, -1, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 13,
+      "turns": {
+        "x": 3,
+        "z": 0,
+        "y": 1
+      },
+      "slots": "B D R F U L",
+      "class": "third",
+      "o": [0, -1, 0, 0, 0, -1, 1, 0, 0],
+      "bodyFrame": [0, 0, 1, -1, 0, 0, 0, -1, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 14,
+      "turns": {
+        "x": 3,
+        "z": 0,
+        "y": 2
+      },
+      "slots": "B L D F R U",
+      "class": "half",
+      "o": [-1, 0, 0, 0, 0, -1, 0, -1, 0],
+      "bodyFrame": [-1, 0, 0, 0, 0, -1, 0, -1, 0],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 15,
+      "turns": {
+        "x": 3,
+        "z": 0,
+        "y": 3
+      },
+      "slots": "B U L F D R",
+      "class": "third",
+      "o": [0, 1, 0, 0, 0, -1, -1, 0, 0],
+      "bodyFrame": [0, 0, -1, 1, 0, 0, 0, -1, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 16,
+      "turns": {
+        "x": 0,
+        "z": 1,
+        "y": 0
+      },
+      "slots": "L U F R D B",
+      "class": "quarter",
+      "o": [0, 1, 0, -1, 0, 0, 0, 0, 1],
+      "bodyFrame": [0, -1, 0, 1, 0, 0, 0, 0, 1],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 17,
+      "turns": {
+        "x": 0,
+        "z": 1,
+        "y": 1
+      },
+      "slots": "L B U R F D",
+      "class": "third",
+      "o": [0, 0, -1, -1, 0, 0, 0, 1, 0],
+      "bodyFrame": [0, -1, 0, 0, 0, 1, -1, 0, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 18,
+      "turns": {
+        "x": 0,
+        "z": 1,
+        "y": 2
+      },
+      "slots": "L D B R U F",
+      "class": "half",
+      "o": [0, -1, 0, -1, 0, 0, 0, 0, -1],
+      "bodyFrame": [0, -1, 0, -1, 0, 0, 0, 0, -1],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 19,
+      "turns": {
+        "x": 0,
+        "z": 1,
+        "y": 3
+      },
+      "slots": "L F D R B U",
+      "class": "third",
+      "o": [0, 0, 1, -1, 0, 0, 0, -1, 0],
+      "bodyFrame": [0, -1, 0, 0, 0, -1, 1, 0, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 20,
+      "turns": {
+        "x": 0,
+        "z": 3,
+        "y": 0
+      },
+      "slots": "R D F L U B",
+      "class": "quarter",
+      "o": [0, -1, 0, 1, 0, 0, 0, 0, 1],
+      "bodyFrame": [0, 1, 0, -1, 0, 0, 0, 0, 1],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 21,
+      "turns": {
+        "x": 0,
+        "z": 3,
+        "y": 1
+      },
+      "slots": "R B D L F U",
+      "class": "third",
+      "o": [0, 0, -1, 1, 0, 0, 0, -1, 0],
+      "bodyFrame": [0, 1, 0, 0, 0, -1, -1, 0, 0],
+      "oEqualsTransposed": false
+    },
+    {
+      "rank": 22,
+      "turns": {
+        "x": 0,
+        "z": 3,
+        "y": 2
+      },
+      "slots": "R U B L D F",
+      "class": "half",
+      "o": [0, 1, 0, 1, 0, 0, 0, 0, -1],
+      "bodyFrame": [0, 1, 0, 1, 0, 0, 0, 0, -1],
+      "oEqualsTransposed": true
+    },
+    {
+      "rank": 23,
+      "turns": {
+        "x": 0,
+        "z": 3,
+        "y": 3
+      },
+      "slots": "R F U L B D",
+      "class": "third",
+      "o": [0, 0, 1, 1, 0, 0, 0, 1, 0],
+      "bodyFrame": [0, 1, 0, 0, 0, 1, 1, 0, 0],
+      "oEqualsTransposed": false
+    }
+  ]
+}
