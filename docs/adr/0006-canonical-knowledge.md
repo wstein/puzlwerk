@@ -1,6 +1,6 @@
 # ADR 0006: Canonical notes and curated publishing views
 
-Status: Accepted
+Status: Superseded by [ADR 0007](0007-atomic-notes-not-stored-here.md) as to atomic notes and their validation; otherwise Accepted
 Accepted: 2026-10-28
 Date: 2026-10-28
 
