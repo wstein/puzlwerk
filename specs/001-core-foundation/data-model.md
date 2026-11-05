@@ -30,7 +30,9 @@ Consistency: every piece starts at its home slot h with O=I. Each move maps `(p,
 
 Canonical bytes contain integers only: no decimal point, no exponent, no negative zero. Decoders reject `-0`, and adapters from JavaScript numbers normalize `-0` to `0` before encoding.
 
-A sticker's physical world normal is On and its world up is Ou. A center's orientation is retained even when its color hides it. State equality compares all IDs, positions and O exactly, independent of record/array order. It does not quotient by visual symmetry or global rotation. Optical equivalence is only a goal comparison.
+A sticker's physical world normal is On and its world up is Ou. A center's orientation is retained even when its color hides it.
+
+Center twist has no field of its own. It is a derived view of O: for a center with outward normal n, twist r∈{0,1,2,3} counts clockwise quarter turns seen from outside, so O is the rotation about n by −90°·r (right-hand about +n) relative to the home orientation. This is certified for N=3 (six fixed centers). For N≥4 only a smoke test applies; the rule p=O·h already fixes the pose of non-fixed centers. Terminology: C1, C2 and C4 count the accepted quarter turns, while consumers use goal periods 1, 2 and 4. C1 is period 4 (exact), C2 is period 2 and C4 is period 1 (any twist). Never equate C1 with period 1. State equality compares all IDs, positions and O exactly, independent of record/array order. It does not quotient by visual symmetry or global rotation. Optical equivalence is only a goal comparison.
 
 ## Moves
 
