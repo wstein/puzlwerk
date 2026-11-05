@@ -23,8 +23,8 @@ Read [AGENTS.md](AGENTS.md) and [the knowledge base](docs/knowledge-base/README.
 
 ## Knowledge navigation
 
-The [canonical knowledge index](docs/knowledge-base/README.md) links atomic notes,
-API reference, proposed decisions and specifications. See the
+The [canonical knowledge index](docs/knowledge-base/README.md) links API reference,
+proposed decisions and specifications. See the
 [inventory and status review](docs/knowledge-base/INVENTORY.md) before interpreting
 historical roadmap text as current implementation status. Documentation checks:
 `npm run docs:check` and `npm run test:docs`.

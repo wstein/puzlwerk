@@ -13,14 +13,9 @@ historical evidence have different authorities; an index link never accepts an A
 
 ## Atomic notes
 
-- [pw-20261028-001 — Physical identity survives visual equivalence](notes/pw-20261028-001-identity-and-equivalence.md)
-- [pw-20261028-002 — Exact replay and shortest-path guarantees are separate claims](notes/pw-20261028-002-replay-and-optimality.md)
-- [pw-20261028-003 — An implemented scoped package does not approve the general foundation](notes/pw-20261028-003-package-and-foundation.md)
-
-Each note has stable identity, maturity, visible sources and reciprocal related
-links. `npm run docs:check` validates the graph and computes backlinks without
-maintaining another content database. All notes remain public repository content;
-publication candidates are a proposed curated view, not deployment permission.
+Atomic knowledge notes are not stored in this repository.
+Decisions, requirements and API reference keep their authorities here: ADRs in
+`docs/adr/`, requirements in `specs/`, reference in the documents below.
 
 ## Canonical reference and context
 

@@ -21,16 +21,15 @@ Historical source text remains inspectable in Git at that revision.
 | Fixture NOTICE | Immutable source/attribution record; leave byte-identical |
 | PR template | Contributor workflow, not evergreen domain knowledge |
 
-The new notes explain three reusable distinctions and point back to these owning
-documents rather than copying API tables, requirements or research. Their IDs
-are listed in the [index](README.md). No tutorials or generated reference tree
-exist yet; do not invent a second authoritative source for them.
+The three atomic notes written in Stage 1 are no longer part of this repository. No tutorials or
+generated reference tree exist yet; do not invent a second authoritative source
+for them.
 
 ## Overlaps, outdated statements and contradictions
 
 - The old knowledge index repeated the domain overview and architecture summary.
-  It is now a navigation/status entry point; linked notes own the reusable
-  explanations and existing detailed documents own their reference content.
+  It is now a navigation/status entry point; existing detailed documents own
+  their reference content and reusable explanations are not kept here.
 - Foundation research says no build existed at its source revision. That is
   historical context, not a present tooling claim. Keep it unchanged; the package
   reference and manifest describe the implemented build.
@@ -62,7 +61,7 @@ from the original records. No external repository has been edited by Stage 1.
 ## Open decisions and follow-ups
 
 1. Resolved 2026-10-28: the three notes and conventions merged in PR #17, and
-   ADR 0006 is accepted.
+   ADR 0006 is accepted. The notes were later removed from this repository.
 2. Explicit disposition of earlier proposed ADRs, especially 0005; no inferred
    approval from a code merge.
 3. Resolved 2026-10-28: Stage 2 route mapping, curated navigation and search merged

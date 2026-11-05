@@ -43,7 +43,7 @@
 
 ## Knowledge authoring
 
-- Follow [knowledge conventions](docs/knowledge-base/CONVENTIONS.md); use stable IDs, explicit maturity, sources and reciprocal related links for atomic notes.
+- Follow [knowledge conventions](docs/knowledge-base/CONVENTIONS.md). Atomic notes are not stored in this repository.
 - Keep requirements in specs, decisions in ADRs, API details in their reference and immutable evidence at its source. Preserve existing paths and historical provenance.
-- Run `npm run docs:check` and `npm run test:docs` for documentation changes. Publication metadata selects public content; it does not authorize deployment or imply unselected notes are private.
+- Run `npm run docs:check` and `npm run test:docs` for documentation changes. Publication metadata selects public content; it does not authorize deployment or imply unselected content is private.
 - The maintainer's optimistic stacked-development policy permits dependent Draft PR implementation while review is pending. Keep each dependent branch based on its immediate parent; do not infer merge, deployment, destructive branch or protection-setting approval.

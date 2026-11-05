@@ -1,5 +1,8 @@
 # 004 — Curated Starlight documentation, Stage 2
 
+> Update: the atomic notes and their validation (stable IDs, relations, note
+> selection) no longer exist in this repository. Text below about notes is historical.
+
 Status: implementation authorized under the maintainer's optimistic stacked
 policy. Depends on Stage 1 PR #17; human merge/deployment approval remains required.
 Tracks [#16](https://github.com/wstein/puzlwerk/issues/16).
