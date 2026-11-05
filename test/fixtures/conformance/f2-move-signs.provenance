@@ -1,0 +1,11 @@
+# Origin of test/fixtures/conformance/f2-move-signs.json. Checked by test/conformance-fixtures.test.mjs
+# and by `python3 -I scripts/conformance-fixtures.py provenance|check`.
+# Derived from the Moves section of the data model; x, y, z signs are pinned by f4-3x3-picture-rotations.json.
+source_repository=https://github.com/wstein/puzlwerk
+source_commit=b791c344dc689433c01833376e35307f72711e06
+input_path=specs/001-core-foundation/data-model.md
+input_sha256=e085ef92ca1f82028c456df805d4e4ed130b66f938d5b73e9c990881a6362358
+output_sha256=0ed31d22bea255bb7b3aec55840771a797ff7a9c034e6d37dac785f87729de99
+license=AGPL-3.0-or-later
+generator=scripts/conformance-fixtures.py
+regenerate=python3 -I scripts/conformance-fixtures.py check --flix <flix-orbit64 checkout> --cubacle <cubacle checkout>

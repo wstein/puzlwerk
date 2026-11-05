@@ -1,0 +1,11 @@
+# Origin of test/fixtures/conformance/f1-frames.json. Checked by test/conformance-fixtures.test.mjs
+# and by `python3 -I scripts/conformance-fixtures.py provenance|check`.
+# Frame rank table of the Orbit64 reference; faces, up and right from specs/001-core-foundation/data-model.md (Frames and integer coordinates).
+source_repository=https://github.com/wstein/flix-orbit64
+source_commit=a046e34adcdc212a69ce3dcc24b2e47b7fabfbe5
+input_path=src/Orbit64/Frame.flix
+input_sha256=36668339cf77fa1d765f76ee80e434221077bffdd622e4bad9babf3cc3698d8c
+output_sha256=8352769b06186bfb85192d47d056b86b48372d4cae46cde10a9e33bdb027eec8
+license=Apache-2.0
+generator=scripts/conformance-fixtures.py
+regenerate=python3 -I scripts/conformance-fixtures.py check --flix <flix-orbit64 checkout> --cubacle <cubacle checkout>
