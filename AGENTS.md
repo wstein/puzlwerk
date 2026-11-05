@@ -4,8 +4,8 @@
 
 - Read README and `docs/knowledge-base/README.md` before work.
 - Begin with a spec and acceptance criteria; do not infer permission to implement from a planning request.
-- Human approval is required before starting each implementation phase and before merging PRs.
-- Never self-merge, force-push protected branches, or change repository settings without explicit authorization.
+- Human approval is required before starting each implementation phase.
+- Agent collaboration (roles, review, Ready, merge, rewrite, stacks, labels, identity, reports) follows the global agent rules, not this file.
 
 ## Workflow
 
@@ -13,7 +13,6 @@
 2. Draft `specs/001-core-foundation/` (specification, plan, tasks) using Spec-Kit conventions.
 3. Review architecture and interfaces before coding.
 4. Implement small vertical slices with tests and focused Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`).
-5. Open a PR with scope, test evidence, risks, unresolved questions and linked spec. Await human review.
 
 ## Engineering rules
 
@@ -27,11 +26,7 @@
 
 ## Git history and atomic commits
 
-- Keep the history of protected branches strictly linear. Prefer **Rebase and Merge** over Squash and Merge; do not introduce merge commits.
-- Use small, focused, **atomic Conventional Commits**. Each commit should represent one coherent, independently understandable change, with its relevant tests or documentation when applicable.
-- Preserve meaningful individual commits; do not squash merely to reduce the commit count. Clean up only redundant fixups or incomplete intermediate commits when needed.
-- Do not rewrite shared or protected branch history, force-push a shared branch, change branch protection, mark PRs ready, or merge without the required human approval. Coordinate any necessary feature-branch history rewrite with collaborators.
-- For stacked PRs, preserve their dependencies and avoid duplicated commits; verify the resulting diffs and relevant checks after rebasing.
+- Merge: Rebase and merge only.
 
 ## PuzlWerk naming conventions
 
@@ -46,4 +41,3 @@
 - Follow [knowledge conventions](docs/knowledge-base/CONVENTIONS.md). Atomic notes are not stored in this repository.
 - Keep requirements in specs, decisions in ADRs, API details in their reference and immutable evidence at its source. Preserve existing paths and historical provenance.
 - Run `npm run docs:check` and `npm run test:docs` for documentation changes. Publication metadata selects public content; it does not authorize deployment or imply unselected content is private.
-- The maintainer's optimistic stacked-development policy permits dependent Draft PR implementation while review is pending. Keep each dependent branch based on its immediate parent; do not infer merge, deployment, destructive branch or protection-setting approval.
