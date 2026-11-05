@@ -2,7 +2,8 @@
 
 Status: Stage 1 merged in PR #17 (2026-10-28); see the
 [scope and acceptance criteria](../../specs/003-knowledge-base/spec.md) and
-[accepted ADR 0006](../adr/0006-canonical-knowledge.md).
+[ADR 0006](../adr/0006-canonical-knowledge.md), superseded in part by
+[ADR 0007](../adr/0007-atomic-notes-not-stored-here.md).
 
 ## One source per responsibility
 

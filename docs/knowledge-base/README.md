@@ -36,7 +36,7 @@ historical ADRs and source hashes keep their original wording.
 ## Decisions, specifications and open questions
 
 - [ADR index](../adr/README.md): ADRs 0001–0005 retain their recorded statuses.
-- [Accepted ADR 0006: canonical knowledge and curated views](../adr/0006-canonical-knowledge.md)
+- [ADR 0006: canonical knowledge and curated views](../adr/0006-canonical-knowledge.md), superseded in part by [ADR 0007](../adr/0007-atomic-notes-not-stored-here.md)
 - [001 foundation specification](../../specs/001-core-foundation/README.md)
 - [Foundation research/Q1–Q7](../../specs/001-core-foundation/research.md): frames,
   move notation, identity/symmetry, capability negotiation, reachability,
