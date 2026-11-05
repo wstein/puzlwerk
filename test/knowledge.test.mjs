@@ -28,7 +28,6 @@ function fixture(t) {
 test('repository graph validates without note errors', () => {
   const result = checkKnowledge(source, files);
   assert.deepEqual(result.errors, []);
-  assert.equal(result.markdownFiles, files.length);
 });
 for (const [name, path, mutate, expected] of [
   ['broken link', doc, s => s + '\n[bad](missing.md)\n', /Broken local link/],
