@@ -32,37 +32,31 @@ npm run test:e2e
 ```
 
 The browser fixture serves built static files under `/puzlwerk/`, not an Astro dev
-server. Search is built by Starlight/Pagefind. CI checks missing assets, stable IDs,
+server. Search is built by Starlight/Pagefind. CI checks missing assets,
 all local built links/anchors, search results and a narrow-screen navigation layout.
 External URL availability is a separate upstream concern.
 
 ## One source, curated views
 
-Edit original notes/reference, not `src/content/docs/` or `dist/` (both ignored).
+Edit original documents, not `src/content/docs/` or `dist/` (both ignored).
 `prepare-content.mjs` reads [publication.json](../knowledge-base/publication.json),
-resolves stable note IDs and canonical document mappings, and generates disposable
-Markdown. Each note route contains its permanent ID and an explicit ID anchor.
+resolves canonical document mappings and generates disposable Markdown.
 Source and edit links point to the canonical file; related selected links map to
 `/puzlwerk/` routes, other source links point to the public GitHub file with its
-fragment. Original source text, IDs and evidence are never rewritten by the build.
+fragment. Original source text and evidence are never rewritten by the build.
 
-The generated overview and sidebar derive from the same selection. The initial
-view includes three notes, the existing solver reference and the knowledge
-conventions guide. Architecture has a linked scope note and links to the proposed
-ADRs/specification; no second architecture manual is created. There is no automatic
-wholesale note export. Add new curation only through reviewed metadata changes.
-Changing a stable route requires compatibility redirects/links, not ID reuse.
+The generated overview and sidebar derive from the same selection. The view
+includes the existing solver reference and the knowledge conventions guide.
+Atomic knowledge notes are not part of this repository.
+There is no automatic wholesale export. Add new curation only through reviewed
+metadata changes. Changing a stable route requires compatibility redirects/links.
 
 ## Curation workflow
 
-1. Write or update the canonical note or document first. A note is publishable only
-   with `audience: developer`, `publication: developer-candidate` and status
-   `proposed` or `verified`. The site currently renders only the developer view;
-   the user view is validated but intentionally empty and not built.
-2. Add its stable ID to a navigation group in
-   [publication.json](../knowledge-base/publication.json), or add a `documents`
-   entry (`path`, `title`, `slug` under `guides/`, `reference/` or `architecture/`)
-   for an existing non-note document. Never reference copied content.
+1. Write or update the canonical document first.
+2. Add a `documents` entry (`path`, `title`, `slug` under `guides/`, `reference/` or
+   `architecture/`) to [publication.json](../knowledge-base/publication.json) for
+   the existing document. Never reference copied content.
 3. Run `npm run docs:check`, `npm run test:docs`, `npm run docs:build` and
    `npm run docs:links`, then the browser checks above.
 4. Open a PR with only the selection change and its sources. Reviewers check the

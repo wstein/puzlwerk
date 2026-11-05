@@ -8,11 +8,10 @@ export default defineConfig({
   trailingSlash: 'always',
   integrations: [starlight({
     title: 'PuzlWerk',
-    description: 'Shared twisty-puzzle engineering knowledge and scoped solver reference.',
+    description: 'Scoped solver reference and documentation guides.',
     social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/wstein/puzlwerk' }],
     sidebar: [
       { label: 'Overview', slug: '' },
-      ...selection.views.developer.map(group => ({ label: group.label, items: group.notes.map(id => ({ slug: `notes/${id}` })) })),
       { label: 'Reference and guides', items: selection.documents.map(d => ({ slug: d.slug })) },
     ],
   })],
