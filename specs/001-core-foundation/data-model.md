@@ -8,6 +8,8 @@ Use a right-handed puzzle frame: +X right (R), +Y up (U), +Z front (F). A viewer
 
 For face-local coordinates, outward normal n and up u define right r=u×n, so r×u=n. Proposed defaults: F(n=+Z,u=+Y), B(−Z,+Y), R(+X,+Y), L(−X,+Y), U(+Y,−Z), D(−Y,+Z). Record this table in every legacy adapter; never infer it from image orientation. Face centers on odd cubes are modeled physical pieces, not discarded reference markers.
 
+Q1 disposition (owner decision, 2026-11-05): the frame, the doubled centered integer coordinates and the face-up table above are approved. Certification covers N=2 and N=3 first; sizes 4–7 are representable but not certified until a separate approval. The status of the ADRs is unchanged.
+
 A global rotation is a member of the 24 proper signed permutation matrices. It transforms positions, poses and puzzle-frame goal vectors together when changing the reference frame. A camera motion transforms none of them. A physical whole-cube rotation changes the state only if explicitly permitted as a move. Goal acceptance up to a global rotation is a third, independent operation.
 
 ## Definition
