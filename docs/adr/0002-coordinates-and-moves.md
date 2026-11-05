@@ -3,6 +3,8 @@
 Status: Proposed
 Date: 2026-10-27
 
+Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
+
 ## Context
 
 Even/odd cubes and image-upframes need a deterministic coordinate convention independent of renderer cameras. No consumer mapping has yet been certified here.

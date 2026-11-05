@@ -29,13 +29,13 @@
     {
       "path": "docs/adr/0002-coordinates-and-moves.md",
       "kind": "decision",
-      "disposition": "preserve",
+      "disposition": "annotate-status",
       "baselineSha256": "76a4390b7b69d4bd86a34fc5a956aafe9711012bff4eb8d643014a1818186cff"
     },
     {
       "path": "docs/adr/0003-identity-and-goal-symmetry.md",
       "kind": "decision",
-      "disposition": "preserve",
+      "disposition": "annotate-status",
       "baselineSha256": "f9d50141b8b5d4d109596cafcf099704668e6d379d74024ce40a8ea6f0178ab2"
     },
     {
@@ -113,31 +113,31 @@
     {
       "path": "specs/001-core-foundation/data-model.md",
       "kind": "specification",
-      "disposition": "preserve",
+      "disposition": "annotate-status",
       "baselineSha256": "24a2877c8dabd88a876f9393c37e10ce362a0cc63589e01d88cfe1d9091b9378"
     },
     {
       "path": "specs/001-core-foundation/plan.md",
       "kind": "specification",
-      "disposition": "preserve",
+      "disposition": "annotate-status",
       "baselineSha256": "be3e718d7375ef5c173edd916c9fbf4daa195cac12c4e3a6b7d1c98c8aa5e086"
     },
     {
       "path": "specs/001-core-foundation/research.md",
       "kind": "specification",
-      "disposition": "preserve",
+      "disposition": "annotate-status",
       "baselineSha256": "1108f4f4626c223207e52405d6de0c016eda2de1bcb2deac36362a71c1b00295"
     },
     {
       "path": "specs/001-core-foundation/spec.md",
       "kind": "specification",
-      "disposition": "preserve",
+      "disposition": "annotate-status",
       "baselineSha256": "650eac35f17c9a31c1b13156a17a014741e23b5fe2f5707967797c38c89a101d"
     },
     {
       "path": "specs/001-core-foundation/tasks.md",
       "kind": "specification",
-      "disposition": "preserve",
+      "disposition": "annotate-status",
       "baselineSha256": "14fce386041fc0c89879c233befcf00f36cee74666684b794542da166d4f131d"
     },
     {

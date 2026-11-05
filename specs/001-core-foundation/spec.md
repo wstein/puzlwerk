@@ -1,6 +1,9 @@
 # 001 Core foundation — feature specification
 
 Status: Proposed; specification only; human approval required before implementation.
+
+Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
+
 Date: 2026-10-27. Source: [Issue #3](https://github.com/wstein/puzwerk/issues/3).
 
 ## Problem and scope

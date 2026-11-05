@@ -2,6 +2,8 @@
 
 Status: Proposed, 2026-10-27. This is repository/design research, not execution evidence for a new implementation.
 
+Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
+
 ## Existing sources
 
 Read the [knowledge base](../../docs/knowledge-base/README.md), [architecture](../../docs/knowledge-base/architecture.md), [solver proposal](../../docs/knowledge-base/solver-contract.md), [workflow](../../docs/knowledge-base/workflow.md), ADR 0001 and Issue #3. They establish ownership and approval gates but do not choose coordinates, codecs or NxN support.
