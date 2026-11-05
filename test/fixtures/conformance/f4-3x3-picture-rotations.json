@@ -1,0 +1,416 @@
+{
+  "fixture": "F4",
+  "title": "Whole-cube rotations x, y, z: frame rank and center twist derived from O and checked against the framed picture rows",
+  "convention": {
+    "twist": "clockwise quarter turns, seen from outside, from the reference direction of the center's current face to O.u0 (u0: home reference of the center)",
+    "centers": "face: home face of the center; slot: face it occupies after the rotation",
+    "check": "rows of entry 5: the block at the slot equals the home block of the face turned clockwise by the twist; its center cell shows the home center letter advanced by the twist (U A-D, R E-H, F I-L, D M-P, L Q-T, B U-X)"
+  },
+  "rotations": [
+    {
+      "word": "x",
+      "frameRank": 4,
+      "o": [1, 0, 0, 0, 0, 1, 0, -1, 0],
+      "bodyFrame": [1, 0, 0, 0, 0, -1, 0, 1, 0],
+      "framedToken": "AAAAAAAAAAAAAE",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "B",
+          "twist": 2,
+          "centerLetter": "C"
+        },
+        {
+          "face": "R",
+          "slot": "R",
+          "twist": 1,
+          "centerLetter": "F"
+        },
+        {
+          "face": "F",
+          "slot": "U",
+          "twist": 0,
+          "centerLetter": "I"
+        },
+        {
+          "face": "D",
+          "slot": "F",
+          "twist": 0,
+          "centerLetter": "M"
+        },
+        {
+          "face": "L",
+          "slot": "L",
+          "twist": 3,
+          "centerLetter": "T"
+        },
+        {
+          "face": "B",
+          "slot": "D",
+          "twist": 2,
+          "centerLetter": "W"
+        }
+      ]
+    },
+    {
+      "word": "x2",
+      "frameRank": 8,
+      "o": [1, 0, 0, 0, -1, 0, 0, 0, -1],
+      "bodyFrame": [1, 0, 0, 0, -1, 0, 0, 0, -1],
+      "framedToken": "AAAAAAAAAAAAAI",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "D",
+          "twist": 0,
+          "centerLetter": "A"
+        },
+        {
+          "face": "R",
+          "slot": "R",
+          "twist": 2,
+          "centerLetter": "G"
+        },
+        {
+          "face": "F",
+          "slot": "B",
+          "twist": 2,
+          "centerLetter": "K"
+        },
+        {
+          "face": "D",
+          "slot": "U",
+          "twist": 0,
+          "centerLetter": "M"
+        },
+        {
+          "face": "L",
+          "slot": "L",
+          "twist": 2,
+          "centerLetter": "S"
+        },
+        {
+          "face": "B",
+          "slot": "F",
+          "twist": 2,
+          "centerLetter": "W"
+        }
+      ]
+    },
+    {
+      "word": "x'",
+      "frameRank": 12,
+      "o": [1, 0, 0, 0, 0, -1, 0, 1, 0],
+      "bodyFrame": [1, 0, 0, 0, 0, 1, 0, -1, 0],
+      "framedToken": "AAAAAAAAAAAAAM",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "F",
+          "twist": 0,
+          "centerLetter": "A"
+        },
+        {
+          "face": "R",
+          "slot": "R",
+          "twist": 3,
+          "centerLetter": "H"
+        },
+        {
+          "face": "F",
+          "slot": "D",
+          "twist": 0,
+          "centerLetter": "I"
+        },
+        {
+          "face": "D",
+          "slot": "B",
+          "twist": 2,
+          "centerLetter": "O"
+        },
+        {
+          "face": "L",
+          "slot": "L",
+          "twist": 1,
+          "centerLetter": "R"
+        },
+        {
+          "face": "B",
+          "slot": "U",
+          "twist": 2,
+          "centerLetter": "W"
+        }
+      ]
+    },
+    {
+      "word": "y",
+      "frameRank": 1,
+      "o": [0, 0, -1, 0, 1, 0, 1, 0, 0],
+      "bodyFrame": [0, 0, 1, 0, 1, 0, -1, 0, 0],
+      "framedToken": "AAAAAAAAAAAAAB",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "U",
+          "twist": 1,
+          "centerLetter": "B"
+        },
+        {
+          "face": "R",
+          "slot": "F",
+          "twist": 0,
+          "centerLetter": "E"
+        },
+        {
+          "face": "F",
+          "slot": "L",
+          "twist": 0,
+          "centerLetter": "I"
+        },
+        {
+          "face": "D",
+          "slot": "D",
+          "twist": 3,
+          "centerLetter": "P"
+        },
+        {
+          "face": "L",
+          "slot": "B",
+          "twist": 0,
+          "centerLetter": "Q"
+        },
+        {
+          "face": "B",
+          "slot": "R",
+          "twist": 0,
+          "centerLetter": "U"
+        }
+      ]
+    },
+    {
+      "word": "y2",
+      "frameRank": 2,
+      "o": [-1, 0, 0, 0, 1, 0, 0, 0, -1],
+      "bodyFrame": [-1, 0, 0, 0, 1, 0, 0, 0, -1],
+      "framedToken": "AAAAAAAAAAAAAC",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "U",
+          "twist": 2,
+          "centerLetter": "C"
+        },
+        {
+          "face": "R",
+          "slot": "L",
+          "twist": 0,
+          "centerLetter": "E"
+        },
+        {
+          "face": "F",
+          "slot": "B",
+          "twist": 0,
+          "centerLetter": "I"
+        },
+        {
+          "face": "D",
+          "slot": "D",
+          "twist": 2,
+          "centerLetter": "O"
+        },
+        {
+          "face": "L",
+          "slot": "R",
+          "twist": 0,
+          "centerLetter": "Q"
+        },
+        {
+          "face": "B",
+          "slot": "F",
+          "twist": 0,
+          "centerLetter": "U"
+        }
+      ]
+    },
+    {
+      "word": "y'",
+      "frameRank": 3,
+      "o": [0, 0, 1, 0, 1, 0, -1, 0, 0],
+      "bodyFrame": [0, 0, -1, 0, 1, 0, 1, 0, 0],
+      "framedToken": "AAAAAAAAAAAAAD",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "U",
+          "twist": 3,
+          "centerLetter": "D"
+        },
+        {
+          "face": "R",
+          "slot": "B",
+          "twist": 0,
+          "centerLetter": "E"
+        },
+        {
+          "face": "F",
+          "slot": "R",
+          "twist": 0,
+          "centerLetter": "I"
+        },
+        {
+          "face": "D",
+          "slot": "D",
+          "twist": 1,
+          "centerLetter": "N"
+        },
+        {
+          "face": "L",
+          "slot": "F",
+          "twist": 0,
+          "centerLetter": "Q"
+        },
+        {
+          "face": "B",
+          "slot": "L",
+          "twist": 0,
+          "centerLetter": "U"
+        }
+      ]
+    },
+    {
+      "word": "z",
+      "frameRank": 16,
+      "o": [0, 1, 0, -1, 0, 0, 0, 0, 1],
+      "bodyFrame": [0, -1, 0, 1, 0, 0, 0, 0, 1],
+      "framedToken": "AAAAAAAAAAAAAQ",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "R",
+          "twist": 1,
+          "centerLetter": "B"
+        },
+        {
+          "face": "R",
+          "slot": "D",
+          "twist": 1,
+          "centerLetter": "F"
+        },
+        {
+          "face": "F",
+          "slot": "F",
+          "twist": 1,
+          "centerLetter": "J"
+        },
+        {
+          "face": "D",
+          "slot": "L",
+          "twist": 1,
+          "centerLetter": "N"
+        },
+        {
+          "face": "L",
+          "slot": "U",
+          "twist": 1,
+          "centerLetter": "R"
+        },
+        {
+          "face": "B",
+          "slot": "B",
+          "twist": 3,
+          "centerLetter": "X"
+        }
+      ]
+    },
+    {
+      "word": "z2",
+      "frameRank": 10,
+      "o": [-1, 0, 0, 0, -1, 0, 0, 0, 1],
+      "bodyFrame": [-1, 0, 0, 0, -1, 0, 0, 0, 1],
+      "framedToken": "AAAAAAAAAAAAAK",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "D",
+          "twist": 2,
+          "centerLetter": "C"
+        },
+        {
+          "face": "R",
+          "slot": "L",
+          "twist": 2,
+          "centerLetter": "G"
+        },
+        {
+          "face": "F",
+          "slot": "F",
+          "twist": 2,
+          "centerLetter": "K"
+        },
+        {
+          "face": "D",
+          "slot": "U",
+          "twist": 2,
+          "centerLetter": "O"
+        },
+        {
+          "face": "L",
+          "slot": "R",
+          "twist": 2,
+          "centerLetter": "S"
+        },
+        {
+          "face": "B",
+          "slot": "B",
+          "twist": 2,
+          "centerLetter": "W"
+        }
+      ]
+    },
+    {
+      "word": "z'",
+      "frameRank": 20,
+      "o": [0, -1, 0, 1, 0, 0, 0, 0, 1],
+      "bodyFrame": [0, 1, 0, -1, 0, 0, 0, 0, 1],
+      "framedToken": "AAAAAAAAAAAAAU",
+      "centers": [
+        {
+          "face": "U",
+          "slot": "L",
+          "twist": 3,
+          "centerLetter": "D"
+        },
+        {
+          "face": "R",
+          "slot": "U",
+          "twist": 3,
+          "centerLetter": "H"
+        },
+        {
+          "face": "F",
+          "slot": "F",
+          "twist": 3,
+          "centerLetter": "L"
+        },
+        {
+          "face": "D",
+          "slot": "R",
+          "twist": 3,
+          "centerLetter": "P"
+        },
+        {
+          "face": "L",
+          "slot": "D",
+          "twist": 3,
+          "centerLetter": "T"
+        },
+        {
+          "face": "B",
+          "slot": "B",
+          "twist": 1,
+          "centerLetter": "V"
+        }
+      ]
+    }
+  ]
+}

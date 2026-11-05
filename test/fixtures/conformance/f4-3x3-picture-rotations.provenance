@@ -1,0 +1,17 @@
+# Origin of test/fixtures/conformance/f4-3x3-picture-rotations.json. Checked by test/conformance-fixtures.test.mjs
+# and by `python3 -I scripts/conformance-fixtures.py provenance|check`.
+# Derived from the x, y, z rows of entry 5 and the frame table; the generator asserts every block.
+source_repository=https://github.com/wstein/cubacle
+source_commit=5c5d3025241a4588c59f084af46173d4178ffed1
+upstream_repository=https://github.com/wstein/flix-orbit64
+upstream_commit=a046e34adcdc212a69ce3dcc24b2e47b7fabfbe5
+upstream_input_path=test/TestV2FaceletPictureData.flix
+upstream_input_sha256=1fc5373a4fd5c56480846fe80a19d7de22eb9963b1430b08d9a7e7736624133b
+input_path=tests/fixtures/orbit64_v2_picture_facelets.txt
+input_sha256=a2c1417639fb10038e3978ae597e8cf975a2955b31188a31944244d396182e92
+input_path=src/Orbit64/Frame.flix (flix-orbit64 @ upstream_commit)
+input_sha256=36668339cf77fa1d765f76ee80e434221077bffdd622e4bad9babf3cc3698d8c
+output_sha256=9a77c0230bbaf0782b0e13818095b4b1c334ac68db5edbf008af8e8809151872
+license=Apache-2.0 (vectors), AGPL-3.0-or-later (copy)
+generator=scripts/conformance-fixtures.py
+regenerate=python3 -I scripts/conformance-fixtures.py check --flix <flix-orbit64 checkout> --cubacle <cubacle checkout>
