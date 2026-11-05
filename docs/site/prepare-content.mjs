@@ -1,5 +1,5 @@
 // Disposable publishing view. The source Markdown remains authoritative.
-import { readFileSync, mkdirSync, writeFileSync, rmSync, readdirSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { resolve, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -8,13 +8,6 @@ const kb = resolve(root, 'docs/knowledge-base');
 execFileSync(process.execPath, [resolve(root, 'scripts/check-knowledge.mjs')], { cwd: root, stdio: 'inherit' });
 const selection = JSON.parse(readFileSync(resolve(kb, 'publication.json')));
 const entries = [];
-for (const id of selection.views.developer.flatMap(group => group.notes)) {
-  const names = readdirSync(resolve(kb, 'notes')).filter(name => name.startsWith(id + '-'));
-  if (names.length !== 1) throw Error(`Unresolved stable ID ${id}`);
-  const path = 'docs/knowledge-base/notes/' + names[0];
-  const source = readFileSync(resolve(root, path), 'utf8');
-  entries.push({ path, slug: `notes/${id}`, title: source.match(/^title: (.+)$/m)[1], id });
-}
 entries.push(...selection.documents);
 const routes = new Map(entries.map(entry => [resolve(root, entry.path), `/puzlwerk/${entry.slug}/`]));
 const output = resolve(root, 'docs/site/src/content/docs');
@@ -42,11 +35,7 @@ for (const entry of entries) {
   body = rewrite(body, entry.path);
   const file = resolve(output, entry.slug + '.md');
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, `---\ntitle: ${JSON.stringify(entry.title)}\neditUrl: ${JSON.stringify('https://github.com/wstein/puzlwerk/edit/main/' + entry.path)}\n---\n${entry.id ? `<span id="${entry.id}"></span>\n\nStable knowledge ID: \`${entry.id}\`.\n` : ''}\n${body}\n\n[Canonical source](${gitSource(entry.path)}). This page is generated from that source.\n`);
+  writeFileSync(file, `---\ntitle: ${JSON.stringify(entry.title)}\neditUrl: ${JSON.stringify('https://github.com/wstein/puzlwerk/edit/main/' + entry.path)}\n---\n\n${body}\n\n[Canonical source](${gitSource(entry.path)}). This page is generated from that source.\n`);
 }
-const groups = selection.views.developer.map(group => `## ${group.label}\n\n` + group.notes.map(id => {
-  const entry = entries.find(e => e.id === id);
-  return `- [${entry.title}](/puzlwerk/${entry.slug}/)`;
-}).join('\n')).join('\n\n');
-writeFileSync(resolve(output, 'index.md'), `---\ntitle: PuzlWerk documentation\n---\n\nCurated developer knowledge and the private 2×2 solver reference. The general\nfoundation remains proposed; the scoped solver is implemented. No package\npublication or broader framework release is implied.\n\n${groups}\n\n## Reference and guides\n\n${selection.documents.map(e => `- [${e.title}](/puzlwerk/${e.slug}/)`).join('\n')}\n\n## Source and scope\n\nAll notes remain available in the [public canonical knowledge base](${gitSource('docs/knowledge-base/README.md')}). Selection does not make unselected content private. This disposable publishing view is generated from the canonical Markdown and ID-based [selection](${gitSource('docs/knowledge-base/publication.json')}); do not edit generated files.\n`);
-console.log(`Prepared ${entries.length + 1} curated pages; source notes unchanged`);
+writeFileSync(resolve(output, 'index.md'), `---\ntitle: PuzlWerk documentation\n---\n\nThe private 2×2 solver reference and the documentation guides. The general\nfoundation remains proposed; the scoped solver is implemented. No package\npublication or broader framework release is implied.\n\n## Reference and guides\n\n${selection.documents.map(e => `- [${e.title}](/puzlwerk/${e.slug}/)`).join('\n')}\n\n## Source and scope\n\nAll documents remain available in the [public canonical knowledge base](${gitSource('docs/knowledge-base/README.md')}). Selection does not make unselected content private. This disposable publishing view is generated from the canonical Markdown and [selection](${gitSource('docs/knowledge-base/publication.json')}); do not edit generated files.\n`);
+console.log(`Prepared ${entries.length + 1} curated pages; source documents unchanged`);
