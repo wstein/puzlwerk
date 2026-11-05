@@ -17,7 +17,9 @@ This repository holds no atomic notes. The note metadata format, the note graph
 validation and the ID-based note selection in `publication.json` are removed.
 Everything else from ADR 0006 stays: existing documents and links, the hashed
 baseline inventory with preserved historical text, offline link and anchor
-validation, and `documents`-based curated publishing views.
+validation, and curated publishing views, now based on `documents` mappings
+(introduced in [specification 004](../../specs/004-curated-documentation/spec.md))
+instead of an ID-based selection.
 
 ## Consequences
 
