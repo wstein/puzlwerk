@@ -1,0 +1,13 @@
+# Origin of test/fixtures/conformance/f6-symmetry.json. Checked by test/conformance-fixtures.test.mjs
+# and by `python3 -I scripts/conformance-fixtures.py provenance|check`.
+# Terms from the data model (Goals and symmetry) and the solver note (symmetry).
+source_repository=https://github.com/wstein/puzlwerk
+source_commit=b791c344dc689433c01833376e35307f72711e06
+input_path=specs/001-core-foundation/data-model.md
+input_sha256=e085ef92ca1f82028c456df805d4e4ed130b66f938d5b73e9c990881a6362358
+input_path=docs/knowledge-base/solver-3x3-picture.md
+input_sha256=cdfb20eaf08f89bcd45b9b6bfff2f5ebdea12cabb28b1261448acc8656e1a7ab
+output_sha256=0bbe2bfa3d309e708c5f8feceb591f35834abea29167e25de8677333ba345ed8
+license=AGPL-3.0-or-later
+generator=scripts/conformance-fixtures.py
+regenerate=python3 -I scripts/conformance-fixtures.py check --flix <flix-orbit64 checkout> --cubacle <cubacle checkout>

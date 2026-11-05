@@ -1,0 +1,13 @@
+# Origin of test/fixtures/conformance/f7-center-order.json. Checked by test/conformance-fixtures.test.mjs
+# and by `python3 -I scripts/conformance-fixtures.py provenance|check`.
+# Orders from the solver API: facelets URFDLB, centerOrientations and symmetry ULFRBD.
+source_repository=https://github.com/wstein/puzlwerk
+source_commit=b791c344dc689433c01833376e35307f72711e06
+input_path=packages/solver-3x3-picture/src/index.d.ts
+input_sha256=77c89c786153c788eb65ecb1e978c97558ad25a445b05b62872b8b023727fc77
+input_path=docs/knowledge-base/solver-3x3-picture.md
+input_sha256=cdfb20eaf08f89bcd45b9b6bfff2f5ebdea12cabb28b1261448acc8656e1a7ab
+output_sha256=6580c51faa47d139e67e26b6441783dba564a8ae9c5c6fc96b96105162b135d8
+license=AGPL-3.0-or-later
+generator=scripts/conformance-fixtures.py
+regenerate=python3 -I scripts/conformance-fixtures.py check --flix <flix-orbit64 checkout> --cubacle <cubacle checkout>
