@@ -3,6 +3,8 @@
 Status: Proposed
 Date: 2026-10-27
 
+Status 2026-11-05: the pose layout, the rule p=O·h and the center twist are fixed by [ADR 0008](0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
+
 ## Context
 
 Same-color pieces and rotationally symmetric printing cannot be modeled faithfully by color facelets or by discarding orientation. Structural validity does not prove legal reachability.

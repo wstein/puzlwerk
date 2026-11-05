@@ -2,6 +2,8 @@
 
 Status: Proposed. **Every task below is BLOCKED until explicit human approval of its phase and listed decisions.** Unchecked means not implemented. Commit subjects are suggestions, not authorization. Tasks produce focused PRs; never merge automatically.
 
+Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
+
 | ID | Phase / dependency | Atomic task and evidence | Suggested Conventional Commit |
 | --- | --- | --- | --- |
 | T001 | M0; human scope approval | Confirm Q1/Q6/Q7, record approval and runtime versions; audit licenses at pinned revisions | `docs: record approved foundation baseline` |

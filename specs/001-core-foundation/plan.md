@@ -2,6 +2,8 @@
 
 Status: Proposed; **all implementation milestones blocked pending explicit human approval**. No runtime changes or dependencies in this PR.
 
+Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
+
 ## Technical context and gates
 
 ReScript pure core, proposed ESM output; Rust Cubacle through a process adapter; CubeLab/CubeAssembler consume versioned contracts. Proposed tooling is ReScript 12.3.1 / Node 24 LTS with a lockfile, subject to Q6. Do not add a test framework, code generator or runtime package merely because it appears in this plan. Use existing toolchain capabilities first; justify additions in the approved implementation PR.

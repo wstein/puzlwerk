@@ -2,6 +2,8 @@
 
 Status: Proposed. Normative language describes the candidate design, not an accepted or implemented API. See ADRs [0002](../../docs/adr/0002-coordinates-and-moves.md) and [0003](../../docs/adr/0003-identity-and-goal-symmetry.md).
 
+Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
+
 ## Frames and integer coordinates
 
 Use a right-handed puzzle frame: +X right (R), +Y up (U), +Z front (F). A viewer camera is not this frame. Coordinates are integer triples. For size N define D={−(N−1),−(N−3),…,N−1}. Shell slots are D³ with at least one component of magnitude N−1: N³−(N−2)³ slots, including fixed face centers where applicable. N=2 has eight slots. This avoids half-integers for even sizes.
