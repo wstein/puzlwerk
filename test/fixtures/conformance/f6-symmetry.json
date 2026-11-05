@@ -1,0 +1,92 @@
+{
+  "fixture": "F6",
+  "title": "Sticker symmetry groups C1/C2/C4 against solver goal periods 4/2/1",
+  "convention": {
+    "groups": "quarter turns about the target world normal that count as the same optical goal",
+    "period": "solver-3x3-picture symmetry entry: 4 requires the exact original up, 2 permits a half turn, 1 ignores the rotation",
+    "trap": "C1 (360 degree motif symmetry) is period 4, never period 1; C4 (90 degree motif symmetry) is period 1",
+    "cubistry": "equivalentQuarterTurns lists the allowed quarter turns: [0], [0, 2], [0, 1, 2, 3]"
+  },
+  "terms": [
+    {
+      "group": "C1",
+      "quarterTurns": [0],
+      "goalPeriod": 4,
+      "equivalentQuarterTurns": [0]
+    },
+    {
+      "group": "C2",
+      "quarterTurns": [0, 2],
+      "goalPeriod": 2,
+      "equivalentQuarterTurns": [0, 2]
+    },
+    {
+      "group": "C4",
+      "quarterTurns": [0, 1, 2, 3],
+      "goalPeriod": 1,
+      "equivalentQuarterTurns": [0, 1, 2, 3]
+    }
+  ],
+  "cases": [
+    {
+      "text": "up equals the target up",
+      "normal": [0, 0, 1],
+      "targetNormal": [0, 0, 1],
+      "targetUp": [0, 1, 0],
+      "up": [0, 1, 0],
+      "pass": {
+        "C1": true,
+        "C2": true,
+        "C4": true
+      }
+    },
+    {
+      "text": "one quarter turn off (data model example)",
+      "normal": [0, 0, 1],
+      "targetNormal": [0, 0, 1],
+      "targetUp": [0, 1, 0],
+      "up": [1, 0, 0],
+      "pass": {
+        "C1": false,
+        "C2": false,
+        "C4": true
+      }
+    },
+    {
+      "text": "half turn off (data model example)",
+      "normal": [0, 0, 1],
+      "targetNormal": [0, 0, 1],
+      "targetUp": [0, 1, 0],
+      "up": [0, -1, 0],
+      "pass": {
+        "C1": false,
+        "C2": true,
+        "C4": true
+      }
+    },
+    {
+      "text": "three quarter turns off",
+      "normal": [0, 0, 1],
+      "targetNormal": [0, 0, 1],
+      "targetUp": [0, 1, 0],
+      "up": [-1, 0, 0],
+      "pass": {
+        "C1": false,
+        "C2": false,
+        "C4": true
+      }
+    },
+    {
+      "text": "normal tilted away from +Z",
+      "normal": [1, 0, 0],
+      "targetNormal": [0, 0, 1],
+      "targetUp": [0, 1, 0],
+      "up": [0, 1, 0],
+      "pass": {
+        "C1": false,
+        "C2": false,
+        "C4": false
+      }
+    }
+  ]
+}
