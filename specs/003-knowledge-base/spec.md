@@ -1,5 +1,8 @@
 # 003 — Canonical knowledge base, Stage 1
 
+> Update: the atomic notes and their validation (stable IDs, relations, note
+> selection) no longer exist in this repository. Text below about notes is historical.
+
 Status: implementation authorized by the maintainer's staged housekeeping task;
 human acceptance remains required for merge. Optimistic stacked development
 authorizes dependent implementation before that acceptance. Tracks [#10](https://github.com/wstein/puzlwerk/issues/10)
