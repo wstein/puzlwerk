@@ -11,7 +11,7 @@ input and output hashes, and license. The rows below restate those records.
 | `f4-3x3-picture-rotations.json` | Rows of the same cubacle file and `src/Orbit64/Frame.flix` of flix-orbit64, same commits | Vectors: Apache-2.0. Copy: AGPL-3.0-or-later (per the provenance file) |
 | `f2-move-signs.json`, `f3-2x2-v1.json`, `f6-symmetry.json`, `f7-center-order.json` | Files of this repository (specs, knowledge notes, solver API, `cubistry-42-43.json`) at `b791c344dc689433c01833376e35307f72711e06` | AGPL-3.0-or-later (per the provenance files) |
 
-The Apache-2.0 text is not part of this repository; the full license is in the
+A copy of the Apache-2.0 text is in `test/fixtures/LICENSE-Apache-2.0`; it is the
 `LICENSE` file of flix-orbit64 at the commit named above. The provenance files
 give AGPL-3.0-or-later for the files of this repository; the license text is in
 `test/fixtures/COPYING`. The counter fixture `cubistry-42-43.json` is covered by
