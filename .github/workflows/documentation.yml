@@ -36,10 +36,10 @@ jobs:
         working-directory: docs/site
       - run: npm run test:e2e
         working-directory: docs/site
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/site/dist
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: documentation-browser-failure
@@ -58,4 +58,4 @@ jobs:
     steps:
       - name: Deploy explicitly approved main
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
