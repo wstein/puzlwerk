@@ -14,6 +14,6 @@
   "devDependencies": {
     "@astrojs/starlight": "0.42.7",
     "@playwright/test": "1.56.1",
-    "astro": "7.4.2"
+    "astro": "7.4.4"
   }
 }
