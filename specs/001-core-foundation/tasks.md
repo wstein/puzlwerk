@@ -4,7 +4,7 @@ Status: Proposed. **Every task below is BLOCKED until explicit human approval of
 
 Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
 
-Status 2026-11-07: T001 is recorded in [research.md](research.md) (Q1, Q2 scope, Q6, ADR approval; Q7 stays open). T002 and T003 are deferred for M1: tests run against the conformance fixtures F1 to F7. T004 to T009 are approved to start, each as its own PR.
+Status 2026-11-07: T001 is recorded in [research.md](research.md) (Q1, Q2 scope, Q6, ADR approval; Q7 stays open). T002 and T003 are deferred for M1: tests run against the conformance fixtures F1 to F7. On 2026-11-07 the owner answered the question how much of M1 to start now with "Ganzes M1 (T004 bis T009)"; each task is its own PR. The completion of M1 releases no Cubacle change, consumer migration, publication or M2.
 
 | ID | Phase / dependency | Atomic task and evidence | Suggested Conventional Commit |
 | --- | --- | --- | --- |
