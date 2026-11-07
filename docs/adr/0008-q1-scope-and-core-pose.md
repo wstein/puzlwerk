@@ -4,6 +4,8 @@ Status: Accepted (owner decision 2026-11-05)
 Date: 2026-11-05
 Refines: [ADR 0002](0002-coordinates-and-moves.md) and [ADR 0003](0003-identity-and-goal-symmetry.md), which keep their recorded Proposed status and wording
 
+Status 2026-11-07: ADR 0002, 0003 and 0004 were accepted by the owner.
+
 ## Context
 
 Q1 in the [research register](../../specs/001-core-foundation/research.md) asked for approval of the frame, the face-up table and the certification scope 2–7. The [data model](../../specs/001-core-foundation/data-model.md) proposes SO(3,Z) as the pose and leaves the matrix layout, the position consistency and the center twist implicit. Cubistry v1 `BodyFrame` stores the same nine numbers transposed (Cubistry `packages/cube-core/res/PwCore.res` `rotate`; `packages/solver-2x2/src/physical-adapter.mjs` `rotate`, which sums `v[j]·basis[j][i]`). Consumers also use goal periods 1, 2 and 4 for the same symmetries that the data model names C4, C2 and C1.

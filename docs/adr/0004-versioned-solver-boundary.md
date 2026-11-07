@@ -1,6 +1,6 @@
 # ADR 0004: Versioned solver-neutral interchange with verified replay
 
-Status: Proposed
+Status: Accepted (owner decision 2026-11-07)
 Date: 2026-10-27
 
 ## Context

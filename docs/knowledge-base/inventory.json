@@ -41,7 +41,7 @@
     {
       "path": "docs/adr/0004-versioned-solver-boundary.md",
       "kind": "decision",
-      "disposition": "preserve",
+      "disposition": "annotate-status",
       "baselineSha256": "c42480f78d8f54b7a562c32d72c40c33601af1d442d9fc934ea0177f1dc85825"
     },
     {
