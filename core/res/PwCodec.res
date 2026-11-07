@@ -331,26 +331,35 @@ let decodeStateExn = (definition: definition, text) => {
 
 let decodeState = (definition, text) => guard(() => decodeStateExn(definition, text))
 
-let encodeState = (s: state) =>
-  PwJson.toCanonical(
-    PwJson.Obj([
-      ("schema", Str("puzlwerk.state")),
-      ("revision", Num(1)),
-      ("definitionId", Str(PwId.toString(s.definitionId))),
-      (
-        "poses",
-        Arr(
-          s.poses->Array.map(p => PwJson.Obj([
-            ("pieceId", Str(PwId.toString(PwPose.pieceId(p)))),
-            ("position", vecJson(PwShell.toVec(PwPose.position(p)))),
-            (
-              "orientation",
-              Arr(PwOrientation.toArray(PwPose.orientation(p))->Array.map(n => PwJson.Num(n))),
-            ),
-          ])),
+let stateJson = (definitionId, poses) => PwJson.Obj([
+  ("schema", Str("puzlwerk.state")),
+  ("revision", Num(1)),
+  ("definitionId", Str(PwId.toString(definitionId))),
+  (
+    "poses",
+    Arr(
+      poses->Array.map(p => PwJson.Obj([
+        ("pieceId", Str(PwId.toString(PwPose.pieceId(p)))),
+        ("position", vecJson(PwShell.toVec(PwPose.position(p)))),
+        (
+          "orientation",
+          Arr(PwOrientation.toArray(PwPose.orientation(p))->Array.map(n => PwJson.Num(n))),
         ),
-      ),
-    ]),
-  )
+      ])),
+    ),
+  ),
+])
+
+let encodeState = (s: state) => PwJson.toCanonical(stateJson(s.definitionId, s.poses))
+
+let homeState = (d: definition) => {
+  definitionId: d.id,
+  poses: d.pieces->Array.map(p => PwPose.make(p.id, p.home, PwOrientation.identity)),
+}
+
+let poses = (s: state) => Array.copy(s.poses)
+
+let stateOfPoses = (d: definition, poses) =>
+  decodeState(d, PwJson.toCanonical(stateJson(d.id, poses)))
 
 let hashState = s => "sha256:" ++ PwSha256.hex(encodeState(s))
