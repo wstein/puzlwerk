@@ -189,3 +189,37 @@ test("definition: stickers cover exactly the exposed faces with a perpendicular 
   // perpendicular to the normal (0,0,-1) but not a unit vector
   fails(definition2((o) => (o.pieces[0].stickers[0].up = [0, 2, 0])), "BadSticker", "$.pieces[0].stickers[0].up");
 });
+
+test("integers outside the 32-bit range fail instead of decoding as 0 (10 to 15 digits)", () => {
+  const good = text("state-2-home.json");
+  const withPosition = (v) => good.replace('"position":[-1,-1,-1]', `"position":${v}`);
+  for (const digits of [10, 11, 12, 13, 14, 15]) {
+    const big = "9".repeat(digits);
+    fails(Codec.decodeState(def2, withPosition(`[${big},-1,-1]`)), "NotInteger", "$.poses[0].position[0]");
+    fails(Codec.decodeState(def2, withPosition(`[-1,-${big},-1]`)), "NotInteger", "$.poses[0].position[1]");
+  }
+  fails(Codec.decodeState(def2, withPosition("[10000000000,2147483648,-2147483649]")), "NotInteger", "$.poses[0].position[0]");
+  fails(Codec.decodeState(def2, withPosition("[-1,2147483648,-1]")), "NotInteger", "$.poses[0].position[1]");
+  fails(Codec.decodeState(def2, withPosition("[-1,-1,-2147483649]")), "NotInteger", "$.poses[0].position[2]");
+  // the largest and smallest int32 values still parse; they are not shell slots
+  fails(Codec.decodeState(def2, withPosition("[2147483647,-1,-1]")), "BadValue", "$.poses[0].position");
+  fails(Codec.decodeState(def2, withPosition("[-2147483648,-1,-1]")), "BadValue", "$.poses[0].position");
+  // a 3x3 state with a huge coordinate is rejected
+  const s3 = text("state-3-home.json").replace('"position":[-2,-2,-2]', '"position":[10000000000,-2,-2]');
+  fails(Codec.decodeState(def3, s3), "NotInteger", "$.poses[5].position[0]");
+});
+
+test("\\u escapes need exactly four hex digits", () => {
+  const good = text("state-2-home.json");
+  const withDefinitionId = (escape) => good.replace('"definitionId":"cube2"', `"definitionId":"${escape}"`);
+  for (const bad of ["\\u41zz", "\\u0x41", "\\u 041", "\\u+041", "\\u-041", "\\u004", "\\u00", "\\u004G", "\\u00 1"]) {
+    fails(Codec.decodeState(def2, withDefinitionId(`cub${bad}`)), "Syntax", "$");
+  }
+  // valid escapes decode: c is "c", C is "C" (a different ID)
+  assert.equal(Codec.decodeState(def2, withDefinitionId("\\u0063ube2")).TAG, "Ok");
+  assert.equal(Codec.decodeState(def2, withDefinitionId("\\u0063ub\\u0065\\u0032")).TAG, "Ok");
+  fails(Codec.decodeState(def2, withDefinitionId("\\u0043ube2")), "DefinitionMismatch", "$.definitionId");
+  // upper- and lowercase hex digits are both valid: \u004A is "J", \u004a is "J"
+  fails(Codec.decodeState(def2, withDefinitionId("\\u004Aube2")), "DefinitionMismatch", "$.definitionId");
+  fails(Codec.decodeState(def2, withDefinitionId("\\u004aube2")), "DefinitionMismatch", "$.definitionId");
+});
