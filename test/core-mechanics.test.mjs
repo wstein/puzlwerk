@@ -42,7 +42,7 @@ const minimize = (moves, fails) => {
   return cur;
 };
 
-const property = (name, n, check) => test(`${name} (N=${n}, ${RUNS[n]} seeded sequences)`, () => {
+const property = (name, n, check) => test(`${name} (N=${n}${n > 3 ? ", uncertified" : ""}, ${RUNS[n]} seeded sequences)`, () => {
   const rand = mulberry32(SEED[n] ^ name.length);
   const home = Codec.poses(Codec.homeState(definition(n)));
   for (let i = 0; i < RUNS[n]; i++) {
