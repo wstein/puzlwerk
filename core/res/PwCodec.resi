@@ -38,3 +38,10 @@ let size: definition => PwShell.size
 let decodeState: (definition, string) => result<state, error>
 let encodeState: state => string
 let hashState: state => string
+
+// The home state: every piece at its home slot with the identity orientation.
+let homeState: definition => state
+// The poses of a state, sorted by piece ID (a copy).
+let poses: state => array<PwPose.t>
+// Validates the poses against the definition with the checks of decodeState.
+let stateOfPoses: (definition, array<PwPose.t>) => result<state, error>
