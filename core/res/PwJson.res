@@ -59,12 +59,16 @@ let parse = text => {
         | "t" => out := out.contents ++ "\t"
         | "u" =>
           let hex = text->String.slice(~start=pos.contents, ~end=pos.contents + 4)
-          let code = hex->String.length == 4 ? Int.fromString(~radix=16, hex) : None
-          switch code {
-          | Some(n) if !(hex->String.includes("+")) && !(hex->String.includes("-")) =>
+          let isHexDigit = ch =>
+            (ch >= "0" && ch <= "9") || ch >= "a" && ch <= "f" || (ch >= "A" && ch <= "F")
+          let allHex =
+            hex->String.length == 4 &&
+              [0, 1, 2, 3]->Array.every(i => hex->String.get(i)->Option.getOr("g")->isHexDigit)
+          switch allHex ? Int.fromString(~radix=16, hex) : None {
+          | Some(n) =>
             out := out.contents ++ String.fromCharCode(n)
             pos := pos.contents + 4
-          | _ => fail(Syntax, "$")
+          | None => fail(Syntax, "$")
           }
         | _ => fail(Syntax, "$")
         }
@@ -100,11 +104,14 @@ let parse = text => {
     if digits->String.length > 15 {
       fail(NotInteger, path)
     }
-    let value = text->String.slice(~start, ~end=pos.contents)->Int.fromString->Option.getOr(0)
     if negative && digits == "0" {
       fail(NegativeZero, path)
     }
-    value
+    // Int.fromString is None outside the 32-bit range: reject instead of decoding as 0.
+    switch text->String.slice(~start, ~end=pos.contents)->Int.fromString {
+    | Some(value) => value
+    | None => fail(NotInteger, path)
+    }
   }
   let literal = (word, value) =>
     if text->String.slice(~start=pos.contents, ~end=pos.contents + word->String.length) == word {
