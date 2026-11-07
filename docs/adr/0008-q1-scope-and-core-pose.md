@@ -2,7 +2,7 @@
 
 Status: Accepted (owner decision 2026-11-05)
 Date: 2026-11-05
-Refines: [ADR 0002](0002-coordinates-and-moves.md) and [ADR 0003](0003-identity-and-goal-symmetry.md), which keep their recorded Proposed status and wording
+Refines: [ADR 0002](0002-coordinates-and-moves.md) and [ADR 0003](0003-identity-and-goal-symmetry.md), which were accepted on 2026-11-07 and keep their recorded wording
 
 ## Context
 

@@ -35,7 +35,7 @@ historical ADRs and source hashes keep their original wording.
 
 ## Decisions, specifications and open questions
 
-- [ADR index](../adr/README.md): ADRs 0001–0005 retain their recorded statuses.
+- [ADR index](../adr/README.md): ADRs 0002, 0003 and 0004 were accepted by the owner on 2026-11-07; ADRs 0001 and 0005 retain their recorded statuses.
 - [ADR 0008: Q1 scope and the single core pose](../adr/0008-q1-scope-and-core-pose.md): accepted by the owner on 2026-11-05; approves the Q1 frame and face-up table, certification for N=2 and N=3 first, and the pose layout.
 - [ADR 0006: canonical knowledge and curated views](../adr/0006-canonical-knowledge.md), superseded in part by [ADR 0007](../adr/0007-atomic-notes-not-stored-here.md)
 - [001 foundation specification](../../specs/001-core-foundation/README.md)
