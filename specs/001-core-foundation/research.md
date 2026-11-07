@@ -7,8 +7,8 @@ Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 
 Status 2026-11-07 (owner decisions, recorded by T001):
 
 - **Q1:** approved 2026-11-05, see [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md).
-- **Q2:** approved for M1 as outer faces plus wide moves. Slices (M/E/S), global rotations (x/y/z) and lowercase wide aliases are not supported by text parsing; unknown notation fails (AC09, AC10). The AST stays complete. This approves T006 and T007.
-- **Q6:** approved as proposed: ReScript 12.3.1, ES modules, Node 24 LTS, npm lockfile. The repository already pins `rescript` 12.3.1 and `engines.node` `>=24`. Node 24.22.2 is the version used for M1 checks.
+- **Q2:** on 2026-11-07 the owner chose "Außenlagen plus Wide, keine Aliase": outer faces and wide moves; no slices (M/E/S), no global rotations (x/y/z), no lowercase wide aliases in text parsing; unknown notation fails (AC09, AC10). The AST stays complete.
+- **Q6:** approved as proposed: ReScript 12.3.1, ES modules, Node 24 LTS, npm lockfile. The repository already pins `rescript` 12.3.1 and `engines.node` `>=24`. M1 checks ran locally with Node 24.22.2; CI uses Node 24.x.
 - **Q7:** open. M1 does not depend on it.
 - **ADR 0002, 0003 and 0004:** approved by the owner on 2026-11-07; the status change is a separate PR.
 - **T002 and T003:** deferred for M1. The conformance fixtures F1 to F7 with their provenance files stand in for them, and M1 tests run against F1 to F7. Q3 to Q5 are untouched.
