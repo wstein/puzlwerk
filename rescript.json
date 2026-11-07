@@ -4,6 +4,10 @@
     {
       "dir": "packages/solver-2x2/res",
       "subdirs": true
+    },
+    {
+      "dir": "core/res",
+      "subdirs": true
     }
   ],
   "package-specs": {
