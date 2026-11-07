@@ -4,6 +4,16 @@ Status: Proposed, 2026-10-27. This is repository/design research, not execution 
 
 Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
 
+Status 2026-11-07 (owner decisions, recorded by T001):
+
+- **Q1:** approved 2026-11-05, see [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md).
+- **Q2:** on 2026-11-07 the owner chose "Außenlagen plus Wide, keine Aliase": outer faces and wide moves; no slices (M/E/S), no global rotations (x/y/z), no lowercase wide aliases in text parsing; unknown notation fails (AC09, AC10). The AST stays complete.
+- **Q6:** approved as proposed: ReScript 12.3.1, ES modules, Node 24 LTS, npm lockfile. The repository already pins `rescript` 12.3.1 and `engines.node` `>=24`. M1 checks ran locally with Node 24.22.2; CI uses Node 24.x.
+- **Q7:** open. M1 does not depend on it.
+- **ADR 0002, 0003 and 0004:** approved by the owner on 2026-11-07; the status change is a separate PR.
+- **T002 and T003:** deferred for M1. The conformance fixtures F1 to F7 with their provenance files stand in for them, and M1 tests run against F1 to F7. Q3 to Q5 are untouched.
+- License audit: covered only for the F1 to F7 fixture sources ([CONFORMANCE-NOTICE](../../test/fixtures/CONFORMANCE-NOTICE.md)). The pinned consumer revisions are not audited by this record.
+
 ## Existing sources
 
 Read the [knowledge base](../../docs/knowledge-base/README.md), [architecture](../../docs/knowledge-base/architecture.md), [solver proposal](../../docs/knowledge-base/solver-contract.md), [workflow](../../docs/knowledge-base/workflow.md), ADR 0001 and Issue #3. They establish ownership and approval gates but do not choose coordinates, codecs or NxN support.
