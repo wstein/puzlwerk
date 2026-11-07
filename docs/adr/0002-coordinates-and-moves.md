@@ -1,6 +1,6 @@
 # ADR 0002: Exact cube frames and layer transformations
 
-Status: Proposed
+Status: Accepted (owner decision 2026-11-07)
 Date: 2026-10-27
 
 Status 2026-11-05: Q1 approved with certification scope narrowed to N=2 and N=3 (sizes 4–7 need a separate approval); the pose layout and center twist are fixed by [ADR 0008](0008-q1-scope-and-core-pose.md). This text keeps its recorded wording.
