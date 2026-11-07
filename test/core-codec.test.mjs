@@ -223,3 +223,20 @@ test("\\u escapes need exactly four hex digits", () => {
   fails(Codec.decodeState(def2, withDefinitionId("\\u004Aube2")), "DefinitionMismatch", "$.definitionId");
   fails(Codec.decodeState(def2, withDefinitionId("\\u004aube2")), "DefinitionMismatch", "$.definitionId");
 });
+
+test("states can be built from poses and read back; the home state is the fixture", () => {
+  assert.equal(Codec.encodeState(Codec.homeState(def2)), text("state-2-home.json"));
+  assert.equal(Codec.encodeState(Codec.homeState(def3)), text("state-3-home.json"));
+  const s = ok(Codec.decodeState(def3, text("state-3-scrambled.json")));
+  const poses = Codec.poses(s);
+  assert.equal(poses.length, 26);
+  assert.equal(Codec.encodeState(ok(Codec.stateOfPoses(def3, poses))), text("state-3-scrambled.json"));
+  poses.pop(); // the returned array is a copy
+  assert.equal(Codec.poses(s).length, 26);
+});
+
+test("stateOfPoses applies the same structural checks as decoding", () => {
+  const poses = Codec.poses(ok(Codec.decodeState(def2, text("state-2-home.json"))));
+  fails(Codec.stateOfPoses(def2, poses.slice(1)), "PieceMismatch", "$.poses");
+  fails(Codec.stateOfPoses(def2, [poses[0], ...poses]), "DuplicateId", "$.poses[1].pieceId");
+});
