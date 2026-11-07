@@ -1,0 +1,26 @@
+{
+  "definition-2.json": {
+    "bytes": 1949,
+    "sha256": "sha256:c1328918523f3be9c7cf213df534830c4cf25d6e101d359f1a5425b0bb275e17"
+  },
+  "definition-3.json": {
+    "bytes": 4487,
+    "sha256": "sha256:52585d7b0245a97c15f3de6ca7efd8dd93dfd57c437551f78c584ac45109cd7f"
+  },
+  "state-2-home.json": {
+    "bytes": 653,
+    "sha256": "sha256:c137f6ed7552468e24c8f9ee26ca5927e691866bf2148c492fd972a65e2befa7"
+  },
+  "state-2-scrambled.json": {
+    "bytes": 661,
+    "sha256": "sha256:d3ef69211616f9a785127079a7d6b3afc31b91fa23008e87bd8837d235f1b974"
+  },
+  "state-3-home.json": {
+    "bytes": 1922,
+    "sha256": "sha256:bc544a7830a7b09973f8569c220ea6b2c784e8fc4e81ef36a8ae18171017cae1"
+  },
+  "state-3-scrambled.json": {
+    "bytes": 1961,
+    "sha256": "sha256:f7ebb06991b17debe4fc69f859fb77066e7794d82a738b85d3c4e0f13402e58b"
+  }
+}
