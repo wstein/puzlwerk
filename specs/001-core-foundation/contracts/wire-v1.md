@@ -1,6 +1,8 @@
 # Wire schema v1: definition and state
 
-Status: Proposed for T008; part of milestone M1, reviewed with the PR that adds the codec. It refines the canonical JSON rules of the [solver contract](solver.md) and the [data model](../data-model.md). Goals and the solver envelope are not part of v1 (M2, M3).
+Status: Accepted (owner decision of 2026-11-08, see below); part of milestone M1, reviewed with the PR that adds the codec. It refines the canonical JSON rules of the [solver contract](solver.md) and the [data model](../data-model.md). Goals and the solver envelope are not part of v1 (M2, M3).
+
+Owner decision of 2026-11-08: `movePolicy` is a required field with the values `"outer-wide"` and `"any"`; the convention `"cube-shell-v1"` is fixed for v1 (size 2..64); sticker `color` stays optional; `revision` is a per-schema integer that starts at 1 and increases by one with every incompatible change, and consumers reject unknown revisions with the stable error code `BadRevision`.
 
 ## Canonical bytes
 
