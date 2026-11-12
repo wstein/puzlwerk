@@ -51,8 +51,7 @@ Owner decisions recorded in other repository documents and cited as **O** with t
   `knowledge/plans/unified-application.md`, section 6).
 - 2026-11-12, Cubistry Picture Cube D6: one `FaceSet` image model (same file, section 6).
 
-**V** The Q3 and Q7 decisions are not yet recorded in this repository: [research.md](../001-core-foundation/research.md)
-still lists Q7 as open and Q3 as untouched. Recording them is an owner step (decision SM10 in [plan.md](plan.md#4-owner-decisions)).
+The Q3 and Q7 decisions are recorded in [research.md](../001-core-foundation/research.md) (**O** 2026-11-12, decision SM10 in [plan.md](plan.md#4-owner-decisions)).
 
 ## Files
 
