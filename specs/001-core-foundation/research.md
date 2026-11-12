@@ -9,7 +9,7 @@ Status 2026-11-07 (owner decisions, recorded by T001):
 - **Q1:** approved 2026-11-05, see [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md).
 - **Q2:** on 2026-11-07 the owner chose "Außenlagen plus Wide, keine Aliase": outer faces and wide moves; no slices (M/E/S), no global rotations (x/y/z), no lowercase wide aliases in text parsing; unknown notation fails (AC09, AC10). The AST stays complete.
 - **Q6:** approved as proposed: ReScript 12.3.1, ES modules, Node 24 LTS, npm lockfile. The repository already pins `rescript` 12.3.1 and `engines.node` `>=24`. M1 checks ran locally with Node 24.22.2; CI uses Node 24.x.
-- **Q7:** open for M1, which does not depend on it. Status 2026-11-08 (owner decision, recorded in [shared-model README](../006-shared-model/README.md)): corpus F1 to F7 plus hash and canonical-JSON vectors with provenance.
+- **Q7:** decided 2026-11-08 (owner decision, recorded in the [shared-model README](../006-shared-model/README.md)): corpus F1 to F7 plus hash and canonical-JSON vectors with provenance. M1 does not depend on it.
 - **ADR 0002, 0003 and 0004:** approved by the owner on 2026-11-07; the status change is a separate PR.
 - **T002 and T003:** deferred for M1. The conformance fixtures F1 to F7 with their provenance files stand in for them, and M1 tests run against F1 to F7. Q4 and Q5 are untouched. Q3 was decided on 2026-11-08 (owner decision, recorded in the [shared-model README](../006-shared-model/README.md)): converge via the Cubacle fixed frame, first only the specification and shared test vectors.
 - License audit: covered only for the F1 to F7 fixture sources ([CONFORMANCE-NOTICE](../../test/fixtures/CONFORMANCE-NOTICE.md)). The pinned consumer revisions are not audited by this record.
