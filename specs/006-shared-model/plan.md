@@ -97,27 +97,26 @@ Cubacle updates that plan for SM1 and SM4. This plan does not edit the Cubacle p
 | Cubacle stack A (A1 to A4, build, features, manifest, tarball) | `crates/wasm/` split, ABI version, `cli` feature, `xtask` manifest and tarball; no state, pattern or target type (plan section 5) | proceed | The claim "model independent" holds. Only shared file: A1 and B1 both edit `tests/architecture_test.rs` (a text conflict, not a model one). |
 | Cubacle L2, L3 (JS glue, table hashes) | loader, worker, hash pin, abort; serialization of built tables | proceed | Model independent. |
 | Cubacle L1 (ABI 2, `capabilities`, error codes) | capability keys `sizes`, `moves`, `modes`, `frames`; codes 0 to 6 | change | Vocabulary overlaps the [solver contract](../001-core-foundation/contracts/solver.md) capability probe and outcomes (`unsupported`, `invalid`, `unknown`). Add a mapping table to the contract terms in L1, or reuse its names, so M3 needs no second vocabulary. |
-| Cubacle stack B (B1, B2, `src/kpuzzle/`) | a new orbit model in Rust: piece numbering (Cubacle plan D3), `orientationMod`, bridges to `Facelets`, `CenterTwists`, Orbit64 V2 | wait (hold) | It would be a fifth state model. With SM1 the Rust model must implement wire-v1 semantics: numbering derived from wire-v1 piece IDs and checked by step 2 vectors, not adopted from Cubing.js; with SM4 its types and codecs come from the generator. On hold until the Cubacle plan follow-up; SM5 stays open. |
+| Cubacle stack B (B1, B2, `src/kpuzzle/`) | a new orbit model in Rust: piece numbering (Cubacle plan D3), `orientationMod`, bridges to `Facelets`, `CenterTwists`, Orbit64 V2 | wait (hold) | It would be a fifth state model. With SM1 the Rust model must implement wire-v1 semantics: numbering derived from wire-v1 piece IDs and checked by step 2 vectors, not adopted from Cubing.js; with SM4 its types and codecs come from the generator. On hold until the Cubacle plan follow-up; SM5 is decided (**O** 2026-11-12): stack B waits for step 2 vectors. |
 | Cubacle stack M (target modes, `solvePattern`, JS pattern operations) | targets `ignore-centers`, `exact-frame`; JS API within Cubacle plan D13 | wait (hold) | Targets are layer L5; express both modes as PuzlWerk goal nodes first (step 4). M3 also depends on Cubacle plan D13. |
-| Cubacle D3 (piece numbering) | recommendation: Cubing.js numbering | wait (hold), then change | Recommend the Orbit64 V2 slot convention already in Cubacle (`orbit64-Nxn-draft@1`), with a vector table to wire-v1 piece IDs; Cubing.js numbering only as a test-side mapping in Cubistry. |
+| Cubacle D3 (piece numbering) | recommendation: Cubing.js numbering | wait (hold), then change | **O** 2026-11-12 (SM5): the Orbit64 V2 slot convention already in Cubacle (`orbit64-Nxn-draft@1`) with mapping vectors to wire-v1 piece IDs replaces Cubing.js numbering; Cubing.js numbering only as a test-side mapping in Cubistry. |
 | Cubacle D13 (JS pattern API) | algebra public in Rust; JS exposes data, conversion, `solvePattern`, `capabilities`; its price: "the Calendar planner keeps a JS algebra of its own (Cubing.js until G2, then its own or a PuzlWerk one, availability **U**)" | wait | The boundary part (no general JS algebra in Cubacle) fits the principle. The PuzlWerk alternative does not exist yet (**V**): the core has `PwMove.inverse` and `applyToPose` (`core/res/PwMove.resi:13-19`) and `PwOrientation.compose` (`core/res/PwOrientation.resi:10`), no pattern or transformation algebra (compose, invert of whole states, orbit permutations). That algebra is new PuzlWerk work, not yet planned; its availability stays **U**. |
 | Cubacle D14 (module placement) | `src/kpuzzle`, `src/targets` in `RULES` | wait (hold) | Placement itself is model neutral, but it names modules for an algebra that is on hold; it is revisited in the Cubacle plan follow-up. |
 | Cubacle D12 (C2 fixtures) | Calendar fixtures, provenance by Cubistry commit | wait (hold), then change | Store them in the corpus format of step 1 (wire-v1 state plus Orbit64 V2 token, provenance file), so every implementation reads the same rows. |
-| Cubistry PR #430 (cubacle C2 to C5 go record) | one file, `knowledge/plans/cubacle-wasm-replacement.md`; head `26e2474a` withdraws "D1 to D14 as Recommended", proposes as go (pending owner confirmation) stack A, L2, L3, D14 placement and L1 with a mapping to the solver contract, holds B, M, D3, D9, D12, D13 | change (small) | Already narrowed along this plan. Remaining difference: D14 is in its go set ("placement only"); this plan holds D14 with stack B until the Cubacle plan is updated. Its text states that Cubacle `develop` is retired; GitHub shows `develop` as the default branch of Cubacle on 2026-11-12 (**V**), and #430 itself now says so. |
+| Cubistry PR #430 (cubacle C2 to C5 go record) | one file, `knowledge/plans/cubacle-wasm-replacement.md`; head `26e2474a` withdraws "D1 to D14 as Recommended", proposes as go (pending owner confirmation) stack A, L2, L3, D14 placement and L1 with a mapping to the solver contract, holds B, M, D3, D9, D12, D13 | change (small) | Already narrowed along this plan. Remaining difference: D14 is in its go set ("placement only"); this plan holds D14 with stack B until the Cubacle plan is updated (**O** 2026-11-12, SM6). Its text states that Cubacle `develop` is retired; GitHub shows `develop` as the default branch of Cubacle on 2026-11-12 (**V**), and #430 itself now says so. |
 | PuzlWerk #47 (picture cubes) | appearance per sticker, tile ID rule, legacy adapter | proceed as specification (step 3) | No wire-v1 change. The shape is decided (**O** 2026-11-12, SM3): a separate `puzlwerk.appearance` document per sticker ID. |
 | Cubistry PR #431 (Calendar7 month picker) | UI files, browser specs, `docs/CALENDAR_7X7.md` | proceed | No state, move or target change. |
 | Calendar7 chain and engine work | own 7x7 engine and pose arrays | proceed for UI, print and research; wait for new state formats | The engine is a transition state; a new persisted state format or a new interchange should use wire-v1 or an Orbit64 V2 token. An Orbit64 V2 chain interchange was named in the planning request for this plan; no repository source for it was found, so it is **U** (comparison section 5). |
 | Cubistry Picture Cube stack S0a to S6 | host mount, upload, editor, storage, solve; S3 adds an engine interface and a 3x3 adapter on the Calendar sticker model | proceed, S3 change | The engine interface is application level. Keep the 3x3 adapter thin so that step 7 can swap it to `PwMove`. |
-| Cubistry option E1 (own NxN engine, decided after stack PR 4) | new in-repository engine for 4 to 7 | change | An own NxN engine is another model. PuzlWerk `PwMove` already transforms N=2..64 poses (certified 2 and 3). Recommend E1 as "consume PuzlWerk core plus certification of N=4 to 7" (SM7). |
+| Cubistry option E1 (own NxN engine, decided after stack PR 4) | new in-repository engine for 4 to 7 | change | An own NxN engine is another model. PuzlWerk `PwMove` already transforms N=2..64 poses (certified 2 and 3). **O** 2026-11-12 (SM7): E1 becomes "consume PuzlWerk core plus certification of N=4 to 7"; no own NxN engine. |
 | flix-orbit64 #22 (V2-only interchange) | token codec in nine projects | proceed for the token layer, scope change | V2 is a projection (comparison section 7); it cannot hold prints with equal stickers or partial identity (FORMAT-V2 "Extensions"). With SM2 (**O**) #22 becomes a codec task against wire-v1 and the step 2 vectors. With SM8 (**O**) the CubeLab and CubeAssembler ports are replaced by generated codecs (step 6); #22 says PuzlWerk has no codec to replace, which changes with the generator. |
 | PuzlWerk #23 (2x2 solver on Cubacle) | solver choice | proceed | Solver engines are outside the model; the adapter uses the solver contract. |
 | PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | SM1, SM2, SM4 and SM8 are decided; they still depend on the generator plan (step G1). |
 
 ## 4. Owner decisions
 
-Each with recommendation (R), price and consequence. The owner answered SM1, SM3, SM4 and SM11 on 2026-11-12 (source:
-owner answer in the coordinator session) and SM2 and SM8 (**O**, 2026-11-12, same source); they are marked **O**.
-SM5 to SM7, SM9 and SM10 stay open proposals. SM numbers are the decisions of this plan; D numbers name the decisions of the Cubacle
+Each with recommendation (R), price and consequence. The owner answered SM1 to SM11 on 2026-11-12 (source: owner answer in the coordinator session; SM5 to SM7, SM9 and
+SM10 as recommended); they are marked **O**. No proposal stays open. SM numbers are the decisions of this plan; D numbers name the decisions of the Cubacle
 browser plan.
 
 1. **SM1 Canonical semantic model (core decision).** **O** 2026-11-12: PuzlWerk wire-v1 is the canonical model; the
@@ -142,23 +141,28 @@ browser plan.
    ReScript, S for Rust) and supersedes the 2026-11-08 line "shared code only within ReScript, Rust stays own" for types
    and codecs. Price and risks: section 1.3. Consequence: steps G1 and G2; semantics stay checked by vectors; no wasm
    core.
-5. **SM5 Cubacle stack B.** With SM1 decided: wait for step 2 and the Cubacle plan follow-up, and replace Cubacle plan D3 (Cubing.js numbering) by the Orbit64 V2
+5. **SM5 Cubacle stack B.** **O** 2026-11-12: yes, as recommended. Cubacle stack B waits for step 2 vectors; Cubacle plan D3
+   (Cubing.js numbering) is replaced by the Orbit64 V2 slot convention with mapping vectors. The question was: with SM1 decided, wait for step 2 and the Cubacle plan follow-up, and replace Cubacle plan D3 (Cubing.js numbering) by the Orbit64 V2
    slot convention with mapping vectors? R: yes. Price: stack B starts later; the Calendar planner keeps Cubing.js
    until then (it does today). Consequence: no fifth independent numbering.
-6. **SM6 Cubistry PR #430.** Narrow it to stacks A, L2, L3 (and L1 with a contract mapping), and mark Cubacle plan D3,
+6. **SM6 Cubistry PR #430.** **O** 2026-11-12: yes, as recommended. #430 is narrowed to stacks A, L2, L3 and L1 with a
+   contract mapping; D3, D12, D13, D14 and stacks B and M wait; D14 is held back with B. The question was: narrow it to stacks A, L2, L3 (and L1 with a contract mapping), and mark Cubacle plan D3,
    D12, D13, D14 and stacks B and M as waiting? Partly answered: head `26e2474a` of #430 does this except D14, as a
    proposal pending the owner. Open: D14, and the owner's confirmation of the #430 go. R: hold D14 with B. Price: a
    one-line edit of an open Draft. Consequence: the record does not fix a module layout for an algebra that waits.
-7. **SM7 Picture Cube sizes 4 to 7 (E1).** Build them on PuzlWerk `PwMove` and approve certification of N=4 to 7
+7. **SM7 Picture Cube sizes 4 to 7 (E1).** **O** 2026-11-12: yes, as recommended. Picture Cube 4 to 7 runs on PuzlWerk
+   `PwMove` plus certification of N=4 to 7; no own NxN engine. The question was: build them on PuzlWerk `PwMove` and approve certification of N=4 to 7
    (ADR 0008 item 1)? R: yes, when E1 is decided after stack PR 4. Price: certification work in PuzlWerk before the UI.
    Consequence: no own NxN engine in Cubistry.
 8. **SM8 Generated Orbit64 V2 codecs.** **O** 2026-11-12: the ReScript ports of the Facelet and V2 codecs in CubeLab
    and CubeAssembler are replaced by generated codecs as soon as the generator and the vectors exist (steps G2, 2 and
    6); one pull request per repository, each with owner approval. Price: two consumer migrations and the generator
    design for the rank algorithm (**U**). Consequence: #22 scope text changes for PuzlWerk.
-9. **SM9 Notation.** The PuzlWerk AST is the only semantic move form; WCA, SiGN, SSE and app dialects are adapters with a
+9. **SM9 Notation.** **O** 2026-11-12: yes, as recommended. The PuzlWerk AST is the only semantic move form; WCA, SiGN, SSE and app
+   dialects are adapters with a token-to-AST vector table. The question was: the PuzlWerk AST is the only semantic move form; WCA, SiGN, SSE and app dialects are adapters with a
    token-to-AST vector table? R: yes. Price: one table. Consequence: Q2 stays as decided for PuzlWerk text.
-10. **SM10 Record the 2026-11-08 decisions.** Write Q3 and Q7 into `research.md` (now "Q7 open", "Q3 untouched")? R: yes,
+10. **SM10 Record the 2026-11-08 decisions.** **O** 2026-11-12: yes, as recommended; Q3 and Q7 go into `research.md` in a
+    separate small PR. The question was: write Q3 and Q7 into `research.md` (now "Q7 open", "Q3 untouched")? R: yes,
     as a separate small PR. Price: none. Consequence: the repository states the decisions it follows.
 11. **SM11 Licenses.** **O** 2026-11-12: the shared core, PuzlWerk `core/` and the schema generator, is licensed
     EUPL-1.2 (owner answer "Ja, EUPL-1.2", confirming the earlier free-text answer "eul1.2"). No `LICENSE` file is
