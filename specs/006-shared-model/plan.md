@@ -57,7 +57,7 @@ The generator gets its own plan (step G1) before any code. Its design is **P** o
 | Location | Generator and schemas in PuzlWerk. Generated ReScript in PuzlWerk; generated Rust in Cubacle. **U**: whether generating Rust text from PuzlWerk agrees with the Cubacle rule "Do not add a Rust project or Rust package to PuzlWerk" (`AGENTS.md` of Cubacle); whether the Rust output is committed or produced by a Cubacle build step. PuzlWerk `AGENTS.md` asks for a justification for generated code; SM4 is it. |
 | Verification | Generated codecs in both languages decode and re-encode every wire vector and every step 2 mapping vector byte-equal, give the same `sha256:` hashes, and give the same error code and JSON path on every negative vector. A regenerate-and-diff check fails when committed output differs from generator output. A planted schema change must fail a test (mutation). During migration the generated ReScript codec runs beside `PwCodec` on all vectors (dual run). |
 | Price | A generator with two emitters and their tests; migration of `PwCodec` to generated code; a Cubacle change per schema revision. |
-| Risks | Semantics outside the schema drift without vectors; emitter bugs hit both languages at once; cross-repository toolchain coupling; review of large generated diffs; license of generated output in AGPL Cubacle (**U**, see SM11); the Orbit64 V2 rank codec is an algorithm, not a schema, so whether it is generated is **U**. |
+| Risks | Semantics outside the schema drift without vectors; emitter bugs hit both languages at once; cross-repository toolchain coupling; review of large generated diffs; license of generated output in AGPL Cubacle (**U**, see SM11); the Orbit64 V2 codec is generated (**O** SM8), but its rank algorithm is not a schema, so how the generator expresses it is **U** (design of step G1). |
 
 ## 2. Convergence path (P)
 
@@ -77,7 +77,7 @@ or Flix, like the Orbit64 V2 generators, not in Python.
 | 3 | Appearance specification ([#47](https://github.com/wstein/puzlwerk/issues/47)), shape decided (**O** SM3): `puzlwerk.appearance` revision 1 text (sticker ID to color, image reference, design symmetry C1/C2/C4); tile ID rule; picture Cube 3x3 and Calendar examples as vectors | schema text plus examples that the decoder test (later) must read | owner accepts or changes the text; examples have provenance | `npm run docs:check`; `npm run test:docs` |
 | 4 | Target vectors (M2 groundwork): `cubistry.goal` v2 slots, Cubacle color sets and masks, `orientationMod`, `ignore-centers` and `exact-frame` expressed as PuzlWerk goal nodes, each with a state that passes and one that fails | a vector whose expected result contradicts the data model text is rejected in review | every listed target form has a mapping row or an explicit "unsupported" row | `npm run docs:check`; vectors checked by the step-2 test harness once M2 starts |
 | 5 | Consumer conformance, test only, one pull request per repository after approval: Cubacle reads the pinned corpus (Rust test), CubeAssembler and CubeLab run their V2 ports against it, Cubistry checks `cubistry.state` and Calendar states against step 2 | each repository's new test fails on a planted wrong vector | all consumers pass the same corpus at the same pin | `cargo test --release --test <name>` (Cubacle); `node --test tests/<file>` (Cubistry); the repository test command (CubeAssembler, CubeLab) |
-| 6 | One ReScript Orbit64 V2 module in PuzlWerk, dual-run against the CubeLab and CubeAssembler ports, then each consumer switches (separate approvals, M2 and M3) | dual-run differs on a planted change | the PuzlWerk module passes the flix-orbit64 vectors; consumers use it | `npm run check`; consumer test commands |
+| 6 | Generated Orbit64 V2 codecs (to and from wire-v1, **O** SM2 and SM8) replace the ReScript ports of the Facelet and V2 codecs in CubeLab and CubeAssembler once the generator and the vectors exist; first dual-run against the ports; one pull request per repository, each with owner approval (M2, M3) | dual-run differs on a planted change | the generated codec passes the flix-orbit64 vectors and the step 2 vectors; each consumer uses it and its port is removed | `npm run check`; consumer test commands |
 | 7 | Cubistry adapters: `cubistry.state` v1 and the Calendar sticker arrays to and from wire-v1; Picture Cube engine interface (S3) backed by `PwMove` for N=3, later N=4 to 7 (replaces option E1's own engine) | Calendar and Calendar7 engines as differential oracles on fixed random words | replay equality of all stickers on the oracles | `node --test tests/<file>`; `npm run check` (PuzlWerk) |
 | 8 | Solver adapter (M3, [solver contract](../001-core-foundation/contracts/solver.md)) through the Cubacle fixed frame (**O** Q3) | the contract's conformance cases 1 to 10 | negotiated capabilities, replay of every answer in PuzlWerk | contract tests; Cubacle `cargo test` |
 
@@ -111,7 +111,7 @@ Cubacle updates that plan for SM1 and SM4. This plan does not edit the Cubacle p
 | Cubistry option E1 (own NxN engine, decided after stack PR 4) | new in-repository engine for 4 to 7 | change | An own NxN engine is another model. PuzlWerk `PwMove` already transforms N=2..64 poses (certified 2 and 3). Recommend E1 as "consume PuzlWerk core plus certification of N=4 to 7" (SM7). |
 | flix-orbit64 #22 (V2-only interchange) | token codec in nine projects | proceed for the token layer, scope change | V2 is a projection (comparison section 7); it cannot hold prints with equal stickers or partial identity (FORMAT-V2 "Extensions"). With SM2 (**O**) #22 becomes a codec task against wire-v1 and the step 2 vectors. With SM8 (**O**) the CubeLab and CubeAssembler ports are replaced by generated codecs (step 6); #22 says PuzlWerk has no codec to replace, which changes with the generator. |
 | PuzlWerk #23 (2x2 solver on Cubacle) | solver choice | proceed | Solver engines are outside the model; the adapter uses the solver contract. |
-| PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | SM1 and SM4 are decided; they still depend on SM8 and the generator plan (step G1). |
+| PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | SM1, SM2, SM4 and SM8 are decided; they still depend on the generator plan (step G1). |
 
 ## 4. Owner decisions
 
@@ -152,8 +152,10 @@ browser plan.
 7. **SM7 Picture Cube sizes 4 to 7 (E1).** Build them on PuzlWerk `PwMove` and approve certification of N=4 to 7
    (ADR 0008 item 1)? R: yes, when E1 is decided after stack PR 4. Price: certification work in PuzlWerk before the UI.
    Consequence: no own NxN engine in Cubistry.
-8. **SM8 One ReScript Orbit64 V2 module.** Move the codec into PuzlWerk and retire the CubeLab and CubeAssembler ports
-   (M2, M3)? R: yes, after step 5. Price: two consumer migrations. Consequence: #22 scope text changes for PuzlWerk.
+8. **SM8 Generated Orbit64 V2 codecs.** **O** 2026-11-12: the ReScript ports of the Facelet and V2 codecs in CubeLab
+   and CubeAssembler are replaced by generated codecs as soon as the generator and the vectors exist (steps G2, 2 and
+   6); one pull request per repository, each with owner approval. Price: two consumer migrations and the generator
+   design for the rank algorithm (**U**). Consequence: #22 scope text changes for PuzlWerk.
 9. **SM9 Notation.** The PuzlWerk AST is the only semantic move form; WCA, SiGN, SSE and app dialects are adapters with a
    token-to-AST vector table? R: yes. Price: one table. Consequence: Q2 stays as decided for PuzlWerk text.
 10. **SM10 Record the 2026-11-08 decisions.** Write Q3 and Q7 into `research.md` (now "Q7 open", "Q3 untouched")? R: yes,

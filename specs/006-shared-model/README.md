@@ -33,6 +33,9 @@ Owner decisions used (**O**, quoted as given to the author of this plan):
   Cubacle fixed frame is the Rust implementation of the same semantics; Orbit64 V2 is a codec.
 - 2026-11-12, SM2 (same source): Orbit64 V2 is a derived compact token, a codec from and to wire-v1 proven by
   vectors, not a model of its own; flix-orbit64 #22 becomes a codec task.
+- 2026-11-12, SM8 (same source): the ReScript ports of the Facelet and V2 codecs in CubeLab and CubeAssembler are
+  replaced by generated codecs as soon as the generator and the vectors exist; one pull request per repository, each
+  with owner approval.
 - 2026-11-12, SM3 (same source): a separate appearance document per sticker ID (`puzlwerk.appearance`); wire-v1
   revision 1 stays unchanged.
 - 2026-11-12, SM4 (same source): a schema generator; one schema generates the types and codecs for Rust and
