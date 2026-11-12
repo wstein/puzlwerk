@@ -1,7 +1,7 @@
 # 006 — One shared cube model (comparison and convergence plan)
 
 **Status:** proposal; planning only. No code, no migration and no cross-repository change is approved by these files.
-The owner decides which model is canonical; this directory does not decide it.
+The owner decided the canonical model on 2026-11-12: PuzlWerk wire-v1 (SM1 in plan.md).
 
 ## Purpose
 
@@ -28,6 +28,10 @@ Owner decisions used (**O**, quoted as given to the author of this plan):
 - 2026-11-08: every milestone and every cross-repository change still needs the owner's approval.
 - 2026-11-08: [wire schema v1](../001-core-foundation/contracts/wire-v1.md) is accepted (recorded there).
 - 2026-11-12: all components must share the same cube model and abstraction; first a comparison, then decide.
+- 2026-11-12, SM1 (source: owner answer in the coordinator session): PuzlWerk wire-v1 is the canonical model; the
+  Cubacle fixed frame is the Rust implementation of the same semantics; Orbit64 V2 is a codec.
+- 2026-11-12, SM3 (same source): a separate appearance document per sticker ID (`puzlwerk.appearance`); wire-v1
+  revision 1 stays unchanged.
 
 Owner decisions recorded in other repository documents and cited as **O** with their source:
 
