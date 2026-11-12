@@ -35,6 +35,8 @@ Owner decisions used (**O**, quoted as given to the author of this plan):
   revision 1 stays unchanged.
 - 2026-11-12, SM4 (same source): a schema generator; one schema generates the types and codecs for Rust and
   ReScript/TypeScript.
+- 2026-11-12, SM11 (same source): the shared core (PuzlWerk `core/` and the schema generator) is licensed EUPL-1.2;
+  the `LICENSE` file is a follow-up pull request with a compatibility check first.
 
 Owner decisions recorded in other repository documents and cited as **O** with their source:
 
