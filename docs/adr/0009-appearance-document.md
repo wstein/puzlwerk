@@ -1,6 +1,6 @@
 # ADR 0009: Appearance as a separate document per sticker ID
 
-Status: Proposed (shape decided by the owner on 2026-11-12 as SM3; field rules await acceptance)
+Status: Accepted (owner decision 2026-11-12: shape SM3 and the four points below)
 Date: 2026-11-12
 
 ## Context
@@ -25,9 +25,9 @@ wire-v1 revision 1 has one optional `color` ID per sticker and "no image referen
 
 An application can change artwork without touching the definition or any state hash. Two cubes with the same definition may carry different appearances. The document does not pin image bytes, so equal image IDs with different art are possible; the application owns that check.
 
-## Open points for the owner
+## Decisions on the field rules (owner, 2026-11-12)
 
-1. Color precedence: appearance `color` overrides the definition `color` (proposed), or conflicting values are an error.
-2. Image ID alphabet: the wire ID alphabet with at most 256 characters (proposed; Cubacle strings are free text and need a mapping), or any non-empty text.
-3. Content pin: none in revision 1 (proposed); an optional digest of the image set would be revision 2.
-4. `tile-v1` as a profile selected by `imageIds` (proposed), or only prose.
+6. Color precedence: appearance `color` overrides the definition `color`; a difference is not an error.
+7. Image ID alphabet: the wire ID alphabet, at most 256 characters; Cubacle strings need a mapping.
+8. Content pin: none in revision 1; an optional digest of the image set is possible only in revision 2.
+9. `tile-v1` is a machine-checkable profile selected by `imageIds`.
