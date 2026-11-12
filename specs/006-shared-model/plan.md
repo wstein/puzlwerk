@@ -134,8 +134,8 @@ D numbers name the decisions of the Cubacle browser plan.
 ## 5. Not verified
 
 - **U** Calendar7 chain state with Orbit64 V2 interchange: not found (comparison section 5).
-- **U** Whether the Cubacle fixed-frame axes equal the data-model frame; whether the Cubistry 3x3 and 7x7 coordinate
-  scale (not doubled) is the only difference to wire-v1 for those states.
+- **U** Whether each Cubacle fixed-frame print uses the face-up table for its `up` vectors (the axes are **V**,
+  comparison section 7); whether the Cubistry 3x3 and 7x7 coordinate scale (not doubled) is the only difference to wire-v1 for those states.
 - **U** CubeLab sizes and center handling; read from #22 and file names only.
 - **U** License of PuzlWerk `core/`.
 - Not run: no test, build or vector generator of any repository; only the documentation checks of this repository.
