@@ -170,7 +170,8 @@ browser plan.
       LGPL v2.1 and v3, CC BY-SA 3.0 (works other than software), EUPL v1.1 and v1.2, LiLiQ-R and LiLiQ-R+. MIT and
       Apache-2.0 are not in the Appendix. Source: the EUPL-1.2 text (SPDX license list copy).
     - Cubacle: AGPL-3.0-or-later with the upstream MIT grant kept. CubeAssembler: MIT. flix-orbit64 (Orbit64 V2):
-      Apache-2.0; its vectors in PuzlWerk F1, F4 and F5 are Apache-2.0 (`test/fixtures/CONFORMANCE-NOTICE.md`).
+      Apache-2.0; its vectors F4 and F5 are Apache-2.0 at the origin, and their copy in PuzlWerk comes via Cubacle under
+      AGPL-3.0-or-later (`test/fixtures/CONFORMANCE-NOTICE.md`, line 10); F1 is Apache-2.0 (same file).
       Cubistry: AGPL-3.0. CubeLab: AGPL-3.0-or-later.
     - In PuzlWerk today: `packages/solver-2x2` and `packages/solver-3x3-picture` are AGPL-3.0-or-later; the
       conformance fixtures from this repository carry AGPL-3.0-or-later in their provenance files.
