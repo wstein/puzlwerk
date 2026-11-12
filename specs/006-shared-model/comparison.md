@@ -57,10 +57,10 @@ cubelab #22; cube-assembler #29.
 | Frame and coordinates | Facelet index order of Orbit64; fixed-frame vectors `[i8; 3]` in a world frame. |
 | Orientation and centers | `Facelets` drops center orientation. `CenterTwists` (Z4 per face, odd cubes; merged in [#32](https://github.com/wstein/cubacle/pull/32)) is filled from the Orbit64 V2 picture model and read by the renderer. `SolveFrame::{Fixed, AnyOrientation}` (`src/puzzle/proof.rs`). |
 | Moves and notation | WCA, SiGN and SSE spellings, layer ranges, `x y z` and `M E S` in expressions (`docs/cli/move-notations.md`). Fixed frame: 18 HTM moves. |
-| Size | `PuzzleKind` 2..7; engines for 2x2 to 5x5 (`AGENTS.md`); Orbit64 V2 port 2..15; fixed frame 2x2x2. |
+| Size | `PuzzleKind` 2..7; `solve` for 2x2x2 to 7x7x7 (`README.md:40`; `docs/engines/_index.md:13-17`, 6x6x6 and 7x7x7 through the dwalton port in `src/engines/dwalton/`, "Supported"). `AGENTS.md:7` ("2x2, 3x3, 4x4 and 5x5 now"), `AGENTS.md:71` ("6x6 and up later") and `crates/server/README.md:27` ("only 2 to 5 have engines") are stale on this point; Orbit64 V2 port 2..15; fixed frame 2x2x2. |
 | Appearance | Color schemes; `image` reference on fixed-frame stickers; picture renderer (#37). |
 | Targets | `puzzle::Target`: allowed color set per sticker (don't-care) and `Mask`; 3x3x3 target sets with sticker identity in `engines/three/partial/`; fixed-frame display goals ([fixed-frame proofs](https://github.com/wstein/cubacle/blob/bb92669ccf9416dfe2627067b0782f6fefbf27b0/docs/design/fixed-frame-proofs.md)). |
-| Serialization | REST/JSON `formatVersion` 1; `canonical` field with Orbit64 token and schema name; fixed-frame strict JSON (`src/fixed_frame_cmd/strict_json.rs`); wasm C ABI 1. |
+| Serialization | REST/JSON: `/v1/solve` accepts `formatVersion` 1 or 2, default 2 (`crates/server/README.md:29,68-70`; `crates/server/src/solve.rs:84-86`); the pattern search request has `formatVersion` 1 (`docs/specs/rest-json.md:21`); `canonical` field with Orbit64 token and schema name; fixed-frame strict JSON (`src/fixed_frame_cmd/strict_json.rs`); wasm C ABI 1. |
 | Language and runtime | Rust; native CLI and REST server; `crates/wasm` facade for 2x2 and 3x3 solve. |
 | Tests and vectors | `tests/fixtures/` (recorded solver output, not to be edited), Orbit64 V2 picture vectors copied from flix-orbit64. |
 | Proposed (PR #38 plan, merged as a proposal) | A KPuzzle-like algebra in `src/kpuzzle/` (section 3.2): orbits `CORNERS`, `EDGES`, `CENTERS` (4 orientations), `{permutation, orientationDelta}` and `{pieces, orientation, orientationMod}`, compose, invert, bridge to `Facelets`, `CenterTwists` and Orbit64 V2; piece numbering open (D3, recommended Cubing.js numbering); public in Rust, JS limited (D13); target modes `ignore-centers` and `exact-frame` (section 3.3). Non-goal 3.8: "a shared cube core in cubacle". |
@@ -105,7 +105,7 @@ Scope: as far as [cube-assembler #29](https://github.com/wstein/cube-assembler/i
 | Pose | O matrix per piece | orbit permutation plus orientation digits | color facelets; pose code 0..23 (2x2x2) | Oᵀ per cubie (size 2); `p`, `n`, `up` per sticker | color facelets |
 | Coordinates | doubled integers | facelet indices | facelet indices; world vectors | doubled (size 2, goal keys); not doubled (3x3, 7x7) | facelet grids |
 | Centers | O of the center piece | picture: `r_f`; color: none | `CenterTwists` | `up` per sticker | none (**U** for CubeLab) |
-| Sizes | 2..64 | 2..15 | 2..7 (engines 2..5) | 2, 3, 7 | 2..7 |
+| Sizes | 2..64 | 2..15 | 2..7 (solve 2..7) | 2, 3, 7 | 2..7 |
 | Appearance | optional color | color or all distinct | colors; `image` (2x2x2) | asset, material, symmetry, appearance map | colors |
 | Targets | proposed grammar | none | color sets, masks, display goals | `cubistry.target`, `cubistry.goal` | U |
 | Hash | `sha256:` of canonical JSON | token is canonical | table and manifest hashes (proposed) | appearance map and classifier input: hex SHA-256 of `canonicalJson`, no prefix; no state hash | none found |
@@ -117,4 +117,4 @@ frame. The Cubistry face table (`FACE_FRAMES` in `src/apps/picture3/model.ts`, `
 `D`, and up on the four side faces") equal the face-up table of the data model. Sticker frames follow from a PuzlWerk
 pose as `p`, `O n`, `O up` (**P** as a general claim; checked for N=3 picture states by F4). Orbit64 V2 picture tokens
 and color facelets are projections of a pose: the picture projection is lossless for a cube whose stickers all
-differ, the color projection is lossy. Whether the Cubacle fixed-frame axes equal the data-model frame is **U**.
+differ, the color projection is lossy. The Cubacle fixed-frame axes equal the data-model frame (**V**: `docs/design/fixed-frame-proofs.md:126` "`x` points to R, `y` to U, `z` to F", right-handed; turn direction `:133-135`, R is -90 degrees about +x as in the data model). The `up` vectors are per print, so whether a given print uses the face-up table is **U** per print.
