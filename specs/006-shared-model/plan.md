@@ -142,7 +142,7 @@ browser plan.
    ReScript, S for Rust) and supersedes the 2026-11-08 line "shared code only within ReScript, Rust stays own" for types
    and codecs. Price and risks: section 1.3. Consequence: steps G1 and G2; semantics stay checked by vectors; no wasm
    core.
-5. **SM5 Cubacle stack B.** Wait for SM1 and step 2, and replace Cubacle plan D3 (Cubing.js numbering) by the Orbit64 V2
+5. **SM5 Cubacle stack B.** With SM1 decided: wait for step 2 and the Cubacle plan follow-up, and replace Cubacle plan D3 (Cubing.js numbering) by the Orbit64 V2
    slot convention with mapping vectors? R: yes. Price: stack B starts later; the Calendar planner keeps Cubing.js
    until then (it does today). Consequence: no fifth independent numbering.
 6. **SM6 Cubistry PR #430.** Narrow it to stacks A, L2, L3 (and L1 with a contract mapping), and mark Cubacle plan D3,
