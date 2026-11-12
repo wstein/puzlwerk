@@ -1,0 +1,13 @@
+# Origin of test/fixtures/mapping/n3-picture-wire.txt. Checked by test/mapping-vectors.test.mjs and by `julia scripts/mapping-vectors-n3.jl check`.
+source_repository=https://github.com/wstein/puzlwerk
+input_path=test/fixtures/conformance/f4-3x3-picture.txt
+input_sha256=c3b7955be10a1355900cab339a358cb4595e71803164218062cc7ceb934c78bd
+input_path=test/fixtures/wire/definition-3.json
+input_sha256=52585d7b0245a97c15f3de6ca7efd8dd93dfd57c437551f78c584ac45109cd7f
+origin_repository=https://github.com/wstein/cubacle
+origin_commit=5c5d3025241a4588c59f084af46173d4178ffed1
+origin_note=facelet rows are the F4 copy of Cubacle tests/fixtures/orbit64_v2_picture_facelets.txt, from flix-orbit64 test/TestV2FaceletPictureData.flix at a046e34adcdc212a69ce3dcc24b2e47b7fabfbe5 (see test/fixtures/CONFORMANCE-NOTICE.md)
+output_sha256=390d338bc0bdbe3e1f26e86f5d118b7fe54db85f0e52f1fe51c3a2391e106939
+license=AGPL-3.0-or-later (derived from the Cubacle copy); the Orbit64 vectors are Apache-2.0 at the origin (flix-orbit64, Werner Stein)
+generator=scripts/mapping-vectors-n3.jl
+regenerate=julia scripts/mapping-vectors-n3.jl check
