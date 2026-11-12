@@ -15,7 +15,7 @@ primary source at the revision in section 1, not from summaries.
 | [cubelab](https://github.com/wstein/cubelab/tree/5ab482719a31b894bd32d78ea76c64609b89acb2) | `main` `5ab482719a31b894bd32d78ea76c64609b89acb2` | AGPL-3.0-or-later |
 
 Issues and pull requests read: puzlwerk #9, #11, #12, #23, #47; flix-orbit64 #22; cubacle #32, #38 (merged; the plan
-is `docs/design/browser-wasm-plan.md` on `develop`); cubistry #430 (head `d9b23283`), #431 (head `bf04c500`);
+is `docs/design/browser-wasm-plan.md` on `develop`); cubistry #430 (head `26e2474a`, read 2026-11-12; the first version of this plan read `d9b23283`, the review `f0520253`), #431 (head `bf04c500`);
 cubelab #22; cube-assembler #29.
 
 ## 2. PuzlWerk wire-v1 (ReScript core)

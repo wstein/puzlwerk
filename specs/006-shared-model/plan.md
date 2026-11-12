@@ -82,7 +82,7 @@ and the named step).
 | Cubacle D13 (JS pattern API) | algebra public in Rust; JS exposes data, conversion, `solvePattern`, `capabilities`; its price: "the Calendar planner keeps a JS algebra of its own (Cubing.js until G2, then its own or a PuzlWerk one, availability **U**)" | wait | The boundary part (no general JS algebra in Cubacle) fits the principle. The PuzlWerk alternative does not exist yet (**V**): the core has `PwMove.inverse` and `applyToPose` (`core/res/PwMove.resi:13-19`) and `PwOrientation.compose` (`core/res/PwOrientation.resi:10`), no pattern or transformation algebra (compose, invert of whole states, orbit permutations). That algebra is new PuzlWerk work, not yet planned; its availability stays **U**. |
 | Cubacle D14 (module placement) | `src/kpuzzle`, `src/targets` in `RULES` | proceed with B | Placement is model neutral; it starts when B starts. |
 | Cubacle D12 (C2 fixtures) | Calendar fixtures, provenance by Cubistry commit | change | Store them in the corpus format of step 1 (wire-v1 state plus Orbit64 V2 token, provenance file), so every implementation reads the same rows. |
-| Cubistry PR #430 (records D1 to D14 "as Recommended") | one file, `knowledge/plans/cubacle-wasm-replacement.md` | change | Recording Cubacle plan D3, D12 and the D13 price as recommended fixes a model choice before SM1. Record A, L2, L3 and D14 as go; mark D3, D12, D13 and stack B and M as waiting for the shared-model decision. **V** its text states that Cubacle `develop` is retired; GitHub shows `develop` as the default branch of Cubacle on 2026-11-12. |
+| Cubistry PR #430 (cubacle C2 to C5 go record) | one file, `knowledge/plans/cubacle-wasm-replacement.md`; head `26e2474a` withdraws "D1 to D14 as Recommended", proposes as go (pending owner confirmation) stack A, L2, L3, D14 placement and L1 with a mapping to the solver contract, holds B, M, D3, D9, D12, D13 | change (small) | Already narrowed along this plan. Remaining difference: D14 is in its go set ("placement only"); this plan holds D14 with stack B until the Cubacle plan is updated. Its text states that Cubacle `develop` is retired; GitHub shows `develop` as the default branch of Cubacle on 2026-11-12 (**V**), and #430 itself now says so. |
 | PuzlWerk #47 (picture cubes) | appearance per sticker, tile ID rule, legacy adapter | proceed as specification (step 3) | No wire-v1 change. The shape is decision SM3. |
 | Cubistry PR #431 (Calendar7 month picker) | UI files, browser specs, `docs/CALENDAR_7X7.md` | proceed | No state, move or target change. |
 | Calendar7 chain and engine work | own 7x7 engine and pose arrays | proceed for UI, print and research; wait for new state formats | The engine is a transition state; a new persisted state format or a new interchange should use wire-v1 or an Orbit64 V2 token. An Orbit64 V2 chain interchange was named in the planning request for this plan; no repository source for it was found, so it is **U** (comparison section 5). |
@@ -116,8 +116,10 @@ D numbers name the decisions of the Cubacle browser plan.
 5. **SM5 Cubacle stack B.** Wait for SM1 and step 2, and replace Cubacle plan D3 (Cubing.js numbering) by the Orbit64 V2
    slot convention with mapping vectors? R: yes. Price: stack B starts later; the Calendar planner keeps Cubing.js
    until then (it does today). Consequence: no fifth independent numbering.
-6. **SM6 Cubistry PR #430.** Narrow it to stacks A, L2, L3 and Cubacle plan D14, and mark Cubacle plan D3, D12, D13 and stacks B and M as waiting?
-   R: yes. Price: an edit of an open Draft. Consequence: the record does not fix a model before SM1.
+6. **SM6 Cubistry PR #430.** Narrow it to stacks A, L2, L3 (and L1 with a contract mapping), and mark Cubacle plan D3,
+   D12, D13, D14 and stacks B and M as waiting? Partly answered: head `26e2474a` of #430 does this except D14, as a
+   proposal pending the owner. Open: D14, and the owner's confirmation of the #430 go. R: hold D14 with B. Price: a
+   one-line edit of an open Draft. Consequence: the record does not fix a module layout for an algebra that waits.
 7. **SM7 Picture Cube sizes 4 to 7 (E1).** Build them on PuzlWerk `PwMove` and approve certification of N=4 to 7
    (ADR 0008 item 1)? R: yes, when E1 is decided after stack PR 4. Price: certification work in PuzlWerk before the UI.
    Consequence: no own NxN engine in Cubistry.
