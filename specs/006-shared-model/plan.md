@@ -61,7 +61,7 @@ The generator gets its own plan (step G1) before any code. Its design is **P** o
 
 ## 2. Convergence path (P)
 
-Each step is one reviewable pull request (or a short stack) with a test or vector that fails first. Steps 1 to 4, G1 and G2 change
+Each step is one reviewable pull request (or a short stack) with a test or vector that fails first. Steps 1 to 4, G1, G2 and LC change
 only this repository; the first step needs no code change elsewhere. Every step outside PuzlWerk, and every milestone,
 needs its own owner approval (**O** 2026-11-08). Generators for new vectors follow the independent-generator rule of
 the plan ("independently computed hashes", [plan.md of 001](../001-core-foundation/plan.md)) and are written in Julia
@@ -73,6 +73,7 @@ or Flix, like the Orbit64 V2 generators, not in Python.
 | 2 | Mapping vectors N=2 and N=3: the same states as wire-v1 state, Orbit64 V2 token (canonical and framed), picture facelets, color facelets, `cubistry.state` (Oᵀ) and Cubistry sticker frames; quarter turns and 120 degree rotations included (ADR 0008); one row per canonical-bytes difference (Cubistry `canonicalJson` allows non-integers and writes an unprefixed hex hash; wire-v1 rejects non-integers and `-0` and prefixes `sha256:`) | the test fails on a planted wrong transpose and on a planted center twist | each row converts both ways with byte-equal canonical JSON and equal tokens | `npm run check`; the generator command recorded in the provenance file |
 | G1 | Generator plan (**O** SM4; design **P**/**U**, section 1.3): spec directory with schema language, emitters, location, verification and slices | review rejects a plan without the verification rows of section 1.3 | the owner approves the plan | `npm run docs:check`; `npm run test:docs` |
 | G2 | Generator for `puzlwerk.definition` and `puzlwerk.state` with ReScript and Rust emitters, in PuzlWerk; generated ReScript runs beside `PwCodec` | a planted schema change and a planted wrong error code fail the generated-codec test | generated ReScript passes the wire vectors and step 2 vectors byte-equal and agrees with `PwCodec` on all of them; regenerate-and-diff is clean | `npm run check`; the regenerate-and-diff command named in G1 (**U**); the Rust output is tested by `cargo test` in a Cubacle PR with its own approval |
+| LC | `LICENSE` for EUPL-1.2 (**O** SM11) covering `core/` and the generator, in its own reviewed pull request; first a compatibility check against the facts of SM11 | review rejects a license file without the written check | the owner accepts the check and the file; package licenses stay as they are unless the owner decides otherwise | `npm run docs:check`; `npm run test:docs`; `npm run test:package` (package license fields unchanged) |
 | 3 | Appearance specification ([#47](https://github.com/wstein/puzlwerk/issues/47)), shape decided (**O** SM3): `puzlwerk.appearance` revision 1 text (sticker ID to color, image reference, design symmetry C1/C2/C4); tile ID rule; picture Cube 3x3 and Calendar examples as vectors | schema text plus examples that the decoder test (later) must read | owner accepts or changes the text; examples have provenance | `npm run docs:check`; `npm run test:docs` |
 | 4 | Target vectors (M2 groundwork): `cubistry.goal` v2 slots, Cubacle color sets and masks, `orientationMod`, `ignore-centers` and `exact-frame` expressed as PuzlWerk goal nodes, each with a state that passes and one that fails | a vector whose expected result contradicts the data model text is rejected in review | every listed target form has a mapping row or an explicit "unsupported" row | `npm run docs:check`; vectors checked by the step-2 test harness once M2 starts |
 | 5 | Consumer conformance, test only, one pull request per repository after approval: Cubacle reads the pinned corpus (Rust test), CubeAssembler and CubeLab run their V2 ports against it, Cubistry checks `cubistry.state` and Calendar states against step 2 | each repository's new test fails on a planted wrong vector | all consumers pass the same corpus at the same pin | `cargo test --release --test <name>` (Cubacle); `node --test tests/<file>` (Cubistry); the repository test command (CubeAssembler, CubeLab) |
@@ -115,7 +116,7 @@ Cubacle updates that plan for SM1 and SM4. This plan does not edit the Cubacle p
 ## 4. Owner decisions
 
 Each with recommendation (R), price and consequence. The owner answered SM1, SM3, SM4 and SM11 on 2026-11-12 (source:
-owner answer in the coordinator session); they are marked **O**, except the reading of SM11, which is **U**. SM2 and
+owner answer in the coordinator session); they are marked **O**. SM2 and
 SM5 to SM10 stay open proposals. SM numbers are the decisions of this plan; D numbers name the decisions of the Cubacle
 browser plan.
 
@@ -157,9 +158,22 @@ browser plan.
    token-to-AST vector table? R: yes. Price: one table. Consequence: Q2 stays as decided for PuzlWerk text.
 10. **SM10 Record the 2026-11-08 decisions.** Write Q3 and Q7 into `research.md` (now "Q7 open", "Q3 untouched")? R: yes,
     as a separate small PR. Price: none. Consequence: the repository states the decisions it follows.
-11. **SM11 Licenses.** State the license of PuzlWerk `core/` (no repository `LICENSE` file) and decide whether MIT
-    CubeAssembler may consume an AGPL core? R: decide before step 6. Price: a license text, possibly a relicensing
-    decision. Consequence: step 6 and the CubeAssembler migration can be reviewed for license.
+11. **SM11 Licenses.** **O** 2026-11-12: the shared core, PuzlWerk `core/` and the schema generator, is licensed
+    EUPL-1.2 (owner answer "Ja, EUPL-1.2", confirming the earlier free-text answer "eul1.2"). No `LICENSE` file is
+    written in this pull request; it is follow-up step LC of section 2. Facts for the compatibility check of that step
+    (**V**; no legal conclusion is drawn here):
+    - EUPL-1.2 Article 5 (compatibility clause): a work combining the licensed work with a work under a "Compatible
+      Licence" may be distributed under that Compatible Licence; its obligations prevail where they conflict. The
+      Appendix lists GNU GPL v2 and v3, GNU AGPL v3, OSL v2.1 and v3.0, EPL v1.0, CeCILL v2.0 and v2.1, MPL v2, GNU
+      LGPL v2.1 and v3, CC BY-SA 3.0 (works other than software), EUPL v1.1 and v1.2, LiLiQ-R and LiLiQ-R+. MIT and
+      Apache-2.0 are not in the Appendix. Source: the EUPL-1.2 text (SPDX license list copy).
+    - Cubacle: AGPL-3.0-or-later with the upstream MIT grant kept. CubeAssembler: MIT. flix-orbit64 (Orbit64 V2):
+      Apache-2.0; its vectors in PuzlWerk F1, F4 and F5 are Apache-2.0 (`test/fixtures/CONFORMANCE-NOTICE.md`).
+      Cubistry: AGPL-3.0. CubeLab: AGPL-3.0-or-later.
+    - In PuzlWerk today: `packages/solver-2x2` and `packages/solver-3x3-picture` are AGPL-3.0-or-later; the
+      conformance fixtures from this repository carry AGPL-3.0-or-later in their provenance files.
+    - Open for the check (**U**): the license of generated code emitted into Cubacle (AGPL) and into ReScript consumers;
+      whether any existing `core/` file carries another license notice.
 
 ## 5. Not verified
 
@@ -167,6 +181,6 @@ browser plan.
 - **U** Whether each Cubacle fixed-frame print uses the face-up table for its `up` vectors (the axes are **V**,
   comparison section 7); whether the Cubistry 3x3 and 7x7 coordinate scale (not doubled) is the only difference to wire-v1 for those states.
 - **U** CubeLab sizes and center handling; read from #22 and file names only.
-- **U** License of PuzlWerk `core/`.
+- Not written: the `LICENSE` file for EUPL-1.2 (SM11); it is step LC with its compatibility check first.
 - Not run: no test, build or vector generator of any repository; only the documentation checks of this repository.
 - Effort estimates are not given; each step is sized by its own pull request.

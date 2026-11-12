@@ -7,7 +7,7 @@ primary source at the revision in section 1, not from summaries.
 
 | Repository | Revision read (2026-11-12) | License (**V**) |
 | --- | --- | --- |
-| [puzlwerk](https://github.com/wstein/puzlwerk/tree/dd8d5a3ba658b692bc55d6afa6b0a594a750b2e3) | `main` `dd8d5a3ba658b692bc55d6afa6b0a594a750b2e3` | packages `AGPL-3.0-or-later`; no repository `LICENSE` file, so the license of `core/` is **U** |
+| [puzlwerk](https://github.com/wstein/puzlwerk/tree/dd8d5a3ba658b692bc55d6afa6b0a594a750b2e3) | `main` `dd8d5a3ba658b692bc55d6afa6b0a594a750b2e3` | packages `AGPL-3.0-or-later`; no repository `LICENSE` file yet; `core/` and the schema generator: EUPL-1.2 (**O** 2026-11-12, SM11 in the plan), file not yet written |
 | [flix-orbit64](https://github.com/wstein/flix-orbit64/tree/4a4f822db4a417ed58ed864ae1de00ec0b293db0) | `main` `4a4f822db4a417ed58ed864ae1de00ec0b293db0` | Apache-2.0 |
 | [cubacle](https://github.com/wstein/cubacle/tree/bb92669ccf9416dfe2627067b0782f6fefbf27b0) | `develop` (GitHub default branch) `bb92669ccf9416dfe2627067b0782f6fefbf27b0` | AGPL-3.0-or-later, upstream MIT grant kept |
 | [cubistry](https://github.com/wstein/cubistry/tree/ac6b00b5232201575cc618adfe538e0d81e75d0a) | `main` `ac6b00b5232201575cc618adfe538e0d81e75d0a` | AGPL-3.0 (`LICENSE`) |
