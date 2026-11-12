@@ -42,3 +42,25 @@ by IDs only.
 **P** R for ReScript and TypeScript consumers, S for Rust. This is the combination the 2026-11-08 decisions describe
 (shared code within ReScript, Rust its own, specification and vectors first). G is not needed for that; W is excluded
 by the decisions unless the owner changes them.
+
+## 2. Convergence path (P)
+
+Each step is one reviewable pull request (or a short stack) with a test or vector that fails first. Steps 1 to 4 change
+only this repository; the first step needs no code change elsewhere. Every step outside PuzlWerk, and every milestone,
+needs its own owner approval (**O** 2026-11-08). Generators for new vectors follow the independent-generator rule of
+the plan ("independently computed hashes", [plan.md of 001](../001-core-foundation/plan.md)) and are written in Julia
+or Flix, like the Orbit64 V2 generators, not in Python.
+
+| Step | Content | Fails first | Done when | Verification |
+| --- | --- | --- | --- | --- |
+| 1 | Corpus index: `test/fixtures/corpus.json` listing every existing vector set with repository, commit, path, SHA-256 and license (wire examples, F1 to F7, Orbit64 V2 vectors, the Cubacle copy, the CubeLab and CubeAssembler copies) | a new test in `test/conformance-fixtures.test.mjs` reads the index and fails on a missing entry or a wrong hash of a local file | every local vector file is listed with its hash; remote entries carry a pinned commit | `npm run check`; `npm run docs:check`; `npm run test:docs` |
+| 2 | Mapping vectors N=2 and N=3: the same states as wire-v1 state, Orbit64 V2 token (canonical and framed), picture facelets, color facelets, `cubistry.state` (Oᵀ) and Cubistry sticker frames; quarter turns and 120 degree rotations included (ADR 0008) | the test fails on a planted wrong transpose and on a planted center twist | each row converts both ways with byte-equal canonical JSON and equal tokens | `npm run check`; the generator command recorded in the provenance file |
+| 3 | Appearance specification ([#47](https://github.com/wstein/puzlwerk/issues/47)): `puzlwerk.appearance` revision 1 proposal (sticker ID to color, image reference, design symmetry C1/C2/C4); tile ID rule; picture Cube 3x3 and Calendar examples as vectors | schema text plus examples that the decoder test (later) must read | owner accepts or changes the text; examples have provenance | `npm run docs:check`; `npm run test:docs` |
+| 4 | Target vectors (M2 groundwork): `cubistry.goal` v2 slots, Cubacle color sets and masks, `orientationMod`, `ignore-centers` and `exact-frame` expressed as PuzlWerk goal nodes, each with a state that passes and one that fails | a vector whose expected result contradicts the data model text is rejected in review | every listed target form has a mapping row or an explicit "unsupported" row | `npm run docs:check`; vectors checked by the step-2 test harness once M2 starts |
+| 5 | Consumer conformance, test only, one pull request per repository after approval: Cubacle reads the pinned corpus (Rust test), CubeAssembler and CubeLab run their V2 ports against it, Cubistry checks `cubistry.state` and Calendar states against step 2 | each repository's new test fails on a planted wrong vector | all consumers pass the same corpus at the same pin | `cargo test --release --test <name>` (Cubacle); `node --test tests/<file>` (Cubistry); the repository test command (CubeAssembler, CubeLab) |
+| 6 | One ReScript Orbit64 V2 module in PuzlWerk, dual-run against the CubeLab and CubeAssembler ports, then each consumer switches (separate approvals, M2 and M3) | dual-run differs on a planted change | the PuzlWerk module passes the flix-orbit64 vectors; consumers use it | `npm run check`; consumer test commands |
+| 7 | Cubistry adapters: `cubistry.state` v1 and the Calendar sticker arrays to and from wire-v1; Picture Cube engine interface (S3) backed by `PwMove` for N=3, later N=4 to 7 (replaces option E1's own engine) | Calendar and Calendar7 engines as differential oracles on fixed random words | replay equality of all stickers on the oracles | `node --test tests/<file>`; `npm run check` (PuzlWerk) |
+| 8 | Solver adapter (M3, [solver contract](../001-core-foundation/contracts/solver.md)) through the Cubacle fixed frame (**O** Q3) | the contract's conformance cases 1 to 10 | negotiated capabilities, replay of every answer in PuzlWerk | contract tests; Cubacle `cargo test` |
+
+Not in the path: changing wire-v1 revision 1; moving Rust code into PuzlWerk; a viewer change; certification of N=4
+to 7 (needs its own approval, ADR 0008).
