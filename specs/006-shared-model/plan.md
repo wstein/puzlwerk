@@ -1,7 +1,7 @@
 # Shared model: layers, convergence path and open work
 
-Status: proposal. Markers **O**, **V**, **P**, **U** as in the [README](README.md). Facts per component are in
-[comparison.md](comparison.md); this file states proposals and options, not decisions.
+Status: proposal with owner decisions of 2026-11-12 (section 4). Markers **O**, **V**, **P**, **U** as in the
+[README](README.md). Facts per component are in [comparison.md](comparison.md).
 
 ## 1. Layers of one abstraction
 
@@ -20,14 +20,14 @@ by IDs only.
 
 ### 1.1 Candidates per layer
 
-| Layer | Candidates today (**V**) | Proposed canonical owner (**P**) | Why |
+| Layer | Candidates today (**V**) | Canonical owner (**O** where decided, else **P**) | Why |
 | --- | --- | --- | --- |
-| L1 State | wire-v1 pose; Orbit64 V2 orbits; Cubacle `Facelets` and fixed-frame `Print`/`State`; `cubistry.state`; Cubistry sticker arrays; KPuzzle orbit data (proposed) | PuzlWerk `puzlwerk.definition` and `puzlwerk.state` | Only model with piece and sticker identity, any print, centers as pieces and N up to 64; the others are projections of it (comparison section 7) |
+| L1 State | wire-v1 pose; Orbit64 V2 orbits; Cubacle `Facelets` and fixed-frame `Print`/`State`; `cubistry.state`; Cubistry sticker arrays; KPuzzle orbit data (proposed) | **O** 2026-11-12 (SM1): PuzlWerk `puzlwerk.definition` and `puzlwerk.state`; the Cubacle fixed frame is the Rust implementation of the same semantics | Only model with piece and sticker identity, any print, centers as pieces and N up to 64; the others are projections of it (comparison section 7) |
 | L2 Move algebra | `PwMove` AST; `Orbit64.Move`; Cubacle notation and engines; `cube-mechanics` (size 2); Calendar and Calendar7 engines; KPuzzle transformations (proposed) | PuzlWerk AST as the semantic definition; orbit permutation tables derived from it and published as vectors | The AST covers inner, wide and multi-layer moves; permutation algebra (compose, invert) is a derived view that every implementation can check against vectors |
 | L3 Orientation and centers | ADR 0008 (O plus derived twist); Orbit64 `r_f` and pose variants; Cubacle `CenterTwists`, `SolveFrame` | PuzlWerk for the definition (ADR 0008 item 5); Orbit64 V2 for canonical/framed normalization of registry types | ADR 0008 and FORMAT-V2 already define the same twist; F4 checks it for N=3 |
-| L4 Appearance | wire-v1 `color`; `cubistry.print` `assetId`, `materialId`, `equivalentQuarterTurns`; `cubistry.appearance` v2; Cubacle `image`; `FaceSet` and crops | PuzlWerk, as a separate document keyed by sticker ID ([#47](https://github.com/wstein/puzlwerk/issues/47)); image bytes and crops stay in the application | Appearance is never identity (wire-v1); a separate document leaves wire-v1 revision 1 unchanged |
+| L4 Appearance | wire-v1 `color`; `cubistry.print` `assetId`, `materialId`, `equivalentQuarterTurns`; `cubistry.appearance` v2; Cubacle `image`; `FaceSet` and crops | **O** 2026-11-12 (SM3): PuzlWerk, as a separate document `puzlwerk.appearance` keyed by sticker ID ([#47](https://github.com/wstein/puzlwerk/issues/47)); wire-v1 revision 1 stays unchanged. **P**: image bytes and crops stay in the application | Appearance is never identity (wire-v1); a separate document leaves wire-v1 revision 1 unchanged |
 | L5 Targets | PuzlWerk goal grammar (proposed, M2); `cubistry.target` v1 and `cubistry.goal` v2; Cubacle `Target`, `Mask`, display goals, C2 modes (proposed); KPuzzle `orientationMod` | PuzlWerk goal grammar, extended by the Cubistry goal and Cubacle don't-care cases as vectors | The grammar already names pose, sticker, color and symmetry goals; the other forms map onto `stickerAt`, `faceColors` and global frames |
-| L6 Wire | wire-v1 canonical JSON and `sha256:`; Orbit64 V2 token; Cubistry versioned JSON and `canonicalJson` with an unprefixed hex SHA-256 (appearance only); Cubacle REST `formatVersion` | Two canonical forms: wire-v1 for full documents (PuzlWerk), Orbit64 V2 for compact tokens of registry types (flix-orbit64) | They answer different needs (any print and goals versus short URLs); one conversion vector set keeps them consistent |
+| L6 Wire | wire-v1 canonical JSON and `sha256:`; Orbit64 V2 token; Cubistry versioned JSON and `canonicalJson` with an unprefixed hex SHA-256 (appearance only); Cubacle REST `formatVersion` | **O** 2026-11-12 (SM1): wire-v1 for full documents (PuzlWerk); Orbit64 V2 is a codec. **P** (SM2 open): V2 as the compact token of its registry types, owned by flix-orbit64 | They answer different needs (any print and goals versus short URLs); one conversion vector set keeps them consistent |
 | L7 Notation | `PwNotation` (Q2 subset); Cubacle WCA, SiGN, SSE; Orbit64 move tokens; Calendar7 generators | PuzlWerk AST as the only semantic target; text dialects stay adapters, checked by a token-to-AST vector table | Q2 (**O** 2026-11-07) limits PuzlWerk text parsing, not the AST; Cubacle accepts more spellings |
 
 ### 1.2 How Rust and ReScript/TypeScript consume a layer (options, nothing decided)
@@ -55,7 +55,7 @@ or Flix, like the Orbit64 V2 generators, not in Python.
 | --- | --- | --- | --- | --- |
 | 1 | Corpus index: `test/fixtures/corpus.json` listing every existing vector set with repository, commit, path, SHA-256 and license (wire examples, F1 to F7, Orbit64 V2 vectors, the Cubacle copy, the CubeLab and CubeAssembler copies) | a new test in `test/conformance-fixtures.test.mjs` reads the index and fails on a missing entry or a wrong hash of a local file | every local vector file is listed with its hash; remote entries carry a pinned commit | `npm run check`; `npm run docs:check`; `npm run test:docs` |
 | 2 | Mapping vectors N=2 and N=3: the same states as wire-v1 state, Orbit64 V2 token (canonical and framed), picture facelets, color facelets, `cubistry.state` (Oᵀ) and Cubistry sticker frames; quarter turns and 120 degree rotations included (ADR 0008); one row per canonical-bytes difference (Cubistry `canonicalJson` allows non-integers and writes an unprefixed hex hash; wire-v1 rejects non-integers and `-0` and prefixes `sha256:`) | the test fails on a planted wrong transpose and on a planted center twist | each row converts both ways with byte-equal canonical JSON and equal tokens | `npm run check`; the generator command recorded in the provenance file |
-| 3 | Appearance specification ([#47](https://github.com/wstein/puzlwerk/issues/47)): `puzlwerk.appearance` revision 1 proposal (sticker ID to color, image reference, design symmetry C1/C2/C4); tile ID rule; picture Cube 3x3 and Calendar examples as vectors | schema text plus examples that the decoder test (later) must read | owner accepts or changes the text; examples have provenance | `npm run docs:check`; `npm run test:docs` |
+| 3 | Appearance specification ([#47](https://github.com/wstein/puzlwerk/issues/47)), shape decided (**O** SM3): `puzlwerk.appearance` revision 1 text (sticker ID to color, image reference, design symmetry C1/C2/C4); tile ID rule; picture Cube 3x3 and Calendar examples as vectors | schema text plus examples that the decoder test (later) must read | owner accepts or changes the text; examples have provenance | `npm run docs:check`; `npm run test:docs` |
 | 4 | Target vectors (M2 groundwork): `cubistry.goal` v2 slots, Cubacle color sets and masks, `orientationMod`, `ignore-centers` and `exact-frame` expressed as PuzlWerk goal nodes, each with a state that passes and one that fails | a vector whose expected result contradicts the data model text is rejected in review | every listed target form has a mapping row or an explicit "unsupported" row | `npm run docs:check`; vectors checked by the step-2 test harness once M2 starts |
 | 5 | Consumer conformance, test only, one pull request per repository after approval: Cubacle reads the pinned corpus (Rust test), CubeAssembler and CubeLab run their V2 ports against it, Cubistry checks `cubistry.state` and Calendar states against step 2 | each repository's new test fails on a planted wrong vector | all consumers pass the same corpus at the same pin | `cargo test --release --test <name>` (Cubacle); `node --test tests/<file>` (Cubistry); the repository test command (CubeAssembler, CubeLab) |
 | 6 | One ReScript Orbit64 V2 module in PuzlWerk, dual-run against the CubeLab and CubeAssembler ports, then each consumer switches (separate approvals, M2 and M3) | dual-run differs on a planted change | the PuzlWerk module passes the flix-orbit64 vectors; consumers use it | `npm run check`; consumer test commands |
@@ -68,36 +68,42 @@ to 7 (needs its own approval, ADR 0008).
 ## 3. Impact on open work
 
 Judged against the principle "one model, compatible implementations". Verdicts: **proceed** (model independent or
-already consistent), **change** (may proceed with a changed recommendation), **wait** (needs decision SM1 of section 4
-and the named step).
+already consistent), **change** (may proceed with a changed recommendation), **wait** (needs the named step, decision
+or follow-up). SM1 is decided (**O** 2026-11-12); the Cubacle browser plan still assumes its own algebra and Cubing.js
+numbering, so Cubacle stacks B and M and plan decisions D3, D12, D13 and D14 stay on hold until a follow-up docs PR in
+Cubacle updates that plan for SM1 and SM4. This plan does not edit the Cubacle plan.
 
 | Work | Model content (**V**) | Verdict (**P**) | Reason and change |
 | --- | --- | --- | --- |
 | Cubacle stack A (A1 to A4, build, features, manifest, tarball) | `crates/wasm/` split, ABI version, `cli` feature, `xtask` manifest and tarball; no state, pattern or target type (plan section 5) | proceed | The claim "model independent" holds. Only shared file: A1 and B1 both edit `tests/architecture_test.rs` (a text conflict, not a model one). |
 | Cubacle L2, L3 (JS glue, table hashes) | loader, worker, hash pin, abort; serialization of built tables | proceed | Model independent. |
 | Cubacle L1 (ABI 2, `capabilities`, error codes) | capability keys `sizes`, `moves`, `modes`, `frames`; codes 0 to 6 | change | Vocabulary overlaps the [solver contract](../001-core-foundation/contracts/solver.md) capability probe and outcomes (`unsupported`, `invalid`, `unknown`). Add a mapping table to the contract terms in L1, or reuse its names, so M3 needs no second vocabulary. |
-| Cubacle stack B (B1, B2, `src/kpuzzle/`) | a new orbit model in Rust: piece numbering (Cubacle plan D3), `orientationMod`, bridges to `Facelets`, `CenterTwists`, Orbit64 V2 | wait, then change | It is a fifth state model. Rust may keep its own implementation (**O**), but the model must be compatible: numbering derived from the canonical L1 model and checked by step 2 vectors, not adopted from Cubing.js. Needs SM1 and SM5. |
-| Cubacle stack M (target modes, `solvePattern`, JS pattern operations) | targets `ignore-centers`, `exact-frame`; JS API within Cubacle plan D13 | wait | Targets are layer L5; express both modes as PuzlWerk goal nodes first (step 4). M3 also depends on Cubacle plan D13. |
-| Cubacle D3 (piece numbering) | recommendation: Cubing.js numbering | change | Recommend the Orbit64 V2 slot convention already in Cubacle (`orbit64-Nxn-draft@1`), with a vector table to wire-v1 piece IDs; Cubing.js numbering only as a test-side mapping in Cubistry. |
+| Cubacle stack B (B1, B2, `src/kpuzzle/`) | a new orbit model in Rust: piece numbering (Cubacle plan D3), `orientationMod`, bridges to `Facelets`, `CenterTwists`, Orbit64 V2 | wait (hold) | It would be a fifth state model. With SM1 the Rust model must implement wire-v1 semantics: numbering derived from wire-v1 piece IDs and checked by step 2 vectors, not adopted from Cubing.js; with SM4 its types and codecs come from the generator. On hold until the Cubacle plan follow-up; SM5 stays open. |
+| Cubacle stack M (target modes, `solvePattern`, JS pattern operations) | targets `ignore-centers`, `exact-frame`; JS API within Cubacle plan D13 | wait (hold) | Targets are layer L5; express both modes as PuzlWerk goal nodes first (step 4). M3 also depends on Cubacle plan D13. |
+| Cubacle D3 (piece numbering) | recommendation: Cubing.js numbering | wait (hold), then change | Recommend the Orbit64 V2 slot convention already in Cubacle (`orbit64-Nxn-draft@1`), with a vector table to wire-v1 piece IDs; Cubing.js numbering only as a test-side mapping in Cubistry. |
 | Cubacle D13 (JS pattern API) | algebra public in Rust; JS exposes data, conversion, `solvePattern`, `capabilities`; its price: "the Calendar planner keeps a JS algebra of its own (Cubing.js until G2, then its own or a PuzlWerk one, availability **U**)" | wait | The boundary part (no general JS algebra in Cubacle) fits the principle. The PuzlWerk alternative does not exist yet (**V**): the core has `PwMove.inverse` and `applyToPose` (`core/res/PwMove.resi:13-19`) and `PwOrientation.compose` (`core/res/PwOrientation.resi:10`), no pattern or transformation algebra (compose, invert of whole states, orbit permutations). That algebra is new PuzlWerk work, not yet planned; its availability stays **U**. |
-| Cubacle D14 (module placement) | `src/kpuzzle`, `src/targets` in `RULES` | proceed with B | Placement is model neutral; it starts when B starts. |
-| Cubacle D12 (C2 fixtures) | Calendar fixtures, provenance by Cubistry commit | change | Store them in the corpus format of step 1 (wire-v1 state plus Orbit64 V2 token, provenance file), so every implementation reads the same rows. |
+| Cubacle D14 (module placement) | `src/kpuzzle`, `src/targets` in `RULES` | wait (hold) | Placement itself is model neutral, but it names modules for an algebra that is on hold; it is revisited in the Cubacle plan follow-up. |
+| Cubacle D12 (C2 fixtures) | Calendar fixtures, provenance by Cubistry commit | wait (hold), then change | Store them in the corpus format of step 1 (wire-v1 state plus Orbit64 V2 token, provenance file), so every implementation reads the same rows. |
 | Cubistry PR #430 (cubacle C2 to C5 go record) | one file, `knowledge/plans/cubacle-wasm-replacement.md`; head `26e2474a` withdraws "D1 to D14 as Recommended", proposes as go (pending owner confirmation) stack A, L2, L3, D14 placement and L1 with a mapping to the solver contract, holds B, M, D3, D9, D12, D13 | change (small) | Already narrowed along this plan. Remaining difference: D14 is in its go set ("placement only"); this plan holds D14 with stack B until the Cubacle plan is updated. Its text states that Cubacle `develop` is retired; GitHub shows `develop` as the default branch of Cubacle on 2026-11-12 (**V**), and #430 itself now says so. |
-| PuzlWerk #47 (picture cubes) | appearance per sticker, tile ID rule, legacy adapter | proceed as specification (step 3) | No wire-v1 change. The shape is decision SM3. |
+| PuzlWerk #47 (picture cubes) | appearance per sticker, tile ID rule, legacy adapter | proceed as specification (step 3) | No wire-v1 change. The shape is decided (**O** 2026-11-12, SM3): a separate `puzlwerk.appearance` document per sticker ID. |
 | Cubistry PR #431 (Calendar7 month picker) | UI files, browser specs, `docs/CALENDAR_7X7.md` | proceed | No state, move or target change. |
 | Calendar7 chain and engine work | own 7x7 engine and pose arrays | proceed for UI, print and research; wait for new state formats | The engine is a transition state; a new persisted state format or a new interchange should use wire-v1 or an Orbit64 V2 token. An Orbit64 V2 chain interchange was named in the planning request for this plan; no repository source for it was found, so it is **U** (comparison section 5). |
 | Cubistry Picture Cube stack S0a to S6 | host mount, upload, editor, storage, solve; S3 adds an engine interface and a 3x3 adapter on the Calendar sticker model | proceed, S3 change | The engine interface is application level. Keep the 3x3 adapter thin so that step 7 can swap it to `PwMove`. |
 | Cubistry option E1 (own NxN engine, decided after stack PR 4) | new in-repository engine for 4 to 7 | change | An own NxN engine is another model. PuzlWerk `PwMove` already transforms N=2..64 poses (certified 2 and 3). Recommend E1 as "consume PuzlWerk core plus certification of N=4 to 7" (SM7). |
 | flix-orbit64 #22 (V2-only interchange) | token codec in nine projects | proceed for the token layer, scope change | V2 is a projection (comparison section 7); it cannot hold prints with equal stickers or partial identity (FORMAT-V2 "Extensions"). The ReScript consumers should share one PuzlWerk module (step 6) instead of two ports; #22 says PuzlWerk has no codec to replace, which changes if SM8 is accepted. |
 | PuzlWerk #23 (2x2 solver on Cubacle) | solver choice | proceed | Solver engines are outside the model; the adapter uses the solver contract. |
-| PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | They depend on SM1, SM4 and SM8. |
+| PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | SM1 is decided; they still depend on SM4 and SM8. |
 
 ## 4. Owner decisions
 
-Each with recommendation (R), price and consequence. None is taken here. SM numbers are the decisions of this plan;
-D numbers name the decisions of the Cubacle browser plan.
+Each with recommendation (R), price and consequence. The owner answered SM1, SM3, SM4 and SM11 on 2026-11-12 (source:
+owner answer in the coordinator session); they are marked **O**, except the reading of SM11, which is **U**. SM2 and
+SM5 to SM10 stay open proposals. SM numbers are the decisions of this plan; D numbers name the decisions of the Cubacle
+browser plan.
 
-1. **SM1 Canonical semantic model (core decision).** Which model is the one all components share?
+1. **SM1 Canonical semantic model (core decision).** **O** 2026-11-12: PuzlWerk wire-v1 is the canonical model; the
+   Cubacle fixed frame is the Rust implementation of the same semantics; Orbit64 V2 is a codec. The question was:
+   which model is the one all components share?
    Options: (a) PuzlWerk wire-v1 definition and pose; (b) Orbit64 V2 orbits and token; (c) Cubacle fixed-frame print
    and pose code; (d) a KPuzzle-like orbit model. R: (a), with (c) as the Rust realization of the same semantics for
    the solver adapter (**O** Q3) and (b) as a codec (SM2). Price: every other model becomes an adapter with mapping
@@ -107,7 +113,8 @@ D numbers name the decisions of the Cubacle browser plan.
 2. **SM2 Role of Orbit64 V2.** Canonical compact token for its registry types, derived from the canonical model? R: yes;
    flix-orbit64 owns the token, PuzlWerk owns the conversion vectors. Price: one more vector set. Consequence: #22
    proceeds without competing with wire-v1.
-3. **SM3 Appearance layer (#47).** A separate `puzlwerk.appearance` document keyed by sticker ID (color, image
+3. **SM3 Appearance layer (#47).** **O** 2026-11-12: a separate appearance document per sticker ID
+   (`puzlwerk.appearance`); wire-v1 revision 1 stays unchanged. The question was: a separate `puzlwerk.appearance` document keyed by sticker ID (color, image
    reference, design symmetry), image bytes and crops in the application? R: yes. Price: one more schema and the tile ID
    rule. Consequence: wire-v1 revision 1 stays; Cubistry `assetId`, `equivalentQuarterTurns` and Cubacle `image` map
    onto it.
