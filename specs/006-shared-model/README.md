@@ -30,12 +30,12 @@ Owner decisions used (**O**, quoted as given to the author of this plan):
 - 2026-11-12: all components must share the same cube model and abstraction; first a comparison, then decide.
 
 **V** The Q3 and Q7 decisions are not yet recorded in this repository: [research.md](../001-core-foundation/research.md)
-still lists Q7 as open and Q3 as untouched. Recording them is an owner step (decision SM10 of the plan in this directory).
+still lists Q7 as open and Q3 as untouched. Recording them is an owner step (decision SM10 in [plan.md](plan.md#4-owner-decisions)).
 
 ## Files
 
 - [comparison.md](comparison.md): sources and the model of each component.
-- plan.md: layers of one abstraction, owners per layer, convergence path, impact on open work, owner
+- [plan.md](plan.md): layers of one abstraction, owners per layer, convergence path, impact on open work, owner
   decisions, what is not verified.
 
 ## Why here
