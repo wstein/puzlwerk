@@ -91,3 +91,52 @@ and the named step).
 | flix-orbit64 #22 (V2-only interchange) | token codec in nine projects | proceed for the token layer, scope change | V2 is a projection (comparison section 7); it cannot hold prints with equal stickers or partial identity (FORMAT-V2 "Extensions"). The ReScript consumers should share one PuzlWerk module (step 6) instead of two ports; #22 says PuzlWerk has no codec to replace, which changes if SM8 is accepted. |
 | PuzlWerk #23 (2x2 solver on Cubacle) | solver choice | proceed | Solver engines are outside the model; the adapter uses the solver contract. |
 | PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | They depend on SM1, SM4 and SM8. |
+
+## 4. Owner decisions
+
+Each with recommendation (R), price and consequence. None is taken here. SM numbers are the decisions of this plan;
+D numbers name the decisions of the Cubacle browser plan.
+
+1. **SM1 Canonical semantic model (core decision).** Which model is the one all components share?
+   Options: (a) PuzlWerk wire-v1 definition and pose; (b) Orbit64 V2 orbits and token; (c) Cubacle fixed-frame print
+   and pose code; (d) a KPuzzle-like orbit model. R: (a), with (c) as the Rust realization of the same semantics for
+   the solver adapter (**O** Q3) and (b) as a codec (SM2). Price: every other model becomes an adapter with mapping
+   vectors; Cubistry `cubistry.state` (size 2, transposed) and the Calendar models migrate in later steps.
+   Consequence: (b) or (d) as canonical would drop sticker identity for equal-looking stickers, prints with partial
+   identity and sizes above 15; (c) covers the 2x2x2 only today.
+2. **SM2 Role of Orbit64 V2.** Canonical compact token for its registry types, derived from the canonical model? R: yes;
+   flix-orbit64 owns the token, PuzlWerk owns the conversion vectors. Price: one more vector set. Consequence: #22
+   proceeds without competing with wire-v1.
+3. **SM3 Appearance layer (#47).** A separate `puzlwerk.appearance` document keyed by sticker ID (color, image
+   reference, design symmetry), image bytes and crops in the application? R: yes. Price: one more schema and the tile ID
+   rule. Consequence: wire-v1 revision 1 stays; Cubistry `assetId`, `equivalentQuarterTurns` and Cubacle `image` map
+   onto it.
+4. **SM4 How languages consume the layers.** Options S, G, W, R of section 1.2. R: R for ReScript and TypeScript, S for
+   Rust. Price: two implementations kept equal by the corpus. Consequence: no generator, no wasm core.
+5. **SM5 Cubacle stack B.** Wait for SM1 and step 2, and replace Cubacle plan D3 (Cubing.js numbering) by the Orbit64 V2
+   slot convention with mapping vectors? R: yes. Price: stack B starts later; the Calendar planner keeps Cubing.js
+   until then (it does today). Consequence: no fifth independent numbering.
+6. **SM6 Cubistry PR #430.** Narrow it to stacks A, L2, L3 and Cubacle plan D14, and mark Cubacle plan D3, D12, D13 and stacks B and M as waiting?
+   R: yes. Price: an edit of an open Draft. Consequence: the record does not fix a model before SM1.
+7. **SM7 Picture Cube sizes 4 to 7 (E1).** Build them on PuzlWerk `PwMove` and approve certification of N=4 to 7
+   (ADR 0008 item 1)? R: yes, when E1 is decided after stack PR 4. Price: certification work in PuzlWerk before the UI.
+   Consequence: no own NxN engine in Cubistry.
+8. **SM8 One ReScript Orbit64 V2 module.** Move the codec into PuzlWerk and retire the CubeLab and CubeAssembler ports
+   (M2, M3)? R: yes, after step 5. Price: two consumer migrations. Consequence: #22 scope text changes for PuzlWerk.
+9. **SM9 Notation.** The PuzlWerk AST is the only semantic move form; WCA, SiGN, SSE and app dialects are adapters with a
+   token-to-AST vector table? R: yes. Price: one table. Consequence: Q2 stays as decided for PuzlWerk text.
+10. **SM10 Record the 2026-11-08 decisions.** Write Q3 and Q7 into `research.md` (now "Q7 open", "Q3 untouched")? R: yes,
+    as a separate small PR. Price: none. Consequence: the repository states the decisions it follows.
+11. **SM11 Licenses.** State the license of PuzlWerk `core/` (no repository `LICENSE` file) and decide whether MIT
+    CubeAssembler may consume an AGPL core? R: decide before step 6. Price: a license text, possibly a relicensing
+    decision. Consequence: step 6 and the CubeAssembler migration can be reviewed for license.
+
+## 5. Not verified
+
+- **U** Calendar7 chain state with Orbit64 V2 interchange: not found (comparison section 5).
+- **U** Whether the Cubacle fixed-frame axes equal the data-model frame; whether the Cubistry 3x3 and 7x7 coordinate
+  scale (not doubled) is the only difference to wire-v1 for those states.
+- **U** CubeLab sizes and center handling; read from #22 and file names only.
+- **U** License of PuzlWerk `core/`.
+- Not run: no test, build or vector generator of any repository; only the documentation checks of this repository.
+- Effort estimates are not given; each step is sized by its own pull request.
