@@ -27,7 +27,7 @@ by IDs only.
 | L3 Orientation and centers | ADR 0008 (O plus derived twist); Orbit64 `r_f` and pose variants; Cubacle `CenterTwists`, `SolveFrame` | PuzlWerk for the definition (ADR 0008 item 5); Orbit64 V2 for canonical/framed normalization of registry types | ADR 0008 and FORMAT-V2 already define the same twist; F4 checks it for N=3 |
 | L4 Appearance | wire-v1 `color`; `cubistry.print` `assetId`, `materialId`, `equivalentQuarterTurns`; `cubistry.appearance` v2; Cubacle `image`; `FaceSet` and crops | **O** 2026-11-12 (SM3): PuzlWerk, as a separate document `puzlwerk.appearance` keyed by sticker ID ([#47](https://github.com/wstein/puzlwerk/issues/47)); wire-v1 revision 1 stays unchanged. **P**: image bytes and crops stay in the application | Appearance is never identity (wire-v1); a separate document leaves wire-v1 revision 1 unchanged |
 | L5 Targets | PuzlWerk goal grammar (proposed, M2); `cubistry.target` v1 and `cubistry.goal` v2; Cubacle `Target`, `Mask`, display goals, C2 modes (proposed); KPuzzle `orientationMod` | PuzlWerk goal grammar, extended by the Cubistry goal and Cubacle don't-care cases as vectors | The grammar already names pose, sticker, color and symmetry goals; the other forms map onto `stickerAt`, `faceColors` and global frames |
-| L6 Wire | wire-v1 canonical JSON and `sha256:`; Orbit64 V2 token; Cubistry versioned JSON and `canonicalJson` with an unprefixed hex SHA-256 (appearance only); Cubacle REST `formatVersion` | **O** 2026-11-12 (SM1): wire-v1 for full documents (PuzlWerk); Orbit64 V2 is a codec. **P** (SM2 open): V2 as the compact token of its registry types, owned by flix-orbit64 | They answer different needs (any print and goals versus short URLs); one conversion vector set keeps them consistent |
+| L6 Wire | wire-v1 canonical JSON and `sha256:`; Orbit64 V2 token; Cubistry versioned JSON and `canonicalJson` with an unprefixed hex SHA-256 (appearance only); Cubacle REST `formatVersion` | **O** 2026-11-12 (SM1): wire-v1 for full documents (PuzlWerk); Orbit64 V2 is a derived compact token. **O** 2026-11-12 (SM2): a codec from and to wire-v1, proven by vectors, not a model of its own | They answer different needs (any print and goals versus short URLs); one conversion vector set keeps them consistent |
 | L7 Notation | `PwNotation` (Q2 subset); Cubacle WCA, SiGN, SSE; Orbit64 move tokens; Calendar7 generators | PuzlWerk AST as the only semantic target; text dialects stay adapters, checked by a token-to-AST vector table | Q2 (**O** 2026-11-07) limits PuzlWerk text parsing, not the AST; Cubacle accepts more spellings |
 
 ### 1.2 How Rust and ReScript/TypeScript consume a layer (SM4 decided: G)
@@ -109,15 +109,15 @@ Cubacle updates that plan for SM1 and SM4. This plan does not edit the Cubacle p
 | Calendar7 chain and engine work | own 7x7 engine and pose arrays | proceed for UI, print and research; wait for new state formats | The engine is a transition state; a new persisted state format or a new interchange should use wire-v1 or an Orbit64 V2 token. An Orbit64 V2 chain interchange was named in the planning request for this plan; no repository source for it was found, so it is **U** (comparison section 5). |
 | Cubistry Picture Cube stack S0a to S6 | host mount, upload, editor, storage, solve; S3 adds an engine interface and a 3x3 adapter on the Calendar sticker model | proceed, S3 change | The engine interface is application level. Keep the 3x3 adapter thin so that step 7 can swap it to `PwMove`. |
 | Cubistry option E1 (own NxN engine, decided after stack PR 4) | new in-repository engine for 4 to 7 | change | An own NxN engine is another model. PuzlWerk `PwMove` already transforms N=2..64 poses (certified 2 and 3). Recommend E1 as "consume PuzlWerk core plus certification of N=4 to 7" (SM7). |
-| flix-orbit64 #22 (V2-only interchange) | token codec in nine projects | proceed for the token layer, scope change | V2 is a projection (comparison section 7); it cannot hold prints with equal stickers or partial identity (FORMAT-V2 "Extensions"). The ReScript consumers should share one PuzlWerk module (step 6) instead of two ports; #22 says PuzlWerk has no codec to replace, which changes if SM8 is accepted. |
+| flix-orbit64 #22 (V2-only interchange) | token codec in nine projects | proceed for the token layer, scope change | V2 is a projection (comparison section 7); it cannot hold prints with equal stickers or partial identity (FORMAT-V2 "Extensions"). With SM2 (**O**) #22 becomes a codec task against wire-v1 and the step 2 vectors. With SM8 (**O**) the CubeLab and CubeAssembler ports are replaced by generated codecs (step 6); #22 says PuzlWerk has no codec to replace, which changes with the generator. |
 | PuzlWerk #23 (2x2 solver on Cubacle) | solver choice | proceed | Solver engines are outside the model; the adapter uses the solver contract. |
 | PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | SM1 and SM4 are decided; they still depend on SM8 and the generator plan (step G1). |
 
 ## 4. Owner decisions
 
 Each with recommendation (R), price and consequence. The owner answered SM1, SM3, SM4 and SM11 on 2026-11-12 (source:
-owner answer in the coordinator session); they are marked **O**. SM2 and
-SM5 to SM10 stay open proposals. SM numbers are the decisions of this plan; D numbers name the decisions of the Cubacle
+owner answer in the coordinator session) and SM2 and SM8 (**O**, 2026-11-12, same source); they are marked **O**.
+SM5 to SM7, SM9 and SM10 stay open proposals. SM numbers are the decisions of this plan; D numbers name the decisions of the Cubacle
 browser plan.
 
 1. **SM1 Canonical semantic model (core decision).** **O** 2026-11-12: PuzlWerk wire-v1 is the canonical model; the
@@ -125,13 +125,13 @@ browser plan.
    which model is the one all components share?
    Options: (a) PuzlWerk wire-v1 definition and pose; (b) Orbit64 V2 orbits and token; (c) Cubacle fixed-frame print
    and pose code; (d) a KPuzzle-like orbit model. R: (a), with (c) as the Rust realization of the same semantics for
-   the solver adapter (**O** Q3) and (b) as a codec (SM2). Price: every other model becomes an adapter with mapping
+   the solver adapter (**O** Q3) and (b) as a codec (**O** SM2). Price: every other model becomes an adapter with mapping
    vectors; Cubistry `cubistry.state` (size 2, transposed) and the Calendar models migrate in later steps.
    Consequence: (b) or (d) as canonical would drop sticker identity for equal-looking stickers, prints with partial
    identity and sizes above 15; (c) covers the 2x2x2 only today.
-2. **SM2 Role of Orbit64 V2.** Canonical compact token for its registry types, derived from the canonical model? R: yes;
-   flix-orbit64 owns the token, PuzlWerk owns the conversion vectors. Price: one more vector set. Consequence: #22
-   proceeds without competing with wire-v1.
+2. **SM2 Role of Orbit64 V2.** **O** 2026-11-12: Orbit64 V2 is a derived compact token. It is a codec from and to
+   wire-v1, proven by vectors, and not a model of its own. PuzlWerk owns the conversion vectors (step 2). Price: one
+   more vector set. Consequence: flix-orbit64 #22 becomes a codec task and does not compete with wire-v1.
 3. **SM3 Appearance layer (#47).** **O** 2026-11-12: a separate appearance document per sticker ID
    (`puzlwerk.appearance`); wire-v1 revision 1 stays unchanged. The question was: a separate `puzlwerk.appearance` document keyed by sticker ID (color, image
    reference, design symmetry), image bytes and crops in the application? R: yes. Price: one more schema and the tile ID
