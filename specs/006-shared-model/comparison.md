@@ -78,7 +78,7 @@ cubelab #22; cube-assembler #29.
 | Size | Shared packages: 2. Calendar: 3. Calendar7: 7. Picture Cube size control 2..7, playable 2 (`src/apps/playground/size.ts`); 3 planned (S3), 4 to 7 decided E0 (**O** 2026-11-11 in `knowledge/plans/unified-application.md`, D3). |
 | Appearance | `assetId`, `materialId`, `equivalentQuarterTurns` per sticker; `cubistry.appearance` version 2 with a SHA-256 (`packages/cube-appearance`); one `FaceSet` image model for the Picture Cube (**O** 2026-11-12, D6 there); 3x3 crop per face (zoom, x, y) in `src/apps/picture3/images.ts`. |
 | Targets | `cubistry.target` version 1 (facelets with `assetId`, `up`, `matching` `exact|equivalent`); `cubistry.goal` version 2: slots keyed by doubled integer position and normal, asset, up quarter turn, `matching`, optional sticker ID, `scope` `full|display`, `appearanceSha256` (`packages/cube-appearance/src/goal.ts`). |
-| Serialization | Versioned JSON documents per schema name; no canonical-bytes rule or state hash found (**U**). |
+| Serialization | Versioned JSON documents per schema name. `canonicalJson` (`packages/cube-appearance/src/canonical.ts:5-24`): keys sorted by UTF-16 code unit, no whitespace, finite non-integer numbers allowed, `-0` written as `0`, `undefined` members omitted, array order kept. Hash: plain lowercase hex SHA-256 without a `sha256:` prefix (`canonical.ts:26-27`, `sha256.ts:44-45`), used by `appearanceSha256` (`map.ts:133`) and `inputSha256` (`classify.ts:174`). No hash of `cubistry.state` (search for `canonicalSha256` finds only appearance code). |
 | Language and runtime | ReScript 12.3.1 in `packages/cube-core`, `cube-mechanics`, `cube-assets`; TypeScript apps and `cube-viewer` (Three.js). Consumes `@puzlwerk/solver-2x2` and `@puzlwerk/solver-3x3-picture` as pinned tarballs (`puzlwerk-source.json`). |
 | Viewer model | `PhysicalStickerFrame {id, cubie, p, n, up}` (`packages/cube-viewer/src/physical-scene.ts`): the viewer reads sticker frames only. |
 | Calendar7 chain and Orbit64 V2 | **U**: no Orbit64 reference in `src/apps/calendar7/` at the revision above, nor on the branches `research/cal7-month-list-checkers`, `research/calendar7-jump-e1`, `research/calendar7-pure-split-states`, `demo/cal7-beam-names` (search for `orbit64`). |
@@ -108,7 +108,7 @@ Scope: as far as [cube-assembler #29](https://github.com/wstein/cube-assembler/i
 | Sizes | 2..64 | 2..15 | 2..7 (engines 2..5) | 2, 3, 7 | 2..7 |
 | Appearance | optional color | color or all distinct | colors; `image` (2x2x2) | asset, material, symmetry, appearance map | colors |
 | Targets | proposed grammar | none | color sets, masks, display goals | `cubistry.target`, `cubistry.goal` | U |
-| Hash | `sha256:` of canonical JSON | token is canonical | table and manifest hashes (proposed) | appearance map hash | none found |
+| Hash | `sha256:` of canonical JSON | token is canonical | table and manifest hashes (proposed) | appearance map and classifier input: hex SHA-256 of `canonicalJson`, no prefix; no state hash | none found |
 
 Common ground (**V**): every identity-carrying model (PuzlWerk, Cubacle fixed frame, Cubistry shared packages and
 Calendar models, the viewer) describes a sticker by position, outward normal and `up` in a right-handed integer world
