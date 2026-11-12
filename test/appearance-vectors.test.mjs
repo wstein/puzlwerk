@@ -25,6 +25,10 @@ test("every example is canonical and has the recorded size and SHA-256", () => {
   }
 });
 
+test("canonical form sorts keys at every depth and keeps array order", () => {
+  assert.equal(canonical({ b: [3, { y: 1, x: "a" }], a: null }), `{"a":null,"b":[3,{"x":"a","y":1}]}`);
+});
+
 test("tile IDs equal the Cubistry Picture Cube 3x3 tiles for all 54 cells", () => {
   const oracle = json("tiles-3.oracle.json").tiles;
   const FRAME = { U: [[0, 1, 0], [0, 0, -1]], D: [[0, -1, 0], [0, 0, 1]], F: [[0, 0, 1], [0, 1, 0]], B: [[0, 0, -1], [0, 1, 0]], L: [[-1, 0, 0], [0, 1, 0]], R: [[1, 0, 0], [0, 1, 0]] };
