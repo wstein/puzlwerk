@@ -30,7 +30,7 @@ by IDs only.
 | L6 Wire | wire-v1 canonical JSON and `sha256:`; Orbit64 V2 token; Cubistry versioned JSON and `canonicalJson` with an unprefixed hex SHA-256 (appearance only); Cubacle REST `formatVersion` | **O** 2026-11-12 (SM1): wire-v1 for full documents (PuzlWerk); Orbit64 V2 is a codec. **P** (SM2 open): V2 as the compact token of its registry types, owned by flix-orbit64 | They answer different needs (any print and goals versus short URLs); one conversion vector set keeps them consistent |
 | L7 Notation | `PwNotation` (Q2 subset); Cubacle WCA, SiGN, SSE; Orbit64 move tokens; Calendar7 generators | PuzlWerk AST as the only semantic target; text dialects stay adapters, checked by a token-to-AST vector table | Q2 (**O** 2026-11-07) limits PuzlWerk text parsing, not the AST; Cubacle accepts more spellings |
 
-### 1.2 How Rust and ReScript/TypeScript consume a layer (options, nothing decided)
+### 1.2 How Rust and ReScript/TypeScript consume a layer (SM4 decided: G)
 
 | Option | Content | Price | Risk |
 | --- | --- | --- | --- |
@@ -39,13 +39,29 @@ by IDs only.
 | W: WASM from one Rust engine | ReScript/TypeScript call a Cubacle wasm module for state and moves | Contradicts **O** 2026-11-08 ("Rust stays own", shared code only within ReScript) and Cubacle `AGENTS.md` ("no shared cube core here") | Browser size and start time (2x2x2 cold start about 93 ms, 21.4 MB linear memory, Cubacle plan section 1); AGPL network clause |
 | R: one ReScript implementation, Rust by vectors | PuzlWerk ReScript core is the single implementation for ReScript/TypeScript consumers (Cubistry, CubeAssembler, CubeLab); Cubacle keeps Rust and passes the corpus | One ReScript core plus one Rust implementation; MIT CubeAssembler consuming AGPL or unlicensed code needs a license decision | Same as S for Rust; for ReScript consumers the migration effort |
 
-**P** R for ReScript and TypeScript consumers, S for Rust. This is the combination the 2026-11-08 decisions describe
-(shared code within ReScript, Rust its own, specification and vectors first). G is not needed for that; W is excluded
-by the decisions unless the owner changes them.
+**O** 2026-11-12 (SM4): option G, a schema generator. One schema generates the types and codecs for Rust and for
+ReScript/TypeScript. This is not the recommendation of the first version of this plan (R for ReScript plus S for Rust).
+For types and codecs it supersedes the 2026-11-08 line "shared code only within ReScript, Rust stays its own
+implementation"; Rust then uses generated types and codecs from the same schema. Move semantics, twist and goal
+evaluation do not follow from a schema; for them the vectors of option S still apply (**P**). W stays excluded.
+
+### 1.3 What the schema generator needs (P unless marked)
+
+The generator gets its own plan (step G1) before any code. Its design is **P** or **U** until that plan is accepted.
+
+| Topic | Content |
+| --- | --- |
+| Plan | A separate spec directory in PuzlWerk with scope, acceptance and slices, approved by the owner before step G2. |
+| Input | One schema per document: `puzlwerk.definition`, `puzlwerk.state`, `puzlwerk.appearance`, later goals. Schema language **U** (a JSON Schema subset or an own description). It must state closed objects, the ID pattern, integer-only numbers, ranges (size 2..64), ID-sorted arrays, revisions and the error codes with JSON paths of [wire-v1](../001-core-foundation/contracts/wire-v1.md). Rules a schema cannot state (proper rotation, `position = O * home`) stay hand-written checks, tested by vectors. |
+| Language | No Python. The generator is written in the language of the repository that hosts it: JavaScript (Node 24) or ReScript in PuzlWerk; emitters write ReScript and Rust source. Julia or Flix only for the independent recomputation of vectors, never for the generator. |
+| Location | Generator and schemas in PuzlWerk. Generated ReScript in PuzlWerk; generated Rust in Cubacle. **U**: whether generating Rust text from PuzlWerk agrees with the Cubacle rule "Do not add a Rust project or Rust package to PuzlWerk" (`AGENTS.md` of Cubacle); whether the Rust output is committed or produced by a Cubacle build step. PuzlWerk `AGENTS.md` asks for a justification for generated code; SM4 is it. |
+| Verification | Generated codecs in both languages decode and re-encode every wire vector and every step 2 mapping vector byte-equal, give the same `sha256:` hashes, and give the same error code and JSON path on every negative vector. A regenerate-and-diff check fails when committed output differs from generator output. A planted schema change must fail a test (mutation). During migration the generated ReScript codec runs beside `PwCodec` on all vectors (dual run). |
+| Price | A generator with two emitters and their tests; migration of `PwCodec` to generated code; a Cubacle change per schema revision. |
+| Risks | Semantics outside the schema drift without vectors; emitter bugs hit both languages at once; cross-repository toolchain coupling; review of large generated diffs; license of generated output in AGPL Cubacle (**U**, see SM11); the Orbit64 V2 rank codec is an algorithm, not a schema, so whether it is generated is **U**. |
 
 ## 2. Convergence path (P)
 
-Each step is one reviewable pull request (or a short stack) with a test or vector that fails first. Steps 1 to 4 change
+Each step is one reviewable pull request (or a short stack) with a test or vector that fails first. Steps 1 to 4, G1 and G2 change
 only this repository; the first step needs no code change elsewhere. Every step outside PuzlWerk, and every milestone,
 needs its own owner approval (**O** 2026-11-08). Generators for new vectors follow the independent-generator rule of
 the plan ("independently computed hashes", [plan.md of 001](../001-core-foundation/plan.md)) and are written in Julia
@@ -55,6 +71,8 @@ or Flix, like the Orbit64 V2 generators, not in Python.
 | --- | --- | --- | --- | --- |
 | 1 | Corpus index: `test/fixtures/corpus.json` listing every existing vector set with repository, commit, path, SHA-256 and license (wire examples, F1 to F7, Orbit64 V2 vectors, the Cubacle copy, the CubeLab and CubeAssembler copies) | a new test in `test/conformance-fixtures.test.mjs` reads the index and fails on a missing entry or a wrong hash of a local file | every local vector file is listed with its hash; remote entries carry a pinned commit | `npm run check`; `npm run docs:check`; `npm run test:docs` |
 | 2 | Mapping vectors N=2 and N=3: the same states as wire-v1 state, Orbit64 V2 token (canonical and framed), picture facelets, color facelets, `cubistry.state` (Oᵀ) and Cubistry sticker frames; quarter turns and 120 degree rotations included (ADR 0008); one row per canonical-bytes difference (Cubistry `canonicalJson` allows non-integers and writes an unprefixed hex hash; wire-v1 rejects non-integers and `-0` and prefixes `sha256:`) | the test fails on a planted wrong transpose and on a planted center twist | each row converts both ways with byte-equal canonical JSON and equal tokens | `npm run check`; the generator command recorded in the provenance file |
+| G1 | Generator plan (**O** SM4; design **P**/**U**, section 1.3): spec directory with schema language, emitters, location, verification and slices | review rejects a plan without the verification rows of section 1.3 | the owner approves the plan | `npm run docs:check`; `npm run test:docs` |
+| G2 | Generator for `puzlwerk.definition` and `puzlwerk.state` with ReScript and Rust emitters, in PuzlWerk; generated ReScript runs beside `PwCodec` | a planted schema change and a planted wrong error code fail the generated-codec test | generated ReScript passes the wire vectors and step 2 vectors byte-equal and agrees with `PwCodec` on all of them; regenerate-and-diff is clean | `npm run check`; the regenerate-and-diff command named in G1 (**U**); the Rust output is tested by `cargo test` in a Cubacle PR with its own approval |
 | 3 | Appearance specification ([#47](https://github.com/wstein/puzlwerk/issues/47)), shape decided (**O** SM3): `puzlwerk.appearance` revision 1 text (sticker ID to color, image reference, design symmetry C1/C2/C4); tile ID rule; picture Cube 3x3 and Calendar examples as vectors | schema text plus examples that the decoder test (later) must read | owner accepts or changes the text; examples have provenance | `npm run docs:check`; `npm run test:docs` |
 | 4 | Target vectors (M2 groundwork): `cubistry.goal` v2 slots, Cubacle color sets and masks, `orientationMod`, `ignore-centers` and `exact-frame` expressed as PuzlWerk goal nodes, each with a state that passes and one that fails | a vector whose expected result contradicts the data model text is rejected in review | every listed target form has a mapping row or an explicit "unsupported" row | `npm run docs:check`; vectors checked by the step-2 test harness once M2 starts |
 | 5 | Consumer conformance, test only, one pull request per repository after approval: Cubacle reads the pinned corpus (Rust test), CubeAssembler and CubeLab run their V2 ports against it, Cubistry checks `cubistry.state` and Calendar states against step 2 | each repository's new test fails on a planted wrong vector | all consumers pass the same corpus at the same pin | `cargo test --release --test <name>` (Cubacle); `node --test tests/<file>` (Cubistry); the repository test command (CubeAssembler, CubeLab) |
@@ -92,7 +110,7 @@ Cubacle updates that plan for SM1 and SM4. This plan does not edit the Cubacle p
 | Cubistry option E1 (own NxN engine, decided after stack PR 4) | new in-repository engine for 4 to 7 | change | An own NxN engine is another model. PuzlWerk `PwMove` already transforms N=2..64 poses (certified 2 and 3). Recommend E1 as "consume PuzlWerk core plus certification of N=4 to 7" (SM7). |
 | flix-orbit64 #22 (V2-only interchange) | token codec in nine projects | proceed for the token layer, scope change | V2 is a projection (comparison section 7); it cannot hold prints with equal stickers or partial identity (FORMAT-V2 "Extensions"). The ReScript consumers should share one PuzlWerk module (step 6) instead of two ports; #22 says PuzlWerk has no codec to replace, which changes if SM8 is accepted. |
 | PuzlWerk #23 (2x2 solver on Cubacle) | solver choice | proceed | Solver engines are outside the model; the adapter uses the solver contract. |
-| PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | SM1 is decided; they still depend on SM4 and SM8. |
+| PuzlWerk #9, #11, #12 (packages, CubeAssembler and Cubistry migration) | architecture and migration issues | wait | SM1 and SM4 are decided; they still depend on SM8 and the generator plan (step G1). |
 
 ## 4. Owner decisions
 
@@ -118,8 +136,11 @@ browser plan.
    reference, design symmetry), image bytes and crops in the application? R: yes. Price: one more schema and the tile ID
    rule. Consequence: wire-v1 revision 1 stays; Cubistry `assetId`, `equivalentQuarterTurns` and Cubacle `image` map
    onto it.
-4. **SM4 How languages consume the layers.** Options S, G, W, R of section 1.2. R: R for ReScript and TypeScript, S for
-   Rust. Price: two implementations kept equal by the corpus. Consequence: no generator, no wasm core.
+4. **SM4 How languages consume the layers.** **O** 2026-11-12: option G, a schema generator; one schema generates the
+   types and codecs for Rust and ReScript/TypeScript. It differs from the recommendation of the first version (R for
+   ReScript, S for Rust) and supersedes the 2026-11-08 line "shared code only within ReScript, Rust stays own" for types
+   and codecs. Price and risks: section 1.3. Consequence: steps G1 and G2; semantics stay checked by vectors; no wasm
+   core.
 5. **SM5 Cubacle stack B.** Wait for SM1 and step 2, and replace Cubacle plan D3 (Cubing.js numbering) by the Orbit64 V2
    slot convention with mapping vectors? R: yes. Price: stack B starts later; the Calendar planner keeps Cubing.js
    until then (it does today). Consequence: no fifth independent numbering.

@@ -24,7 +24,8 @@ Owner decisions used (**O**, quoted as given to the author of this plan):
   nobody cooks their own soup; "keep own formats plus adapters" is a transition state, not the goal.
 - 2026-11-08, Q3: converge via the Cubacle fixed frame, first only the specification and shared test vectors.
 - 2026-11-08, Q7: corpus F1 to F7 plus hash and canonical-JSON vectors with provenance.
-- 2026-11-08: shared code only within ReScript (PuzlWerk and Cubistry); Rust stays its own implementation.
+- 2026-11-08: shared code only within ReScript (PuzlWerk and Cubistry); Rust stays its own implementation. Superseded
+  for types and codecs by SM4 (2026-11-12).
 - 2026-11-08: every milestone and every cross-repository change still needs the owner's approval.
 - 2026-11-08: [wire schema v1](../001-core-foundation/contracts/wire-v1.md) is accepted (recorded there).
 - 2026-11-12: all components must share the same cube model and abstraction; first a comparison, then decide.
@@ -32,6 +33,8 @@ Owner decisions used (**O**, quoted as given to the author of this plan):
   Cubacle fixed frame is the Rust implementation of the same semantics; Orbit64 V2 is a codec.
 - 2026-11-12, SM3 (same source): a separate appearance document per sticker ID (`puzlwerk.appearance`); wire-v1
   revision 1 stays unchanged.
+- 2026-11-12, SM4 (same source): a schema generator; one schema generates the types and codecs for Rust and
+  ReScript/TypeScript.
 
 Owner decisions recorded in other repository documents and cited as **O** with their source:
 
