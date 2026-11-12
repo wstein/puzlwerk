@@ -16,7 +16,7 @@ const index = json("index.json");
 const contract = readFileSync(new URL("../specs/001-core-foundation/contracts/appearance-v1.md", import.meta.url), "utf8");
 
 test("every example is canonical and has the recorded size and SHA-256", () => {
-  assert.deepEqual(Object.keys(index), ["cubacle-2.json", "invalid.json", "picture-2.json", "picture-3.json", "tint-3.json"]);
+  assert.deepEqual(Object.keys(index), ["cubacle-2.json", "image-256.json", "invalid.json", "picture-2.json", "picture-3.json", "tint-3.json"]);
   for (const [name, { bytes, sha256 }] of Object.entries(index)) {
     const text = raw(name);
     assert.equal(text, canonical(JSON.parse(text)), `${name} is canonical`);
@@ -49,7 +49,7 @@ test("tile IDs of the 2x2 definition by hand (top-left cell of each face, and F_
 });
 
 test("valid examples are read; their facts match the sources", () => {
-  const cases = { "picture-2.json": "definition-2.json", "picture-3.json": "definition-3.json", "tint-3.json": "definition-3.json", "cubacle-2.json": "definition-2.json" };
+  const cases = { "picture-2.json": "definition-2.json", "picture-3.json": "definition-3.json", "tint-3.json": "definition-3.json", "cubacle-2.json": "definition-2.json", "image-256.json": "definition-2.json" };
   for (const [name, def] of Object.entries(cases)) assert.deepEqual(checkAppearance(defs[def], json(name)), { ok: true }, name);
   const p3 = json("picture-3.json");
   assert.equal(p3.stickers.length, 54);
@@ -68,7 +68,7 @@ test("valid examples are read; their facts match the sources", () => {
 
 test("each invalid vector fails with its code at its path", () => {
   const bad = json("invalid.json");
-  assert.equal(bad.length, 15);
+  assert.equal(bad.length, 20);
   for (const v of bad) {
     const r = checkAppearance(defs[v.definition], v.document);
     assert.deepEqual([r.ok, r.code, r.path], [false, v.code, v.path], v.name);

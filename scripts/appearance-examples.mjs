@@ -32,6 +32,7 @@ function build() {
   const out = {
     "picture-2.json": doc(d2, "picture-2-example", { imageIds: "tile-v1" }, picture(d2, t2, { F_0_0: "C2", U_1_1: "C4" })),
     "picture-3.json": doc(d3, "picture-3-example", { imageIds: "tile-v1" }, picture(d3, t3, { F_1_1: "C2", U_1_1: "C4" })),
+    "image-256.json": doc(d2, "image-256-example", {}, [{ id: "DBL.B", image: "a".repeat(256) }]),
     "tint-3.json": doc(d3, "tint-3-example", {}, stickers(d3).map((s) => ({ id: s.id, color: `tint-${HOME[s.normal.join()]}` }))),
     // Cubacle `image` is an opaque string per fixed-frame sticker; the shape `<body>:<axis>` is the one of its tests.
     "cubacle-2.json": doc(d2, "cubacle-2-example", {}, stickers(d2).map((s) => ({
@@ -52,6 +53,11 @@ function build() {
     bad("unknown sticker ID", doc(d2, "bad", {}, [{ id: "DBL.X", color: "red" }]), "StickerMismatch", "$.stickers[0].id"),
     bad("duplicate sticker entry", doc(d2, "bad", {}, [{ id: "DBL.B", color: "red" }, { id: "DBL.B", color: "blue" }]), "DuplicateId", "$.stickers[1].id"),
     bad("entry without attribute", doc(d2, "bad", {}, [{ id: "DBL.B" }]), "BadValue", "$.stickers[0]"),
+    bad("entry unknown field", one({ extra: 1 }), "UnknownField", "$.stickers[0].extra"),
+    bad("entry without id", doc(d2, "bad", {}, [{ color: "red" }]), "MissingField", "$.stickers[0].id"),
+    bad("document id with a space", mut((x) => { x.id = "a b"; }), "BadId", "$.id"),
+    bad("stickers not an array", mut((x) => { x.stickers = {}; }), "WrongType", "$.stickers"),
+    bad("revision as string", mut((x) => { x.revision = "1"; }), "WrongType", "$.revision"),
     bad("symmetry C3", one({ symmetry: "C3" }), "BadSymmetry", "$.stickers[0].symmetry"),
     bad("symmetry as quarter turns", one({ symmetry: [0, 2] }), "BadSymmetry", "$.stickers[0].symmetry"),
     bad("color with a space", one({ color: "light red" }), "BadId", "$.stickers[0].color"),
