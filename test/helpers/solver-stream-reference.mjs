@@ -61,6 +61,8 @@ export function checkStream(ctx, events, opt = {}) {
   try {
     events.forEach((e, i) => {
       gate(opt, "AfterTerminal", !terminal);
+      // Echo fields are required on every event (contract section 3): a missing one is a protocol violation.
+      gate(opt, "MissingEcho", isObj(e) && ["protocol", "version", "requestId", "seq"].every((k) => k in e) && isObj(e.version) && "major" in e.version && "minor" in e.version);
       gate(opt, "BadEnvelope", e.protocol === "puzlwerk.solver" && e.version?.major === 1 && e.requestId === requestId);
       gate(opt, "BadSeq", e.seq === i);
       const head = ["event", "protocol", "version", "requestId", "seq"];
