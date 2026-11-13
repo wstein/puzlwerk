@@ -66,7 +66,7 @@ A move is the canonical AST of the data model: `{"axis":"X|Y|Z","layers":[...],"
 2. **Continuity.** `fromIndex` of a `committed` event equals the number of moves committed so far (0 for the first). `moves` is nonempty. No gap, overlap or repetition.
 3. **Legality.** Every committed move is legal under the definition's move policy on the state it applies to. The adapter applies each chunk on receipt and rejects an illegal one (`BACKEND_PROTOCOL`).
 4. **Final extends committed.** `final.moves` begins with exactly the committed moves; the remainder is the tail. A `final` without any `committed` event is valid (the whole answer is the tail); this is also the form of a one-shot backend (section 7).
-5. **Goal.** The caller replays `final.moves` on `state` and evaluates the goal itself. A backend assertion alone is never success (solver.md). A failed check ends the run as `REPLAY_FAILED`; the played prefix stays played.
+5. **Goal.** The caller replays `final.moves` on `initialState` and evaluates the goal itself. A backend assertion alone is never success (solver.md). A failed check ends the run as `REPLAY_FAILED`; the played prefix stays played.
 6. **Length.** The committed count never exceeds `limits.maxMoves`, checked on every `committed` event, and `final.moves` never exceeds it.
 7. **Progress.** `depth` (moves in the longest retained candidate) is at least the committed length; `beamSize` is at least 1. `lowerBound`, if present, is a proven lower bound on the answer length under the metric, needs `lowerBoundMethod` (an ID from `capabilities`), and never decreases between events. A search statistic without proof is not a `lowerBound`.
 8. **Unknown values.** An unknown event kind, field, certificate kind or failure reason rejects (solver.md); additive fields need a new advertised minor.
@@ -101,7 +101,7 @@ A beam answer is `bestEffort` or `bounded`, never `optimal`, unless an audited e
 
 **P** The GUI keeps its actual state `S` (wire-v1) and a queue of committed moves not yet animated.
 
-1. Send `solve` with `state = S`. Animate and apply queued committed moves in order; each application updates `S`.
+1. Send `solve` with `initialState = S`. Animate and apply queued committed moves in order; each application updates `S`.
 2. On `final`: append the tail, animate it, replay and verify the goal; show "solved" only after that.
 3. On `failed`, cancel, a protocol violation or a user action (manual move, undo, edit, new target): stop and drop the unplayed queue. `S` is what was actually applied. A new request starts from `S` with a new `requestId`; events of the old `requestId` are ignored.
 4. Undo by the user is a GUI move of the inverse; the solver never revokes. A stage goal (`subgoal`) is requested again from the new `S`, with the budget that is left.
