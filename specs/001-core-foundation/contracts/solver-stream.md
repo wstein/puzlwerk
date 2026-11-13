@@ -10,15 +10,16 @@ Status: Proposed; owner approval and Cubacle maintainer approval required. Exten
 
 ## 2. Request
 
-**P** Additive to solver.md 1.0: protocol minor 1 (the number is **U**, the owner assigns it) adds `mode: "stream"` and the capability `stream` (section 8). A solver without that capability returns `unsupported` and does not stream. Otherwise the envelope rules of solver.md hold (`protocol`, `version`, echoed `requestId`, unknown fields are errors).
+**P** Additive to solver.md 1.0 in the sense of its own rule (additive fields need an advertised minor): protocol minor 1 (the number is **U**, the owner assigns it) adds the request field `mode: "stream"`, the goal kinds below, `limits.edgeLength`, the events of section 3 and the capability `stream` (section 8). Every other field of the solve request keeps its solver.md name and meaning: `profile`, `definitionHash`, `stateHash`, `goalHash`, `definition`, `initialState`, `goal`, `metric`, `limits`, `seed`. A solver without the capability returns `unsupported` and does not stream. Not additive and therefore **U**: the transport. solver.md has one JSON response per process; a stream is one JSON object per line on stdout, which needs its own negotiation (section 8).
 
 ```json
 {"protocol":"puzlwerk.solver","version":{"major":1,"minor":1},"requestId":"r1","kind":"solve","mode":"stream",
- "definition":{},"state":{},"goal":{"kind":"state","frame":"fixed","state":{}},
- "budget":{"wallTimeMs":5000,"nodeCount":1000000,"maxMoves":30,"edgeLength":12}}
+ "profile":"cube-shell-v1","definitionHash":"sha256:...","stateHash":"sha256:...","goalHash":"sha256:...",
+ "definition":{},"initialState":{},"goal":{"kind":"state","frame":"fixed","state":{}},"metric":"layer-turn","seed":0,
+ "limits":{"wallTimeMs":5000,"nodeCount":1000000,"memoryBytes":67108864,"maxMoves":30,"edgeLength":12}}
 ```
 
-Shape illustration; `definition` and `state` are complete wire-v1 documents (the hashes of solver.md may accompany them). `state` is the actual current state of the caller, not the original scramble.
+Shape illustration, not a valid fixture (placeholder hashes). `definition` and `initialState` are complete wire-v1 documents; `initialState` is the actual current state of the caller, not the original scramble.
 
 ### 2.1 Goals
 
@@ -32,18 +33,19 @@ Shape illustration; `definition` and `state` are complete wire-v1 documents (the
 
 **U** The goal document schema is milestone M2 and not written; the three kinds above are the stream-level shape only. **U** The predicate registry (IDs, parameter schemas) and who evaluates a predicate in PuzlWerk for replay.
 
-### 2.2 Budget
+### 2.2 Budget (`limits`)
 
-All values are positive safe integers; every field is optional; an omitted field means the solver default, which `capabilities` states.
+The budget is the `limits` object of solver.md plus `edgeLength`. All values are positive safe integers; every field is optional; an omitted field means the solver default, which `capabilities` states.
 
 | Field | Meaning |
 | --- | --- |
 | `wallTimeMs` | search time; the adapter also enforces it from outside (solver.md) |
 | `nodeCount` | expanded nodes, if the backend measures nodes |
+| `memoryBytes` | memory, enforced as in solver.md |
 | `maxMoves` | maximum length of the whole answer, committed prefix plus tail |
 | `edgeLength` | maximum length of one stage (one `subgoal` or one chain edge) |
 
-**P** A solver that cannot enforce a hard budget field rejects the request (`unsupported`), as in solver.md. `memoryBytes` stays as defined there. Budget exhaustion ends the stream with `failed` (section 5), never with a `final` that was not reached.
+**P** A solver that cannot enforce a hard budget field rejects the request (`unsupported`), as in solver.md. Budget exhaustion ends the stream with `failed` (section 5), never with a `final` that was not reached.
 
 ## 3. Event stream
 
@@ -65,9 +67,11 @@ A move is the canonical AST of the data model: `{"axis":"X|Y|Z","layers":[...],"
 3. **Legality.** Every committed move is legal under the definition's move policy on the state it applies to. The adapter applies each chunk on receipt and rejects an illegal one (`BACKEND_PROTOCOL`).
 4. **Final extends committed.** `final.moves` begins with exactly the committed moves; the remainder is the tail. A `final` without any `committed` event is valid (the whole answer is the tail); this is also the form of a one-shot backend (section 7).
 5. **Goal.** The caller replays `final.moves` on `state` and evaluates the goal itself. A backend assertion alone is never success (solver.md). A failed check ends the run as `REPLAY_FAILED`; the played prefix stays played.
-6. **Length.** Committed plus tail never exceeds `budget.maxMoves`.
+6. **Length.** The committed count never exceeds `limits.maxMoves`, checked on every `committed` event, and `final.moves` never exceeds it.
 7. **Progress.** `depth` (moves in the longest retained candidate) is at least the committed length; `beamSize` is at least 1. `lowerBound`, if present, is a proven lower bound on the answer length under the metric, needs `lowerBoundMethod` (an ID from `capabilities`), and never decreases between events. A search statistic without proof is not a `lowerBound`.
 8. **Unknown values.** An unknown event kind, field, certificate kind or failure reason rejects (solver.md); additive fields need a new advertised minor.
+
+**P** Terminal events (`final`, `failed`) may carry the result echo of solver.md as optional fields: `backend`, `definitionHash`, `stateHash`, `goalHash`, `elapsedMs`, `nodeCount`, `limits`, `metric`; `final` may add `finalStateHash`, which the caller compares with the hash of its own replayed state. The reference check verifies only `finalStateHash`; the other echo fields are accepted, not compared (**U** whether they become required). The solver.md field `optimality` (`proven|notProven`) is expressed by the certificate kind below.
 
 ### 3.2 Certificates
 
@@ -83,7 +87,7 @@ A beam answer is `bestEffort` or `bounded`, never `optimal`, unless an audited e
 
 ## 4. Cancel and budget
 
-**P** The caller cancels with `{"kind":"cancel","requestId":"r1"}` on the same transport. The solver stops, emits the terminal event `failed` with `reason: "cancelled"` and no further `committed`. Events already in flight before the solver saw the cancel stay valid; a `final` that was already produced may still arrive, and the caller accepts it if it verifies. The adapter may instead end the stream itself (terminate the child, solver.md) and synthesize `failed` with reason `cancelled` or `timeout`; it discards partial lines.
+**P** The caller cancels with `{"kind":"cancel","requestId":"r1"}` on the same transport. The solver stops, emits the terminal event `failed` with `reason: "cancelled"` and no further `committed`. Committed events already in flight before the solver saw the cancel stay valid. A `final` that arrives after the cancel request is not accepted as solved (solver.md: "No response after cancellation is accepted as solved"); the caller ends the run as `cancelled` and keeps the moves it applied. The adapter may end the stream itself (terminate the child, solver.md) and synthesize `failed` with reason `cancelled` or `timeout`; it discards partial lines. **U** The owner decides whether a verified `final` after cancel should be usable; this contract follows solver.md until then.
 
 ## 5. Failure behavior
 
@@ -116,9 +120,9 @@ Nothing is rewound because only committed moves were ever played.
 
 ### 7.2 Calendar beam
 
-**V** `research/calendar-7x7/row1-window-chain/window_chain.jl` on `research/chain-extend-2100` (`a8082419d875df9d255ae85db305e93b1751be1b`) in wstein/cubistry: Julia, library `L5`, `width` 40, `lambda` 3 (defaults), edge by edge from the retained state to the next month; the target is the month's front board (a best-effort month uses a board with one wrong cell); the beam falls back to a greedy orbit solver; a run stops on `max_edges`, a deadline or `best_effort_unreachable`. The script writes finished edges to `chain.moves.tsv`; it emits nothing during an edge.
+**V** `research/calendar-7x7/row1-window-chain/window_chain.jl` on `research/chain-extend-2100` (`a8082419d875df9d255ae85db305e93b1751be1b`) in wstein/cubistry: Julia, library `L5`, `width` 40, `lambda` 3 (defaults), edge by edge from the retained state to the next month; the target is the month's front board (a best-effort month uses a board with one wrong cell); the beam falls back to a greedy orbit solver; a run stops on `max_edges`, `deadline`, `best_effort_unreachable` (a best-effort target no solver reaches) or `search_stalled` (an exact target no solver reaches; `stop_for_unreached` in `window_chain_lib.jl`, used at `window_chain.jl` line 159). The script writes finished edges to `chain.moves.tsv`; it emits nothing during an edge.
 
-**P** One chain edge is one `subgoal` with a `predicate` or `state` goal (the month front). The end of an edge is a natural commit point: one retained state remains, so `committed` carries the whole edge. Within an edge the contract adds a commit only if the beam proves a shared prefix. **U** Whether `beam_edge.jl` keeps parent links so the shared prefix of the 40 candidates is cheap to compute (not read). **U** Mapping `edgeLength` and the stop reasons to `budget` and `failed` reasons (`deadline` is `timeout`; `best_effort_unreachable` has no counterpart yet).
+**P** One chain edge is one `subgoal` with a `predicate` or `state` goal (the month front). The end of an edge is a natural commit point: one retained state remains, so `committed` carries the whole edge. Within an edge the contract adds a commit only if the beam proves a shared prefix. **U** Whether `beam_edge.jl` keeps parent links so the shared prefix of the 40 candidates is cheap to compute (not read). **U** Mapping `edgeLength` and the stop reasons to `budget` and `failed` reasons (`deadline` is `timeout`; `search_stalled` and `best_effort_unreachable` have no counterpart yet: no solver reached the target, which is no budget stop and no proof of unsatisfiability, closest to `incompleteMethod`).
 
 ## 8. Capabilities and versioning
 
@@ -126,6 +130,6 @@ Nothing is rewound because only committed moves were ever played.
 
 ## 9. Conformance vectors
 
-`test/fixtures/solver-stream/vectors.json` holds valid streams with expected outcomes and invalid streams, each naming the code the reference check must report. Initial and target states are the wire-v1 fixtures in `test/fixtures/wire/` (2x2x2 `state-2-scrambled.json` is R U F' from home). The reference check replays moves with the ReScript core (`PwMove`, `PwCodec`). Not covered: goal kind `predicate` (no registry, **U**), frame `any-rotation` (not evaluated), certificate method truth (method IDs in vectors are fixture placeholders, not audited methods), real solver output, the Cubacle ABI and the calendar beam (no run).
+`test/fixtures/solver-stream/vectors.json` holds valid streams with expected outcomes and invalid streams, each naming the code the reference check must report. Initial and target states are the wire-v1 fixtures in `test/fixtures/wire/` (2x2x2 `state-2-scrambled.json` is R U F' from home). The reference check replays moves with the ReScript core (`PwMove`, `PwCodec`). Not covered: the solver.md request fields other than `goal` and `limits` and the echo fields other than `finalStateHash`, goal kind `predicate` (no registry, **U**), frame `any-rotation` (not evaluated), certificate method truth (method IDs in vectors are fixture placeholders, not audited methods), real solver output, the Cubacle ABI and the calendar beam (no run).
 
-Open points (**U**): protocol minor number; the move wire form; the goal document (M2); the predicate registry; reading of "no exposure before verification" (section 5); `optimal` for ABI 1; the streaming ABI design; shared-prefix access in both searches.
+Open points (**U**): protocol minor number; the stream transport (JSON lines against one response); a verified `final` after cancel; whether the echo fields become required; the move wire form; the goal document (M2); the predicate registry; reading of "no exposure before verification" (section 5); `optimal` for ABI 1; the streaming ABI design; shared-prefix access in both searches.
