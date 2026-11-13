@@ -7,7 +7,7 @@ import * as Move from "../../core/res/PwMove.res.mjs";
 
 export const FAIL_REASONS = ["timeout", "nodeLimit", "memoryLimit", "depthLimit", "cancelled", "incompleteMethod", "unsupported", "invalid", "error", "unsatisfiable"];
 const GOALS = ["state", "predicate", "subgoal"];
-const BUDGET = ["wallTimeMs", "nodeCount", "maxMoves", "edgeLength"];
+const BUDGET = ["wallTimeMs", "nodeCount", "memoryBytes", "maxMoves", "edgeLength"];
 const isInt = (x, min) => Number.isSafeInteger(x) && x >= min;
 const isObj = (x) => x !== null && typeof x === "object" && !Array.isArray(x);
 const keysAre = (o, required, optional = []) =>
@@ -67,6 +67,7 @@ export function checkStream(ctx, events, opt = {}) {
         gate(opt, "UnknownField", keysAre(e, [...head, "fromIndex", "moves"]));
         gate(opt, "CommitGap", e.fromIndex === committed.length);
         gate(opt, "CommitEmpty", Array.isArray(e.moves) && e.moves.length > 0);
+        gate(opt, "BudgetExceeded", committed.length + e.moves.length <= (ctx.budget.maxMoves ?? Infinity));
         for (const mv of e.moves) {
           const next = apply(state, mv);
           gate(opt, "IllegalMove", next !== null);
