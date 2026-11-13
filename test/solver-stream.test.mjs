@@ -44,6 +44,11 @@ function mutate(base, ops) {
   }
   return v;
 }
+const SECOND_RULE = {
+  "committed-is-empty": "CommitGap",
+  "committed-layer-out-of-range": "FinalPrefix",
+  "final-tail-move-illegal": "GoalNotReached",
+};
 const byName = Object.fromEntries(vectors.valid.map((v) => [v.name, v]));
 
 test("fixture sanity: R U F' from home equals state-2-scrambled, so F U' R' is its inverse", () => {
@@ -65,10 +70,15 @@ for (const v of vectors.invalid) {
     const { ctx, events } = fill(mutated);
     assert.deepEqual(checkStream(ctx, events), { ok: false, code: v.code });
   });
-  test(`invalid stream: ${v.name} is caught only by its own check (${v.code} disabled: no longer reported)`, () => {
+  test(`invalid stream: ${v.name} is accepted or hits its named second rule when check ${v.code} is off`, () => {
     const { ctx, events } = fill(mutated);
     const result = checkStream(ctx, events, { disable: v.code });
-    assert.ok(result.ok || result.code !== v.code, JSON.stringify(result));  });
+    // With its own check off, the vector is accepted, or the one named second rule fires (hand-derived: a skipped
+    // illegal or empty step leaves the replayed state or the prefix inconsistent). Never the same code.
+    const second = SECOND_RULE[v.name];
+    if (second) assert.deepEqual(result, { ok: false, code: second });
+    else assert.equal(result.ok, true, JSON.stringify(result));
+    if (v.name === "final-tail-misses-the-goal") assert.equal(result.evaluated, false);  });
 }
 
 test("goal replay covers 5 valid vectors; the 4 failed-stream vectors are not goal-evaluated", () => {

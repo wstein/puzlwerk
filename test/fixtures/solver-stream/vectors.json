@@ -125,11 +125,18 @@
     {"name": "event-after-terminal", "base": "timeout-without-commit", "ops": [{"op": "push", "path": "events", "value": {"seq": 1, "event": "progress", "depth": 1, "beamSize": 1}}], "code": "AfterTerminal"},
     {"name": "stream-closed-without-terminal", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "del", "path": "events.5"}], "code": "NoTerminal"},
     {"name": "unknown-event-kind", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.0.event", "value": "partial"}], "code": "UnknownEvent"},
-    {"name": "unknown-field-in-committed", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.1.extra", "value": 1}], "code": "UnknownField"}
+    {"name": "unknown-field-in-committed", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.1.extra", "value": 1}], "code": "UnknownField"},
+    {"name":"committed-exceeds-maxMoves-then-failed","base":"cancelled-after-committed-prefix","ops":[{"op":"set","path":"budget.maxMoves","value":1},{"op":"set","path":"events.1","value":{"seq":1,"event":"committed","fromIndex":1,"moves":[{"axis":"Y","layers":[1],"turns":1}]}},{"op":"push","path":"events","value":{"seq":2,"event":"failed","reason":"cancelled"}}],"code":"BudgetExceeded"},
+    {"name":"final-changes-the-second-committed-move","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.moves.1","value":{"axis":"X","layers":[1],"turns":-1}}],"code":"FinalPrefix"},
+    {"name":"final-tail-move-illegal","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.moves.2.layers","value":[7]}],"code":"IllegalMove"},
+    {"name":"wrong-protocol","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.1.protocol","value":"other"}],"code":"BadEnvelope"},
+    {"name":"wrong-major-version","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.1.version","value":{"major":2,"minor":0}}],"code":"BadEnvelope"},
+    {"name":"unknown-field-in-final","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.extra","value":1}],"code":"UnknownField"},
+    {"name":"unknown-field-in-failed","base":"cancelled-after-committed-prefix","ops":[{"op":"set","path":"events.1.extra","value":1}],"code":"UnknownField"}
   ],
   "requests": {
     "valid": [
-      {"name": "state-goal", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"wallTimeMs": 5000, "nodeCount": 1000, "maxMoves": 30, "edgeLength": 12}},
+      {"name": "state-goal", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"wallTimeMs": 5000, "nodeCount": 1000, "memoryBytes": 67108864, "maxMoves": 30, "edgeLength": 12}},
       {"name": "predicate-goal", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {}}, "budget": {}},
       {"name": "subgoal-of-predicate", "goal": {"kind": "subgoal", "id": "edge-7", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {"month": "2030-02"}}}, "budget": {"edgeLength": 12}}
     ],
