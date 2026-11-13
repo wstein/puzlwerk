@@ -28,7 +28,7 @@
         {"seq": 2, "event": "progress", "depth": 3, "beamSize": 40, "lowerBound": 1, "lowerBoundMethod": "fixture:not-solved"},
         {"seq": 3, "event": "committed", "fromIndex": 1, "moves": [{"axis": "Y", "layers": [1], "turns": 1}]},
         {"seq": 4, "event": "progress", "depth": 3, "beamSize": 12, "lowerBound": 1, "lowerBoundMethod": "fixture:not-solved"},
-        {"seq": 5, "event": "final", "moves": [{"axis": "Z", "layers": [1], "turns": -1}, {"axis": "Y", "layers": [1], "turns": 1}, {"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "bounded", "lowerBound": 1, "lowerBoundMethod": "fixture:not-solved"}}
+        {"seq": 5, "event": "final", "moves": [{"axis": "Z", "layers": [1], "turns": -1}, {"axis": "Y", "layers": [1], "turns": 1}, {"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "bounded", "lowerBound": 1, "lowerBoundMethod": "fixture:not-solved"}, "finalStateHash": "sha256:c137f6ed7552468e24c8f9ee26ca5927e691866bf2148c492fd972a65e2befa7", "metric": "layer-turn", "elapsedMs": 3}
       ],
       "closed": true,
       "expect": {"applied": 2, "evaluated": true}
@@ -132,22 +132,23 @@
     {"name":"wrong-protocol","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.1.protocol","value":"other"}],"code":"BadEnvelope"},
     {"name":"wrong-major-version","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.1.version","value":{"major":2,"minor":0}}],"code":"BadEnvelope"},
     {"name":"unknown-field-in-final","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.extra","value":1}],"code":"UnknownField"},
-    {"name":"unknown-field-in-failed","base":"cancelled-after-committed-prefix","ops":[{"op":"set","path":"events.1.extra","value":1}],"code":"UnknownField"}
+    {"name":"unknown-field-in-failed","base":"cancelled-after-committed-prefix","ops":[{"op":"set","path":"events.1.extra","value":1}],"code":"UnknownField"},
+    {"name":"final-state-hash-wrong","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.finalStateHash","value":"sha256:d3ef69211616f9a785127079a7d6b3afc31b91fa23008e87bd8837d235f1b974"}],"code":"FinalHashMismatch"}
   ],
   "requests": {
     "valid": [
-      {"name": "state-goal", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"wallTimeMs": 5000, "nodeCount": 1000, "memoryBytes": 67108864, "maxMoves": 30, "edgeLength": 12}},
-      {"name": "predicate-goal", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {}}, "budget": {}},
-      {"name": "subgoal-of-predicate", "goal": {"kind": "subgoal", "id": "edge-7", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {"month": "2030-02"}}}, "budget": {"edgeLength": 12}}
+      {"name": "state-goal", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "limits": {"wallTimeMs": 5000, "nodeCount": 1000, "memoryBytes": 67108864, "maxMoves": 30, "edgeLength": 12}},
+      {"name": "predicate-goal", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {}}, "limits": {}},
+      {"name": "subgoal-of-predicate", "goal": {"kind": "subgoal", "id": "edge-7", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {"month": "2030-02"}}}, "limits": {"edgeLength": 12}}
     ],
     "invalid": [
-      {"name": "zero-budget", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"wallTimeMs": 0}, "code": "BadBudget"},
-      {"name": "unknown-budget-field", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"memory": 5}, "code": "BadBudget"},
-      {"name": "fractional-budget", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"nodeCount": 1.5}, "code": "BadBudget"},
-      {"name": "color-goal-kind", "goal": {"kind": "color"}, "budget": {}, "code": "BadGoal"},
-      {"name": "subgoal-without-id", "goal": {"kind": "subgoal", "goal": {"kind": "predicate", "id": "p", "params": {}}}, "budget": {}, "code": "BadGoal"},
-      {"name": "predicate-without-params", "goal": {"kind": "predicate", "id": "p"}, "budget": {}, "code": "BadGoal"},
-      {"name": "state-goal-without-frame", "goal": {"kind": "state", "state": {}}, "budget": {}, "code": "BadGoal"}
+      {"name": "zero-budget", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "limits": {"wallTimeMs": 0}, "code": "BadBudget"},
+      {"name": "unknown-budget-field", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "limits": {"memory": 5}, "code": "BadBudget"},
+      {"name": "fractional-budget", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "limits": {"nodeCount": 1.5}, "code": "BadBudget"},
+      {"name": "color-goal-kind", "goal": {"kind": "color"}, "limits": {}, "code": "BadGoal"},
+      {"name": "subgoal-without-id", "goal": {"kind": "subgoal", "goal": {"kind": "predicate", "id": "p", "params": {}}}, "limits": {}, "code": "BadGoal"},
+      {"name": "predicate-without-params", "goal": {"kind": "predicate", "id": "p"}, "limits": {}, "code": "BadGoal"},
+      {"name": "state-goal-without-frame", "goal": {"kind": "state", "state": {}}, "limits": {}, "code": "BadGoal"}
     ]
   }
 }
