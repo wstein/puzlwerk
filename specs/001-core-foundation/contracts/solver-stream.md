@@ -10,7 +10,7 @@ Status: Proposed; owner approval and Cubacle maintainer approval required. Exten
 
 ## 2. Request
 
-**P** Additive to solver.md 1.0 in the sense of its own rule (additive fields need an advertised minor): protocol minor 1, so version 1.1 (**O** 2026-11-13), adds the request field `mode: "stream"`, the goal kinds below, `limits.edgeLength`, the events of section 3 and the capability `stream` (section 8). Every other field of the solve request keeps its solver.md name and meaning: `profile`, `definitionHash`, `stateHash`, `goalHash`, `definition`, `initialState`, `goal`, `metric`, `limits`, `seed`. A solver without the capability returns `unsupported` and does not stream. Not additive and therefore **U**: the transport. solver.md has one JSON response per process; a stream is one JSON object per line on stdout, which needs its own negotiation (section 8).
+**P** Additive to solver.md 1.0 in the sense of its own rule (additive fields need an advertised minor): protocol minor 1, so version 1.1 (**O** 2026-11-13), adds the request field `mode: "stream"`, the goal kinds below, `limits.edgeLength`, the events of section 3 and the capability `stream` (section 8). Every other field of the solve request keeps its solver.md name and meaning: `profile`, `definitionHash`, `stateHash`, `goalHash`, `definition`, `initialState`, `goal`, `metric`, `limits`, `seed`. A solver without the capability returns `unsupported` and does not stream. Not additive: the transport. solver.md has one JSON response per process; a stream is JSON lines, one JSON object per line on stdout (**O** 2026-11-13, owner), which needs its own negotiation (section 8). Transport details beyond JSON lines and the required echo fields (section 3) are **U**.
 
 ```json
 {"protocol":"puzlwerk.solver","version":{"major":1,"minor":1},"requestId":"r1","kind":"solve","mode":"stream",
@@ -49,7 +49,7 @@ The budget is the `limits` object of solver.md plus `edgeLength`. All values are
 
 ## 3. Event stream
 
-One ordered sequence of events per request. Every event carries `protocol`, `version`, the request's `requestId` and `seq`, an integer that starts at 0 and grows by exactly 1. Events of another `requestId` are not part of this stream.
+One ordered sequence of events per request. One JSON object per line. **O** 2026-11-13 (owner): every event carries `protocol`, `version`, the request's `requestId` and `seq`, an integer that starts at 0 and grows by exactly 1; all four are required. A missing one is a protocol violation (`MissingEcho` in the reference check), distinct from a wrong value (`BadEnvelope`, `BadSeq`). Events of another `requestId` are not part of this stream.
 
 | Event | Fields | Meaning |
 | --- | --- | --- |
@@ -71,7 +71,7 @@ A move is the canonical AST of the data model: `{"axis":"X|Y|Z","layers":[...],"
 7. **Progress.** `depth` (moves in the longest retained candidate) is at least the committed length; `beamSize` is at least 1. `lowerBound`, if present, is a proven lower bound on the answer length under the metric, needs `lowerBoundMethod` (an ID from `capabilities`), and never decreases between events. A search statistic without proof is not a `lowerBound`.
 8. **Unknown values.** An unknown event kind, field, certificate kind or failure reason rejects (solver.md); additive fields need a new advertised minor.
 
-**P** Terminal events (`final`, `failed`) may carry the result echo of solver.md as optional fields: `backend`, `definitionHash`, `stateHash`, `goalHash`, `elapsedMs`, `nodeCount`, `limits`, `metric`; `final` may add `finalStateHash`, which the caller compares with the hash of its own replayed state. The reference check verifies only `finalStateHash`; the other echo fields are accepted, not compared (**U** whether they become required). The solver.md field `optimality` (`proven|notProven`) is expressed by the certificate kind below.
+**P** Terminal events (`final`, `failed`) may carry the result echo of solver.md as optional fields: `backend`, `definitionHash`, `stateHash`, `goalHash`, `elapsedMs`, `nodeCount`, `limits`, `metric`; `final` may add `finalStateHash`, which the caller compares with the hash of its own replayed state. The reference check verifies only `finalStateHash`; the other terminal echo fields stay optional and are accepted, not compared (the required fields are `protocol`, `version`, `requestId` and `seq` above). The solver.md field `optimality` (`proven|notProven`) is expressed by the certificate kind below.
 
 ### 3.2 Certificates
 
