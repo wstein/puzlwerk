@@ -136,6 +136,7 @@
     {"name":"missing-protocol","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.1.protocol"}],"code":"MissingEcho"},
     {"name":"missing-version","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.2.version"}],"code":"MissingEcho"},
     {"name":"missing-version-minor","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.1.version.minor"}],"code":"MissingEcho"},
+    {"name":"missing-version-major","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.1.version.major"}],"code":"MissingEcho"},
     {"name":"missing-requestId","base":"one-shot-backend-final-only","ops":[{"op":"del","path":"events.0.requestId"}],"code":"MissingEcho"},
     {"name":"missing-seq","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.3.seq"}],"code":"MissingEcho"},
     {"name":"final-state-hash-wrong","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.finalStateHash","value":"sha256:d3ef69211616f9a785127079a7d6b3afc31b91fa23008e87bd8837d235f1b974"}],"code":"FinalHashMismatch"}
