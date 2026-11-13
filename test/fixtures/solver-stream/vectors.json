@@ -1,5 +1,5 @@
 {
-  "note": "Hand-derived vectors for specs/001-core-foundation/contracts/solver-stream.md. Events omit protocol, version and requestId; the stream-level budget is the request field `limits`; the test fills them from the request unless an event sets them. Moves are the AST {axis, layers, turns}. Method IDs starting with fixture: are placeholders, not audited methods. state-2-scrambled.json is R U F' from home (scripts/wire-examples.py), so its inverse is F U' R'.",
+  "note": "Hand-derived vectors for specs/001-core-foundation/contracts/solver-stream.md. Events list seq; the test adds protocol, version and requestId to every event before mutation (all four are required on every event); the stream-level budget is the request field `limits`. Moves are the AST {axis, layers, turns}. Method IDs starting with fixture: are placeholders, not audited methods. state-2-scrambled.json is R U F' from home (scripts/wire-examples.py), so its inverse is F U' R'.",
   "definition": "definition-2.json",
   "moves": {
     "R": {"axis": "X", "layers": [1], "turns": -1},
@@ -122,17 +122,22 @@
     {"name": "best-effort-with-a-number", "base": "one-shot-backend-final-only", "ops": [{"op": "set", "path": "events.0.certificate.lowerBound", "value": 1}], "code": "CertificateFields"},
     {"name": "unknown-failure-reason", "base": "cancelled-after-committed-prefix", "ops": [{"op": "set", "path": "events.1.reason", "value": "gaveUp"}], "code": "BadFailReason"},
     {"name": "unsatisfiable-without-method", "base": "unsatisfiable-names-method-and-scope", "ops": [{"op": "del", "path": "events.0.method"}], "code": "UnsatNoMethod"},
-    {"name": "event-after-terminal", "base": "timeout-without-commit", "ops": [{"op": "push", "path": "events", "value": {"seq": 1, "event": "progress", "depth": 1, "beamSize": 1}}], "code": "AfterTerminal"},
+    {"name": "event-after-terminal", "base": "timeout-without-commit", "ops": [{"op": "push", "path": "events", "value": {"protocol": "puzlwerk.solver", "version": {"major": 1, "minor": 1}, "requestId": "r1", "seq": 1, "event": "progress", "depth": 1, "beamSize": 1}}], "code": "AfterTerminal"},
     {"name": "stream-closed-without-terminal", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "del", "path": "events.5"}], "code": "NoTerminal"},
     {"name": "unknown-event-kind", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.0.event", "value": "partial"}], "code": "UnknownEvent"},
     {"name": "unknown-field-in-committed", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.1.extra", "value": 1}], "code": "UnknownField"},
-    {"name":"committed-exceeds-maxMoves-then-failed","base":"cancelled-after-committed-prefix","ops":[{"op":"set","path":"budget.maxMoves","value":1},{"op":"set","path":"events.1","value":{"seq":1,"event":"committed","fromIndex":1,"moves":[{"axis":"Y","layers":[1],"turns":1}]}},{"op":"push","path":"events","value":{"seq":2,"event":"failed","reason":"cancelled"}}],"code":"BudgetExceeded"},
+    {"name":"committed-exceeds-maxMoves-then-failed","base":"cancelled-after-committed-prefix","ops":[{"op":"set","path":"budget.maxMoves","value":1},{"op":"set","path":"events.1","value":{"protocol":"puzlwerk.solver","version":{"major":1,"minor":1},"requestId":"r1","seq":1,"event":"committed","fromIndex":1,"moves":[{"axis":"Y","layers":[1],"turns":1}]}},{"op":"push","path":"events","value":{"protocol":"puzlwerk.solver","version":{"major":1,"minor":1},"requestId":"r1","seq":2,"event":"failed","reason":"cancelled"}}],"code":"BudgetExceeded"},
     {"name":"final-changes-the-second-committed-move","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.moves.1","value":{"axis":"X","layers":[1],"turns":-1}}],"code":"FinalPrefix"},
     {"name":"final-tail-move-illegal","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.moves.2.layers","value":[7]}],"code":"IllegalMove"},
     {"name":"wrong-protocol","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.1.protocol","value":"other"}],"code":"BadEnvelope"},
     {"name":"wrong-major-version","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.1.version","value":{"major":2,"minor":0}}],"code":"BadEnvelope"},
     {"name":"unknown-field-in-final","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.extra","value":1}],"code":"UnknownField"},
     {"name":"unknown-field-in-failed","base":"cancelled-after-committed-prefix","ops":[{"op":"set","path":"events.1.extra","value":1}],"code":"UnknownField"},
+    {"name":"missing-protocol","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.1.protocol"}],"code":"MissingEcho"},
+    {"name":"missing-version","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.2.version"}],"code":"MissingEcho"},
+    {"name":"missing-version-minor","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.1.version.minor"}],"code":"MissingEcho"},
+    {"name":"missing-requestId","base":"one-shot-backend-final-only","ops":[{"op":"del","path":"events.0.requestId"}],"code":"MissingEcho"},
+    {"name":"missing-seq","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.3.seq"}],"code":"MissingEcho"},
     {"name":"final-state-hash-wrong","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.finalStateHash","value":"sha256:d3ef69211616f9a785127079a7d6b3afc31b91fa23008e87bd8837d235f1b974"}],"code":"FinalHashMismatch"}
   ],
   "requests": {
