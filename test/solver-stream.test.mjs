@@ -26,7 +26,7 @@ const stateText = (s) => (s.file ? text(s.file) : scramble(s.from, s.moves));
 const ENVELOPE = { protocol: "puzlwerk.solver", version: { major: 1, minor: 1 }, requestId: "r1" };
 // Every event carries protocol, version, requestId and seq (contract section 3). Vectors list seq; the envelope is
 // added here, before mutation, so an invalid vector can delete any one of the four fields.
-const withEnvelope = (v) => ({ ...v, events: v.events.map((e) => ({ ...ENVELOPE, ...e })) });
+const withEnvelope = (v) => ({ ...v, events: v.events.map((e) => ({ ...structuredClone(ENVELOPE), ...e })) });
 function fill(v) {
   const goalOf = (g) => (g.kind === "subgoal" ? { ...g, goal: goalOf(g.goal) } : g.kind === "state" ? { ...g, target: text(g.state.file) } : g);
   return {
@@ -56,7 +56,7 @@ const SECOND_RULE = {
 const valid = vectors.valid.map(withEnvelope);
 const byName = Object.fromEntries(valid.map((v) => [v.name, v]));
 // With MissingEcho off, a deleted field is still caught by the value check of the same field.
-Object.assign(SECOND_RULE, { "missing-protocol": "BadEnvelope", "missing-version": "BadEnvelope", "missing-requestId": "BadEnvelope", "missing-seq": "BadSeq" });
+Object.assign(SECOND_RULE, { "missing-protocol": "BadEnvelope", "missing-version": "BadEnvelope", "missing-version-major": "BadEnvelope", "missing-requestId": "BadEnvelope", "missing-seq": "BadSeq" });
 
 test("fixture sanity: R U F' from home equals state-2-scrambled, so F U' R' is its inverse", () => {
   const rufPrime = [vectors.moves.R, { axis: "Y", layers: [1], turns: -1 }, { axis: "Z", layers: [1], turns: 1 }];
