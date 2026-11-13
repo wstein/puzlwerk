@@ -1,5 +1,5 @@
 {
-  "note": "Hand-derived vectors for specs/001-core-foundation/contracts/solver-stream.md. Events omit protocol, version and requestId; the test fills them from the request unless an event sets them. Moves are the AST {axis, layers, turns}. Method IDs starting with fixture: are placeholders, not audited methods. state-2-scrambled.json is R U F' from home (scripts/wire-examples.py), so its inverse is F U' R'.",
+  "note": "Hand-derived vectors for specs/001-core-foundation/contracts/solver-stream.md. Events omit protocol, version and requestId; the stream-level budget is the request field `limits`; the test fills them from the request unless an event sets them. Moves are the AST {axis, layers, turns}. Method IDs starting with fixture: are placeholders, not audited methods. state-2-scrambled.json is R U F' from home (scripts/wire-examples.py), so its inverse is F U' R'.",
   "definition": "definition-2.json",
   "moves": {
     "R": {"axis": "X", "layers": [1], "turns": -1},
