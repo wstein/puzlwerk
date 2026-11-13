@@ -31,7 +31,7 @@ Shape illustration, not a valid fixture (placeholder hashes). `definition` and `
 
 **P** `predicate` covers goals such as "the front shows month M" without a full target state; the predicate is data named by ID, never code in the request. An unadvertised `id` returns `unsupported`; it is never weakened to a color or state goal. A `subgoal` is a stage of a larger task (for example one edge of a chain): its final state is the state of the next request.
 
-**U** The goal document schema is milestone M2 and not written; the three kinds above are the stream-level shape only. **U** The predicate registry (IDs, parameter schemas) and who evaluates a predicate in PuzlWerk for replay.
+**U** The goal document schema is milestone M2 and not written; the three kinds above are the stream-level shape only. **O** 2026-11-13 (owner): the predicate registry (IDs, parameter schemas, who evaluates a predicate for replay) is deferred to M2 with the goal document. Until then this contract treats `predicate` goals as opaque: `id` and `params` are passed through, no registry is defined, and the calendar beam keeps using a `state` goal.
 
 ### 2.2 Budget (`limits`)
 
@@ -58,7 +58,7 @@ One ordered sequence of events per request. Every event carries `protocol`, `ver
 | `final` | `moves[]`, `certificate` | The complete answer and what is known about it; terminal |
 | `failed` | `reason`, optional `detail` | No complete answer; terminal |
 
-A move is the canonical AST of the data model: `{"axis":"X|Y|Z","layers":[...],"turns":-1|1|2}`. **U** wire-v1 defines no move document (moves are outside v1); this object is the interim wire form and needs an owner decision with M2.
+A move is the canonical AST of the data model: `{"axis":"X|Y|Z","layers":[...],"turns":-1|1|2}`. wire-v1 defines no move document (moves are outside v1); this object is the interim wire form. **O** 2026-11-13 (owner): the interim form `{axis, layers, turns}` stays until M2; the final move wire form is decided together with the goal document (M2). It remains marked interim, as an owner-decided interim and not an open question.
 
 ### 3.1 Rules
 
@@ -95,7 +95,7 @@ A beam answer is `bestEffort` or `bounded`, never `optimal`, unless an audited e
 
 - Committed moves stay valid after any `failed`. The caller's state is the state after the moves it applied; it can request again from that state (section 6).
 - Protocol violations (gap, repeated `fromIndex`, move after terminal, illegal move, prefix mismatch, unknown kind, wrong `requestId`) make the adapter cancel the run and report `BACKEND_PROTOCOL`; the moves applied before the violation stay applied.
-- **P** Solver.md says "do not expose a solution before verification". A stream exposes moves before the goal is verified. This contract reads that sentence as: the complete answer is not presented as a solution until `final` verifies; each committed move is legal but the run is "unverified" in the GUI until then. **U** The owner confirms this reading or keeps the old rule (then `committed` events are held back until `final`, which removes the point of streaming).
+- **P** Solver.md says "do not expose a solution before verification". A stream exposes moves before the goal is verified. This contract reads that sentence as: the complete answer is not presented as a solution until `final` verifies; each committed move is legal but the run is "unverified" in the GUI until then. **O** 2026-11-13 (owner): this reading is accepted.
 
 ## 6. How the GUI replans
 
@@ -130,6 +130,6 @@ Nothing is rewound because only committed moves were ever played.
 
 ## 9. Conformance vectors
 
-`test/fixtures/solver-stream/vectors.json` holds valid streams with expected outcomes and invalid streams, each naming the code the reference check must report. Initial and target states are the wire-v1 fixtures in `test/fixtures/wire/` (2x2x2 `state-2-scrambled.json` is R U F' from home). The reference check replays moves with the ReScript core (`PwMove`, `PwCodec`). Not covered: the solver.md request fields other than `goal` and `limits` and the echo fields other than `finalStateHash`, goal kind `predicate` (no registry, **U**), frame `any-rotation` (not evaluated), certificate method truth (method IDs in vectors are fixture placeholders, not audited methods), real solver output, the Cubacle ABI and the calendar beam (no run).
+`test/fixtures/solver-stream/vectors.json` holds valid streams with expected outcomes and invalid streams, each naming the code the reference check must report. Initial and target states are the wire-v1 fixtures in `test/fixtures/wire/` (2x2x2 `state-2-scrambled.json` is R U F' from home). The reference check replays moves with the ReScript core (`PwMove`, `PwCodec`). Not covered: the solver.md request fields other than `goal` and `limits` and the terminal echo fields other than `finalStateHash`, goal kind `predicate` (opaque until M2), frame `any-rotation` (not evaluated), certificate method truth (method IDs in vectors are fixture placeholders, not audited methods), real solver output, the Cubacle ABI and the calendar beam (no run).
 
-Open points (**U**): the stream transport (JSON lines against one response); whether the echo fields become required; the move wire form; the goal document (M2); the predicate registry; reading of "no exposure before verification" (section 5); the streaming ABI design (events, cancel, progress); shared-prefix access in both searches.
+Open points (**U**): the goal document (M2); the streaming ABI design (events, cancel, progress); shared-prefix access in both searches; the mapping of stop reasons (section 7); stream transport details beyond JSON lines and the required echo fields. Decided by the owner on 2026-11-13 and no longer open: the interim move wire form until M2, the reading of "no exposure before verification", deferral of the predicate registry to M2, JSON lines and the required echo fields.
