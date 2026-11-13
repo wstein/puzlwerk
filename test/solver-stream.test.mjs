@@ -48,6 +48,7 @@ const SECOND_RULE = {
   "committed-is-empty": "CommitGap",
   "committed-layer-out-of-range": "FinalPrefix",
   "final-tail-move-illegal": "GoalNotReached",
+  "final-tail-misses-the-goal": "FinalHashMismatch",
 };
 const byName = Object.fromEntries(vectors.valid.map((v) => [v.name, v]));
 
@@ -77,8 +78,7 @@ for (const v of vectors.invalid) {
     // illegal or empty step leaves the replayed state or the prefix inconsistent). Never the same code.
     const second = SECOND_RULE[v.name];
     if (second) assert.deepEqual(result, { ok: false, code: second });
-    else assert.equal(result.ok, true, JSON.stringify(result));
-    if (v.name === "final-tail-misses-the-goal") assert.equal(result.evaluated, false);  });
+    else assert.equal(result.ok, true, JSON.stringify(result));  });
 }
 
 test("goal replay covers 5 valid vectors; the 4 failed-stream vectors are not goal-evaluated", () => {

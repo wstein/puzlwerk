@@ -7,6 +7,7 @@ import * as Move from "../../core/res/PwMove.res.mjs";
 
 export const FAIL_REASONS = ["timeout", "nodeLimit", "memoryLimit", "depthLimit", "cancelled", "incompleteMethod", "unsupported", "invalid", "error", "unsatisfiable"];
 const GOALS = ["state", "predicate", "subgoal"];
+const ECHO = ["backend", "definitionHash", "stateHash", "goalHash", "elapsedMs", "nodeCount", "limits", "metric"];
 const BUDGET = ["wallTimeMs", "nodeCount", "memoryBytes", "maxMoves", "edgeLength"];
 const isInt = (x, min) => Number.isSafeInteger(x) && x >= min;
 const isObj = (x) => x !== null && typeof x === "object" && !Array.isArray(x);
@@ -31,7 +32,7 @@ export function checkRequest(request, opt = {}) {
       }
     };
     goal(request.goal);
-    const b = request.budget ?? {};
+    const b = request.limits ?? {};
     gate(opt, "BadBudget", isObj(b) && Object.keys(b).every((k) => BUDGET.includes(k) && isInt(b[k], 1)));
     return { ok: true };
   } catch (e) {
@@ -83,7 +84,7 @@ export function checkStream(ctx, events, opt = {}) {
           lastBound = Math.max(lastBound, e.lowerBound);
         } else gate(opt, "LowerBoundUnproven", !("lowerBoundMethod" in e));
       } else if (e.event === "final") {
-        gate(opt, "UnknownField", keysAre(e, [...head, "moves", "certificate"]));
+        gate(opt, "UnknownField", keysAre(e, [...head, "moves", "certificate"], [...ECHO, "finalStateHash"]));
         terminal = true;
         gate(opt, "FinalPrefix", Array.isArray(e.moves) && committed.every((m, k) => same(m, e.moves[k])));
         gate(opt, "BudgetExceeded", e.moves.length <= (ctx.budget.maxMoves ?? Infinity));
@@ -104,8 +105,9 @@ export function checkStream(ctx, events, opt = {}) {
           evaluated = Codec.hashState(state) === Codec.hashState(Codec.decodeState(def, goal.target)._0);
           gate(opt, "GoalNotReached", evaluated);
         }
+        if ("finalStateHash" in e) gate(opt, "FinalHashMismatch", e.finalStateHash === Codec.hashState(state));
       } else if (e.event === "failed") {
-        gate(opt, "UnknownField", keysAre(e, [...head, "reason"], ["detail", "method", "scope"]));
+        gate(opt, "UnknownField", keysAre(e, [...head, "reason"], ["detail", "method", "scope", ...ECHO]));
         terminal = true;
         gate(opt, "BadFailReason", FAIL_REASONS.includes(e.reason));
         if (e.reason === "unsatisfiable") gate(opt, "UnsatNoMethod", typeof e.method === "string" && typeof e.scope === "string");
