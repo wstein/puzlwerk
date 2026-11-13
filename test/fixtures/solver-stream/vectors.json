@@ -1,0 +1,146 @@
+{
+  "note": "Hand-derived vectors for specs/001-core-foundation/contracts/solver-stream.md. Events omit protocol, version and requestId; the test fills them from the request unless an event sets them. Moves are the AST {axis, layers, turns}. Method IDs starting with fixture: are placeholders, not audited methods. state-2-scrambled.json is R U F' from home (scripts/wire-examples.py), so its inverse is F U' R'.",
+  "definition": "definition-2.json",
+  "moves": {
+    "R": {"axis": "X", "layers": [1], "turns": -1},
+    "R'": {"axis": "X", "layers": [1], "turns": 1},
+    "U'": {"axis": "Y", "layers": [1], "turns": 1},
+    "F": {"axis": "Z", "layers": [1], "turns": -1}
+  },
+  "valid": [
+    {
+      "name": "zero-moves-final-only",
+      "initial": {"file": "state-2-home.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"maxMoves": 5},
+      "events": [{"seq": 0, "event": "final", "moves": [], "certificate": {"kind": "bestEffort"}}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": true}
+    },
+    {
+      "name": "three-answer-moves-two-committed-chunks",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"maxMoves": 5, "edgeLength": 5},
+      "events": [
+        {"seq": 0, "event": "progress", "depth": 2, "beamSize": 40},
+        {"seq": 1, "event": "committed", "fromIndex": 0, "moves": [{"axis": "Z", "layers": [1], "turns": -1}]},
+        {"seq": 2, "event": "progress", "depth": 3, "beamSize": 40, "lowerBound": 1, "lowerBoundMethod": "fixture:not-solved"},
+        {"seq": 3, "event": "committed", "fromIndex": 1, "moves": [{"axis": "Y", "layers": [1], "turns": 1}]},
+        {"seq": 4, "event": "progress", "depth": 3, "beamSize": 12, "lowerBound": 1, "lowerBoundMethod": "fixture:not-solved"},
+        {"seq": 5, "event": "final", "moves": [{"axis": "Z", "layers": [1], "turns": -1}, {"axis": "Y", "layers": [1], "turns": 1}, {"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "bounded", "lowerBound": 1, "lowerBoundMethod": "fixture:not-solved"}}
+      ],
+      "closed": true,
+      "expect": {"applied": 2, "evaluated": true}
+    },
+    {
+      "name": "one-shot-backend-final-only",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"maxMoves": 5},
+      "events": [{"seq": 0, "event": "final", "moves": [{"axis": "Z", "layers": [1], "turns": -1}, {"axis": "Y", "layers": [1], "turns": 1}, {"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "bestEffort"}}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": true}
+    },
+    {
+      "name": "optimal-one-move",
+      "initial": {"from": "state-2-home.json", "moves": [{"axis": "X", "layers": [1], "turns": -1}]},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"maxMoves": 3},
+      "events": [{"seq": 0, "event": "final", "moves": [{"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "optimal", "metric": "layer-turn", "method": "fixture:one-move"}}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": true}
+    },
+    {
+      "name": "subgoal-wraps-state-goal",
+      "initial": {"from": "state-2-home.json", "moves": [{"axis": "X", "layers": [1], "turns": -1}]},
+      "goal": {"kind": "subgoal", "id": "edge-1", "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}}},
+      "budget": {"edgeLength": 3},
+      "events": [
+        {"seq": 0, "event": "committed", "fromIndex": 0, "moves": [{"axis": "X", "layers": [1], "turns": 1}]},
+        {"seq": 1, "event": "final", "moves": [{"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "bestEffort"}}
+      ],
+      "closed": true,
+      "expect": {"applied": 1, "evaluated": true}
+    },
+    {
+      "name": "cancelled-after-committed-prefix",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"maxMoves": 5},
+      "events": [
+        {"seq": 0, "event": "committed", "fromIndex": 0, "moves": [{"axis": "Z", "layers": [1], "turns": -1}]},
+        {"seq": 1, "event": "failed", "reason": "cancelled"}
+      ],
+      "closed": true,
+      "expect": {"applied": 1, "evaluated": null}
+    },
+    {
+      "name": "timeout-without-commit",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"wallTimeMs": 10},
+      "events": [{"seq": 0, "event": "failed", "reason": "timeout", "detail": "wallTimeMs"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "unsupported-goal",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "any-rotation", "state": {"file": "state-2-home.json"}},
+      "budget": {},
+      "events": [{"seq": 0, "event": "failed", "reason": "unsupported", "detail": "goal.frame=any-rotation"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "unsatisfiable-names-method-and-scope",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {},
+      "events": [{"seq": 0, "event": "failed", "reason": "unsatisfiable", "method": "fixture:complete", "scope": "fixture:tiny-problem"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    }
+  ],
+  "invalid": [
+    {"name": "event-of-another-request", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.1.requestId", "value": "other"}], "code": "BadEnvelope"},
+    {"name": "seq-gap", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.2.seq", "value": 5}], "code": "BadSeq"},
+    {"name": "committed-skips-an-index", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.3.fromIndex", "value": 2}], "code": "CommitGap"},
+    {"name": "committed-repeats-an-index", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.3.fromIndex", "value": 0}], "code": "CommitGap"},
+    {"name": "committed-is-empty", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.1.moves", "value": []}], "code": "CommitEmpty"},
+    {"name": "committed-layer-out-of-range", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.1.moves.0.layers", "value": [7]}], "code": "IllegalMove"},
+    {"name": "depth-below-committed-length", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.4.depth", "value": 1}], "code": "ProgressDepth"},
+    {"name": "lower-bound-without-method", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "del", "path": "events.2.lowerBoundMethod"}], "code": "LowerBoundUnproven"},
+    {"name": "lower-bound-decreases", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.2.lowerBound", "value": 2}], "code": "LowerBoundDecreased"},
+    {"name": "final-changes-a-committed-move", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.5.moves.0", "value": {"axis": "X", "layers": [1], "turns": 1}}], "code": "FinalPrefix"},
+    {"name": "final-tail-misses-the-goal", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.5.moves.2", "value": {"axis": "X", "layers": [1], "turns": -1}}], "code": "GoalNotReached"},
+    {"name": "answer-longer-than-maxMoves", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "budget.maxMoves", "value": 2}], "code": "BudgetExceeded"},
+    {"name": "bounded-lower-bound-above-length", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.5.certificate.lowerBound", "value": 4}], "code": "CertificateBound"},
+    {"name": "unknown-certificate-kind", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.5.certificate.kind", "value": "proven"}], "code": "CertificateKind"},
+    {"name": "optimal-without-method", "base": "optimal-one-move", "ops": [{"op": "del", "path": "events.0.certificate.method"}], "code": "CertificateFields"},
+    {"name": "best-effort-with-a-number", "base": "one-shot-backend-final-only", "ops": [{"op": "set", "path": "events.0.certificate.lowerBound", "value": 1}], "code": "CertificateFields"},
+    {"name": "unknown-failure-reason", "base": "cancelled-after-committed-prefix", "ops": [{"op": "set", "path": "events.1.reason", "value": "gaveUp"}], "code": "BadFailReason"},
+    {"name": "unsatisfiable-without-method", "base": "unsatisfiable-names-method-and-scope", "ops": [{"op": "del", "path": "events.0.method"}], "code": "UnsatNoMethod"},
+    {"name": "event-after-terminal", "base": "timeout-without-commit", "ops": [{"op": "push", "path": "events", "value": {"seq": 1, "event": "progress", "depth": 1, "beamSize": 1}}], "code": "AfterTerminal"},
+    {"name": "stream-closed-without-terminal", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "del", "path": "events.5"}], "code": "NoTerminal"},
+    {"name": "unknown-event-kind", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.0.event", "value": "partial"}], "code": "UnknownEvent"},
+    {"name": "unknown-field-in-committed", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.1.extra", "value": 1}], "code": "UnknownField"}
+  ],
+  "requests": {
+    "valid": [
+      {"name": "state-goal", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"wallTimeMs": 5000, "nodeCount": 1000, "maxMoves": 30, "edgeLength": 12}},
+      {"name": "predicate-goal", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {}}, "budget": {}},
+      {"name": "subgoal-of-predicate", "goal": {"kind": "subgoal", "id": "edge-7", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {"month": "2030-02"}}}, "budget": {"edgeLength": 12}}
+    ],
+    "invalid": [
+      {"name": "zero-budget", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"wallTimeMs": 0}, "code": "BadBudget"},
+      {"name": "unknown-budget-field", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"memory": 5}, "code": "BadBudget"},
+      {"name": "fractional-budget", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "budget": {"nodeCount": 1.5}, "code": "BadBudget"},
+      {"name": "color-goal-kind", "goal": {"kind": "color"}, "budget": {}, "code": "BadGoal"},
+      {"name": "subgoal-without-id", "goal": {"kind": "subgoal", "goal": {"kind": "predicate", "id": "p", "params": {}}}, "budget": {}, "code": "BadGoal"},
+      {"name": "predicate-without-params", "goal": {"kind": "predicate", "id": "p"}, "budget": {}, "code": "BadGoal"},
+      {"name": "state-goal-without-frame", "goal": {"kind": "state", "state": {}}, "budget": {}, "code": "BadGoal"}
+    ]
+  }
+}
