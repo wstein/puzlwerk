@@ -99,9 +99,10 @@ let preservesStickers = (piece: PwCodec.piece, appearance, h) =>
     let n = PwOrientation.apply(h, s.normal)
     let u = PwOrientation.apply(h, s.up)
     piece.stickers->Array.some(t => {
-      let shared = rank(declaredSymmetry(appearance, s.id)) < rank(declaredSymmetry(appearance, t.id))
-        ? declaredSymmetry(appearance, s.id)
-        : declaredSymmetry(appearance, t.id)
+      let shared =
+        rank(declaredSymmetry(appearance, s.id)) < rank(declaredSymmetry(appearance, t.id))
+          ? declaredSymmetry(appearance, s.id)
+          : declaredSymmetry(appearance, t.id)
       t.normal == n &&
       sameColor(t.color, s.color) &&
       quarterTurns(shared)->Array.some(k => quarterRotated(t.normal, t.up, k) == u)
@@ -128,7 +129,9 @@ let rec checkNode = (definition, pieces, appearance, node) =>
     | None => invalid(UnknownPiece)
     }
     checkSlot(definition, slot)
-    if !isGroup(subgroup) || !(subgroup->Array.every(h => preservesStickers(piece, appearance, h))) {
+    if (
+      !isGroup(subgroup) || !(subgroup->Array.every(h => preservesStickers(piece, appearance, h)))
+    ) {
       invalid(BadSubgroup)
     }
   | StickerAt(stickerId, slot, normal, up, symmetry) =>
@@ -248,7 +251,8 @@ let rec evalNode = (pieces, state, g, node) =>
         atSlot(g, p, slot) &&
         PwOrientation.apply(o, sticker.normal) == targetNormal &&
         quarterTurns(symmetry)->Array.some(k => {
-          PwOrientation.apply(o, sticker.up) == PwOrientation.apply(g, quarterRotated(normal, up, k))
+          PwOrientation.apply(o, sticker.up) ==
+            PwOrientation.apply(g, quarterRotated(normal, up, k))
         })
       }
     }
