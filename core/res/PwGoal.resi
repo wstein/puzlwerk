@@ -31,13 +31,16 @@ type error =
   | BadSymmetry
   | BadSample
   | MissingColor
+  // Two appearance entries for the same sticker (as in appearance-v1).
+  | DuplicateId
 
 // makeGoal(definition, appearance, frames, root). The appearance entries declare the design symmetry
 // of stickers (appearance-v1); a sticker without an entry is C1 and no goal may claim more than it
 // declares. The frames are the allowed global rotations: a subgroup of the 24 proper rotations, given as
 // a list that contains the identity and is closed under composition; [identity] means the fixed frame.
-// Every piece subgroup is such a group and maps the stickers of its piece onto themselves (normal, up and
-// color). All checks run before any state is looked at.
+// Every piece subgroup is such a group and maps the stickers of its piece onto themselves: same normal and
+// color, and the same up unless both stickers declare the up difference as equivalent (a C4 center with
+// declared appearance accepts its quarter turns; without a declaration it does not). All checks run before any state is looked at.
 let makeGoal: (
   PwCodec.definition,
   array<(PwId.t, symmetry)>,
