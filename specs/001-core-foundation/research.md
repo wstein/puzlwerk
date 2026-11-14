@@ -9,9 +9,11 @@ Status 2026-11-07 (owner decisions, recorded by T001):
 - **Q1:** approved 2026-11-05, see [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md).
 - **Q2:** on 2026-11-07 the owner chose "Außenlagen plus Wide, keine Aliase": outer faces and wide moves; no slices (M/E/S), no global rotations (x/y/z), no lowercase wide aliases in text parsing; unknown notation fails (AC09, AC10). The AST stays complete.
 - **Q6:** approved as proposed: ReScript 12.3.1, ES modules, Node 24 LTS, npm lockfile. The repository already pins `rescript` 12.3.1 and `engines.node` `>=24`. M1 checks ran locally with Node 24.22.2; CI uses Node 24.x.
+- **Q4:** decided 2026-11-14 (owner decision, multiple choice): N=2 and N=3 receive complete reachability checks; N=4 to 7 receive replay certificates and documented invariants only; `unknown` is an intended result, consistent with the certification scope of [ADR 0008](../../docs/adr/0008-q1-scope-and-core-pose.md). The M2 phase approval was not given; T010 to T013 stay blocked.
+- **Q5:** decided 2026-11-14 (owner decision, multiple choice): the provisional budgets and the reference runner in [plan.md](plan.md#provisional-performance-acceptance-ac17-q5) are adopted as proposed. The baseline is recorded before any optimization; changes need a recorded rationale and owner approval. The budgets stay proposals until measured. No phase approval was given.
 - **Q7:** decided 2026-11-08 (owner decision, recorded in the [shared-model README](../006-shared-model/README.md)): corpus F1 to F7 plus hash and canonical-JSON vectors with provenance. M1 does not depend on it.
 - **ADR 0002, 0003 and 0004:** approved by the owner on 2026-11-07; the status change is a separate PR.
-- **T002 and T003:** deferred for M1. The conformance fixtures F1 to F7 with their provenance files stand in for them, and M1 tests run against F1 to F7. Q4 and Q5 are untouched. Q3 was decided on 2026-11-08 (owner decision, recorded in the [shared-model README](../006-shared-model/README.md)): converge via the Cubacle fixed frame, first only the specification and shared test vectors.
+- **T002 and T003:** deferred for M1. The conformance fixtures F1 to F7 with their provenance files stand in for them, and M1 tests run against F1 to F7. Q4 and Q5 were decided on 2026-11-14 (see above). Q3 was decided on 2026-11-08 (owner decision, recorded in the [shared-model README](../006-shared-model/README.md)): converge via the Cubacle fixed frame, first only the specification and shared test vectors.
 - License audit: covered only for the F1 to F7 fixture sources ([CONFORMANCE-NOTICE](../../test/fixtures/CONFORMANCE-NOTICE.md)). The pinned consumer revisions are not audited by this record.
 
 ## Existing sources
@@ -45,8 +47,8 @@ These pins establish reproducible audit targets, **not** verified adapter compat
 - **Q1 (approval blocker):** Approve frame/face-up table and 2–7 certification scope? Confirm each consumer mapping with pinned fixtures before compatibility claims.
 - **Q2 (notation milestone blocker):** Approve legal multi-layer policy; which notation aliases, slices and global rotations should public text parsing support? AST semantics are complete without aliases.
 - **Q3 (Cubacle adapter blocker):** Which proposed goal nodes, exact reference frames, sizes and moves does Cubacle actually support? Assign a Cubacle maintainer to approve its capability response and required follow-up issue. Unsupported is acceptable; silent weakening is not.
-- **Q4 (reachability milestone blocker):** Which size/policy combinations receive complete reachability checks? Start with replay certificates and documented invariants; unknown is an intentional result.
-- **Q5 (performance gate):** Approve provisional budgets and reference CI runner; record baseline before optimization. Numeric representation/limits may need revision from measurement.
+- **Q4 (reachability milestone blocker; decided 2026-11-14, see the status line above):** Which size/policy combinations receive complete reachability checks? Start with replay certificates and documented invariants; unknown is an intentional result.
+- **Q5 (performance gate; decided 2026-11-14, see the status line above):** Approve provisional budgets and reference CI runner; record baseline before optimization. Numeric representation/limits may need revision from measurement.
 - **Q6 (build gate):** Confirm ReScript 12.3.1/ES modules, Node 24 and supported consumer runtimes. No dependency or compiler is installed by this PR.
 - **Q7 (legacy import blocker):** Who supplies approved solved semantics and authoritative fixtures for each consumer? Preserve original definitions as bytes plus provenance; do not silently replace them with newly invented ones.
 
