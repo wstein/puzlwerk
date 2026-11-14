@@ -167,6 +167,28 @@ test("a declared appearance equivalence makes a quarter-turn subgroup of a cente
   assert.equal(Goal.evaluate(def(3), twisted, ok(g([["F.F", "C4"]], [I]))), false);
 });
 
+test("an equivalence between two different stickers needs both declarations; the normal must still map onto a sticker", () => {
+  // UFR with one color and ups R=+Y, U=+X, F=+X. The 120 degree turn C3 (x -> y -> z -> x) maps R -> U and
+  // U -> F with an up that is a quarter turn off, and F -> R exactly.
+  const o = JSON.parse(definitionText(2));
+  const piece = o.pieces.find((p) => p.id === "UFR");
+  const ups = { "UFR.R": [0, 1, 0], "UFR.U": [1, 0, 0], "UFR.F": [1, 0, 0] };
+  for (const s of piece.stickers) { s.color = "white"; s.up = ups[s.id]; }
+  const d = ok(Codec.decodeDefinition(JSON.stringify(o)));
+  const at = slot(2, 1, 1, 1);
+  const group = [I, C3, pow(C3, 2)];
+  const make = (decl) => Goal.makeGoal(d, decl.map((s) => [id(s), "C4"]), [I], piecePose("UFR", at, I, group));
+  ok(make(["UFR.R", "UFR.U", "UFR.F"]));
+  // R -> U needs both declared; U -> F needs both declared.
+  bad(make(["UFR.R", "UFR.U"]), "BadSubgroup");
+  bad(make(["UFR.U", "UFR.F"]), "BadSubgroup");
+  bad(make(["UFR.R", "UFR.F"]), "BadSubgroup");
+  bad(make([]), "BadSubgroup");
+  // A half turn about X sends the front center normal +Z to -Z, which no sticker of the piece shows; the
+  // up of F.F rotated by half turns would match, the normal does not.
+  bad(Goal.makeGoal(def(3), [[id("F.F"), "C4"]], [I], piecePose("F", slot(3, 0, 0, 2), I, [I, pow(RX, 2)])), "BadSubgroup");
+});
+
 test("two appearance entries for one sticker are rejected as in appearance-v1", () => {
   const node = pieceAt("F", slot(3, 0, 0, 2));
   bad(Goal.makeGoal(def(3), [[id("F.F"), "C1"], [id("F.F"), "C4"]], [I], node), "DuplicateId");
