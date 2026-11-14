@@ -8,9 +8,11 @@ import * as Id from "../core/res/PwId.res.mjs";
 import * as Goal from "../core/res/PwGoal.res.mjs";
 import { definitionText, homeReference, applyReference, mulberry32, randomMove, inverseMove, pieceId, slots } from "./helpers/cube-model.mjs";
 
-// T012 / AC01, AC02, AC03: color and partial goals, and the two legacy solved profiles. Hand cases are
-// derived from the data model; the differential test compares the core with a facelet reference that is
-// written independently (reference model states, plain arithmetic on signed permutation matrices).
+// T012 / AC02, AC03: color and partial goals, and the two legacy solved profiles. Hand cases are derived from
+// the data model; the differential test compares the core with a facelet reference that is written
+// independently (reference model states, plain arithmetic on signed permutation matrices). AC01 (old Cubacle
+// solved results as fixtures) is not covered: the legacy fixtures of T002 and T003 do not exist in the
+// repository yet, and no mapping from a legacy face/color/frame encoding is used here.
 const ok = (r) => { assert.equal(r.TAG, "Ok", `expected Ok, got ${JSON.stringify(r)}`); return r._0; };
 const bad = (r, code) => { assert.equal(r.TAG, "Error", "expected Error"); assert.equal(r._0, code); };
 const size = (n) => ok(Shell.makeSize(n));
@@ -43,7 +45,7 @@ test("a color goal compares colors at slots and ignores piece identity (AC02)", 
   assert.equal(holds(4, afterU, { TAG: "PieceAt", _0: id(pieceId(c, 4)), _1: slot(4, c[0], c[1], c[2]) }), false);
 });
 
-test("a color goal fails when another color shows (AC01)", () => {
+test("a color goal fails when another color shows", () => {
   // N=2 after F: the U face shows orange (the L color) at both front slots. F is Z, layer 1, turns -1.
   const afterF = seq(2, [["Z", [1], -1]]);
   for (const x of [-1, 1]) {
