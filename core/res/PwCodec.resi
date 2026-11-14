@@ -26,6 +26,9 @@ type errorCode =
 
 type error = {code: errorCode, path: string}
 
+type sticker = {id: PwId.t, normal: PwShell.vec, up: PwShell.vec, color: option<PwId.t>}
+type piece = {id: PwId.t, home: PwShell.slot, stickers: array<sticker>}
+
 type definition
 type state
 
@@ -34,6 +37,8 @@ let encodeDefinition: definition => string
 let hashDefinition: definition => string
 let definitionId: definition => PwId.t
 let size: definition => PwShell.size
+// The piece catalog sorted by piece ID (a copy): home slot and stickers of every piece.
+let pieces: definition => array<piece>
 
 let decodeState: (definition, string) => result<state, error>
 let encodeState: state => string

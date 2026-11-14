@@ -38,6 +38,7 @@ type state = {definitionId: PwId.t, poses: array<PwPose.t>}
 
 let definitionId = (d: definition) => d.id
 let size = (d: definition) => d.size
+let pieces = (d: definition) => d.pieces->Array.map(p => {...p, stickers: Array.copy(p.stickers)})
 
 // ---- typed access to the parsed JSON ----------------------------------------------------------
 
