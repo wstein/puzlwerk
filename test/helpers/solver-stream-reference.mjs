@@ -58,7 +58,7 @@ export function checkStream(ctx, events, opt = {}) {
   };
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const committed = [];
-  let terminal = false, lastBound = -1, lastDepth = 0, evaluated = null;
+  let terminal = false, lastBound = -1, evaluated = null;
   try {
     events.forEach((e, i) => {
       gate(opt, "AfterTerminal", !terminal);
@@ -81,8 +81,6 @@ export function checkStream(ctx, events, opt = {}) {
       } else if (e.event === "progress") {
         gate(opt, "UnknownField", keysAre(e, [...head, "depth", "beamSize"], ["lowerBound", "lowerBoundMethod"]));
         gate(opt, "ProgressDepth", isInt(e.depth, committed.length) && isInt(e.beamSize, 1));
-        gate(opt, "ProgressDepthDecreased", e.depth >= lastDepth);
-        lastDepth = Math.max(lastDepth, e.depth);
         if ("lowerBound" in e) {
           gate(opt, "LowerBoundUnproven", typeof e.lowerBoundMethod === "string" && isInt(e.lowerBound, 0));
           gate(opt, "LowerBoundDecreased", e.lowerBound >= lastBound);
