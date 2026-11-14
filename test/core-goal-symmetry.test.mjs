@@ -7,6 +7,7 @@ import * as Move from "../core/res/PwMove.res.mjs";
 import * as Codec from "../core/res/PwCodec.res.mjs";
 import * as Id from "../core/res/PwId.res.mjs";
 import * as Goal from "../core/res/PwGoal.res.mjs";
+import { readFileSync } from "node:fs";
 import { definitionText } from "./helpers/cube-model.mjs";
 
 // T011 / AC05-07: C1/C2/C4 sticker symmetry, validated piece subgroups and one common global frame.
@@ -58,6 +59,24 @@ test("quarter-turn, half-turn and full-turn-only symmetry accept 4, 2 and 1 rota
   for (const [moves, expected] of cases) {
     for (const sym of ["C1", "C2", "C4"]) {
       assert.equal(holds(3, seq(3, moves), front(sym), declared), expected[sym], `${JSON.stringify(moves)} ${sym}`);
+    }
+  }
+});
+
+test("the conformance fixture F6 cases agree with the core for C1, C2 and C4 (AC05)", () => {
+  const f6 = JSON.parse(readFileSync(new URL("./fixtures/conformance/f6-symmetry.json", import.meta.url), "utf8"));
+  assert.ok(f6.cases.length >= 5);
+  for (const c of f6.cases) {
+    const [nx, ny, nz] = c.normal;
+    const [ux, uy, uz] = c.up;
+    // The rotation that sends the front center sticker (normal +Z, up +Y) to the fixture's normal and up.
+    const o = Orientation.all().find((r) => { const a = Orientation.apply(r, v(0, 0, 1)); const b = Orientation.apply(r, v(0, 1, 0)); return a.x === nx && a.y === ny && a.z === nz && b.x === ux && b.y === uy && b.z === uz; });
+    assert.ok(o, c.text);
+    const state = ok(Codec.stateOfPoses(def(3), Codec.poses(home(3)).map((p) => { const w = Orientation.apply(o, Shell.toVec(Pose.position(p))); return Pose.make(Pose.pieceId(p), slot(3, w.x, w.y, w.z), o); })));
+    const at = slot(3, 2 * nx, 2 * ny, 2 * nz);
+    for (const sym of ["C1", "C2", "C4"]) {
+      const node = stickerAt("F.F", at, v(...c.targetNormal), v(...c.targetUp), sym);
+      assert.equal(holds(3, state, node, declared), c.pass[sym], `${c.text} ${sym}`);
     }
   }
 });
@@ -180,6 +199,32 @@ test("a subgroup that preserves every sticker is accepted and evaluated modulo H
   bad(Goal.makeGoal(d2, [], [I], piecePose("UFR", at, I, h)), "BadSubgroup");
   // The same subgroup is invalid for the standard corner: its three stickers have different colors.
   bad(Goal.makeGoal(def(2), [], [I], piecePose("UFR", at, I, h)), "BadSubgroup");
+});
+
+const mul = (a, b) => { const x = Orientation.toArray(a); const y = Orientation.toArray(b); return orient(Array.from({ length: 9 }, (_, k) => { const i = Math.floor(k / 3); const j = k % 3; return [0, 1, 2].reduce((s, m) => s + x[3 * i + m] * y[3 * m + j], 0); })); };
+
+test("the exact piece pose is global frame * target * subgroup member, in this order (AC04, AC05)", () => {
+  const d = symmetricCorner();
+  const g = RZ;
+  const target = RY;
+  const h = C3;
+  // No member of the subgroup turns the other factor orders into the same orientation, so a wrong order of
+  // the factors cannot pass by accident.
+  const good = mul(g, mul(target, h));
+  for (const m of [I, C3, pow(C3, 2)]) {
+    assert.notDeepEqual(Orientation.toArray(good), Orientation.toArray(mul(g, mul(m, target))));
+    assert.notDeepEqual(Orientation.toArray(good), Orientation.toArray(mul(mul(target, m), g)));
+  }
+  // The corner UFR at home (1,1,1): target RY puts it at slot RY.(1,1,1) = (1,1,-1); the frame RZ turns that
+  // slot and the orientation.
+  const at = slot(2, 1, 1, -1);
+  // A whole-cube rotation o of every piece is a valid state; UFR then has orientation o at o.(1,1,1).
+  const stateWith = (o) => ok(Codec.stateOfPoses(d, Codec.poses(Codec.homeState(d)).map((p) => Pose.make(Pose.pieceId(p), ok(Shell.makeSlot(size(2), Orientation.apply(o, Shell.toVec(Pose.position(p))))), o))));
+  const frames = [I, RZ, pow(RZ, 2), pow(RZ, 3)];
+  const mk = (sub) => ok(Goal.makeGoal(d, [], frames, piecePose("UFR", at, target, sub)));
+  assert.equal(Goal.evaluate(d, stateWith(good), mk([I, C3, pow(C3, 2)])), true);
+  assert.equal(Goal.evaluate(d, stateWith(good), mk([I])), false);
+  assert.equal(Goal.evaluate(d, stateWith(mul(good, mul(h, h))), mk([I, C3, pow(C3, 2)])), true);
 });
 
 // ---- global frames (AC05, spec "one common global frame") ---------------------------------------------

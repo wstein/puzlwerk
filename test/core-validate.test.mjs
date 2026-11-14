@@ -317,3 +317,31 @@ test("the profile is within the policy only for N=2 outer-wide; the policy any i
   // The report of an invalid state carries the profile as well.
   assert.equal(assess(2, home(3), { profile: FACE }).profile, FACE);
 });
+
+// ---- certificate legality and verdict precedence (review round 1, finding 2) -----------------------------
+test("outer-wide certificates need contiguous layers: N=4 layers [0,2] and [1,3] are illegal", () => {
+  for (const layers of [[0, 2], [1, 3], [0, 1, 3]]) {
+    const m = { axis: "X", layers, turns: 1 };
+    assert.deepEqual(assess(4, run(4, [m]), { certificate: [m] }).reachability, { TAG: "Unknown", _0: "CertificateIllegalMove" }, JSON.stringify(layers));
+  }
+  for (const layers of [[0, 1], [2, 3], [0, 1, 2], [1, 2, 3]]) {
+    const m = { axis: "X", layers, turns: 1 };
+    assert.equal(assess(4, run(4, [m]), { certificate: [m] }).reachability.TAG, "VerifiedByReplay", JSON.stringify(layers));
+  }
+});
+
+test("a verifying certificate wins over the invariant verdict; a rejected one leaves the verdict to the invariants", () => {
+  const u = { axis: "Y", layers: [1], turns: 1 };
+  const s = run(2, [u]);
+  const r = assess(2, s, { profile: FACE, certificate: [u] });
+  assert.equal(r.reachability.TAG, "VerifiedByReplay");
+  assert.equal(r.profile, FACE);
+  // Wrong certificate on a reachable state: the complete method decides.
+  assert.deepEqual(assess(2, s, { profile: FACE, certificate: [] }).reachability, { TAG: "VerifiedComplete", _0: "face-turn-invariants-v1" });
+  // Illegal certificate on an unreachable state: the invariant disproves.
+  const corner = piecesOfKind(2, 3)[0];
+  const twist = stabilizers(2, corner).find((o) => !Orientation.equal(o, Orientation.identity));
+  const bad = edit(2, { [corner]: { o: twist } });
+  const inner = { axis: "X", layers: [0, 1], turns: 1 };
+  assert.deepEqual(assess(2, bad, { profile: FACE, certificate: [inner] }).reachability, { TAG: "Disproved", _0: "corner-twist-sum" });
+});
