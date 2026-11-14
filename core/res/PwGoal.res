@@ -6,6 +6,7 @@ type rec node =
   | PieceAt(PwId.t, PwShell.slot)
   | PiecePose(PwId.t, PwShell.slot, PwOrientation.t, array<PwOrientation.t>)
   | StickerAt(PwId.t, PwShell.slot, PwShell.vec, PwShell.vec, symmetry)
+  | FaceColors(array<(PwShell.slot, PwShell.vec, PwId.t)>)
 
 type goal = {root: node, frames: array<PwOrientation.t>}
 type error =
@@ -16,6 +17,8 @@ type error =
   | BadVector
   | BadSubgroup
   | BadSymmetry
+  | BadSample
+  | MissingColor
 
 exception Invalid(error)
 let invalid = e => throw(Invalid(e))
@@ -119,7 +122,28 @@ let rec checkNode = (definition, pieces, appearance, node) =>
     if rank(symmetry) > rank(declaredSymmetry(appearance, stickerId)) {
       invalid(BadSymmetry)
     }
+  | FaceColors(samples) =>
+    let n = PwShell.sizeToInt(PwCodec.size(definition))
+    let seen = Map.make()
+    samples->Array.forEach(((slot, normal, _)) => {
+      checkSlot(definition, slot)
+      if !isUnitAxis(normal) {
+        invalid(BadVector)
+      }
+
+      // Outward: the slot lies on the face the normal points to.
+      if dot(PwShell.toVec(slot), normal) != n - 1 {
+        invalid(BadSample)
+      }
+      let key = JSON.stringifyAny((PwShell.toVec(slot), normal))->Option.getOr("")
+      if seen->Map.has(key) {
+        invalid(BadSample)
+      }
+      seen->Map.set(key, true)
+    })
   }
+
+type profile = FixedFrameSolved | SolvedUpToRotation
 
 let makeGoal = (definition, appearance, frames, root) =>
   try {
@@ -169,6 +193,22 @@ let rec evalNode = (pieces, state, g, node) =>
       )
     | None => false
     }
+  | FaceColors(samples) =>
+    samples->Array.every(((slot, normal, color)) => {
+      let targetNormal = PwOrientation.apply(g, normal)
+      PwCodec.poses(state)->Array.some(p =>
+        atSlot(g, p, slot) &&
+        switch findPiece(pieces, PwPose.pieceId(p)) {
+        | None => false
+        | Some(piece) =>
+          piece.stickers->Array.some(
+            s =>
+              PwOrientation.apply(PwPose.orientation(p), s.normal) == targetNormal &&
+                sameColor(s.color, Some(color)),
+          )
+        }
+      )
+    })
   | StickerAt(stickerId, slot, normal, up, symmetry) =>
     switch findSticker(pieces, stickerId) {
     | None => false
@@ -195,3 +235,33 @@ let evaluate = (definition, state, goal) => {
   let pieces = PwCodec.pieces(definition)
   goal.frames->Array.some(g => evalNode(pieces, state, g, goal.root))
 }
+
+// ---- legacy solved profiles ---------------------------------------------------------------------
+
+let solvedGoal = (definition, profile) =>
+  try {
+    let samples = PwCodec.pieces(definition)->Array.flatMap(piece =>
+      piece.stickers->Array.map(s =>
+        switch s.color {
+        | Some(color) => (piece.home, s.normal, color)
+        | None => invalid(MissingColor)
+        }
+      )
+    )
+    let frames = switch profile {
+    | FixedFrameSolved => [PwOrientation.identity]
+    | SolvedUpToRotation => PwOrientation.all()
+    }
+    Ok({root: FaceColors(samples), frames})
+  } catch {
+  | Invalid(e) => Error(e)
+  }
+
+let rec countSamples = node =>
+  switch node {
+  | All(nodes) | Any(nodes) => nodes->Array.reduce(0, (sum, n) => sum + countSamples(n))
+  | FaceColors(samples) => samples->Array.length
+  | PieceAt(_) | PiecePose(_) | StickerAt(_) => 0
+  }
+
+let sampleCount = goal => countSamples(goal.root)
