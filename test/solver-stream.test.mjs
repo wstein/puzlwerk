@@ -157,7 +157,7 @@ test("contract section 2.3 specifies the entry front-image-classes", () => {
   const s = section(contract, "### 2.3 Predicate registry");
   for (const needle of [
     "protocol minor 2", "version 1.2", "`front-image-classes`", ...registry.keys.map((k) => `\`${k}\``), "exactly 9", "nonempty", "wire-v1",
-    "row-major as seen from the front with +Y up", "24 global rotations", "C1", "centre only", "`failed` `unsupported`", "`failed` `invalid`",
+    "row-major as seen from the front with +Y up", "24 global rotations", "C1", "applies to the centre only", "`failed` `unsupported`", "`failed` `invalid`",
     "All", "Any", "StickerAt", "100,000", "depth 3", ...registry.invalid.map((r) => r.code),
   ]) assert.ok(s.includes(needle), `section 2.3 lacks: ${needle}`);
 });
@@ -165,11 +165,13 @@ test("contract section 3.3 specifies final.rotation and section 8 the predicates
   const r = section(contract, "### 3.3 Final rotation");
   for (const needle of ["`rotation`", "version 1.2", "nine integers", "`RotationNotAllowed`", "`BadRotation`", "`any-rotation`", "`front-image-classes`"]) assert.ok(r.includes(needle), `section 3.3 lacks: ${needle}`);
   const c = section(contract, "## 8. Capabilities and versioning");
-  for (const needle of ["`predicates`", "`front-image-classes`", "version 1.2", "minor"]) assert.ok(c.includes(needle), `section 8 lacks: ${needle}`);
+  for (const needle of ["\"predicates\":[", "`front-image-classes`", "version 1.2", "minor"]) assert.ok(c.includes(needle), `section 8 lacks: ${needle}`);
 });
 
 test("tasks and research record the registry entry and its dependency", () => {
   const t = spec("tasks.md").split("\n").find((l) => l.startsWith("| T013a "));
-  assert.ok(t.includes("front-image-classes") && t.includes("solver-stream.md section 2.3"), "T013a row");
+  const cols = t.split("|").map((c) => c.trim());
+  assert.ok(cols[2].includes("solver-stream.md sections 2.1 and 2.3"), "T013a dependency column");
+  assert.ok(cols[3].includes("`front-image-classes`"), "T013a description");
   assert.ok(spec("research.md").includes("`front-image-classes`"), "research.md");
 });
