@@ -96,7 +96,7 @@ test("goal replay covers 6 valid vectors; failed streams and the predicate-goal 
   assert.deepEqual(skipped, [
     "cancelled-after-committed-prefix", "timeout-without-commit", "unsupported-goal", "unsatisfiable-names-method-and-scope",
     "node-limit", "memory-limit", "depth-limit", "incomplete-method", "error-backend", "invalid-goal-extra-key",
-    "unsupported-predicate-id", "predicate-goal-final", "front-image-classes-final-with-rotation", "any-rotation-final-with-rotation",
+    "unsupported-predicate-id", "predicate-goal-final", "front-image-classes-final-with-rotation", "front-image-classes-in-a-subgoal-final-with-rotation", "any-rotation-final-with-rotation",
   ]);
 });
 
@@ -119,8 +119,11 @@ for (const r of vectors.requests.invalid) {
 // Predicate registry of protocol minor 1.2 (contract section 2.3): parameter schema of `front-image-classes`. The sticker IDs
 // are those of definition-3.json; an invalid vector fails with its code and path, and with that code off another rule or none fires.
 const registry = vectors.registry["front-image-classes"];
-const stickers = new Set(JSON.parse(text(registry.definition)).pieces.flatMap((p) => p.stickers.map((st) => st.id)));
+const definitionOf = (r) => JSON.parse(text(r.definition ?? registry.definition));
+const stickers = new Set(definitionOf({}).pieces.flatMap((p) => p.stickers.map((st) => st.id)));
 const asRequest = (r) => ({ ...r, version: { major: 1, minor: registry.since.minor } });
+// The definition of a vector gives the sticker IDs and the size (default: the 3x3x3 of the entry).
+const optOf = (r, more = {}) => { const d = definitionOf(r); return { stickers: new Set(d.pieces.flatMap((p) => p.stickers.map((st) => st.id))), size: d.size, ...more }; };
 test("registry vectors: the 3x3 definition has 54 sticker IDs and the entry has a closed key set", () => {
   assert.equal(stickers.size, 54);
   assert.deepEqual(registry.keys, ["cells", "centerUp"]);
@@ -131,13 +134,13 @@ for (const r of registry.valid) {
 }
 for (const r of registry.invalid) {
   test(`registry invalid request: ${r.name} fails with ${r.code} at ${r.path}`, () => {
-    assert.deepEqual(checkRequest(asRequest(r), { stickers }), { ok: false, code: r.code, path: r.path });
-    const without = checkRequest(asRequest(r), { stickers, disable: r.code });
+    assert.deepEqual(checkRequest(asRequest(r), optOf(r)), { ok: false, code: r.code, path: r.path });
+    const without = checkRequest(asRequest(r), optOf(r, { disable: r.code }));
     assert.ok(without.ok || without.code !== r.code, `${r.name}: ${JSON.stringify(without)}`);
   });
 }
 test("registry codes: every code of the entry has an invalid vector", () => {
-  assert.deepEqual([...new Set(registry.invalid.map((r) => r.code))].sort(), ["BadCell", "BadCellCount", "BadCenterUp", "BadParamKeys", "BadStickerId", "UnknownSticker"]);
+  assert.deepEqual([...new Set(registry.invalid.map((r) => r.code))].sort(), ["BadCell", "BadCellCount", "BadCenterUp", "BadParamKeys", "BadStickerId", "UnknownSticker", "UnsupportedSize"]);
 });
 test("at protocol minor 1 the registry does not exist: every predicate id is opaque", () => {
   for (const r of registry.invalid) assert.deepEqual(checkRequest({ ...r, version: { major: 1, minor: 1 } }, { stickers }), { ok: true }, r.name);
@@ -145,6 +148,11 @@ test("at protocol minor 1 the registry does not exist: every predicate id is opa
 
 // Doc-level expectations: the contract, the task list and the research register name the registry entry, its closed key set, the
 // version, the slot order, the replay and every code the reference check reports for it.
+// Order of the detail path (contract section 2.3): the first violation in a depth-first walk keys, centerUp, cells, then cell 0..8 each
+// with its own shape before its IDs 0..n-1, each ID with its format before its range. The two-violation vectors name the earlier one.
+test("registry order: every two-violation vector reports the earlier violation", () => {
+  assert.equal(registry.invalid.filter((r) => r.name.startsWith("two-violations-")).length, 6);
+});
 const spec = (name) => readFileSync(new URL(`../specs/001-core-foundation/${name}`, import.meta.url), "utf8");
 const section = (md, heading) => {
   const start = md.indexOf(heading);
@@ -157,9 +165,14 @@ test("contract section 2.3 specifies the entry front-image-classes", () => {
   const s = section(contract, "### 2.3 Predicate registry");
   for (const needle of [
     "protocol minor 2", "version 1.2", "`front-image-classes`", ...registry.keys.map((k) => `\`${k}\``), "exactly 9", "nonempty", "wire-v1",
-    "row-major as seen from the front with +Y up", "24 global rotations", "C1", "applies to the centre only", "`failed` `unsupported`", "`failed` `invalid`",
+    "row-major as seen from the front with +Y up", "24 global rotations", "C1", "applies to the centre only", "depth-first", "ascending index", "`UnsupportedSize`", "expanded nodes", "left to T013a", "`failed` `unsupported`", "`failed` `invalid`",
     "All", "Any", "StickerAt", "100,000", "depth 3", ...registry.invalid.map((r) => r.code),
   ]) assert.ok(s.includes(needle), `section 2.3 lacks: ${needle}`);
+});
+test("section 2 does not say that 1.1 takes no further minor next to the 1.2 sentence", () => {
+  const line = contract.split("\n").find((l) => l.startsWith("**P** Additive to solver.md 1.0"));
+  assert.ok(!line.includes("no further minor"), "line 13");
+  assert.ok(line.includes("sections 2.1 to 5 of version 1.1"), "line 13 names what stays in 1.1");
 });
 test("contract section 3.3 specifies final.rotation and section 8 the predicates capability", () => {
   const r = section(contract, "### 3.3 Final rotation");

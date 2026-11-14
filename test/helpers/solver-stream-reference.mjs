@@ -21,7 +21,7 @@ class Violation extends Error {
 const gate = (opt, code, condition, path) => { if (!condition && opt.disable !== code) throw new Violation(code, path); };
 
 // Predicate registry of protocol minor 1.2 (contract section 2.3). Registry IDs exist only from minor 2; at minor 1 every
-// predicate `id` is opaque. `opt.stickers` is the set of sticker IDs of the request's definition.
+// predicate `id` is opaque. `opt.stickers` is the set of sticker IDs and `opt.size` the size of the request's definition. The first violation of a depth-first walk in ascending index order is reported.
 export const REGISTRY_MINOR = 2;
 const ID_PATTERN = /^[A-Za-z0-9._:-]+$/;
 function checkFrontImageClasses(params, opt, path) {
@@ -36,8 +36,10 @@ function checkFrontImageClasses(params, opt, path) {
       gate(opt, "UnknownSticker", !opt.stickers || opt.stickers.has(sid), `${at}[${j}]`);
     });
   });
+  // Shape first, then support: a well-formed goal for a size other than 3 is `failed` `unsupported` (path: the goal).
+  gate(opt, "UnsupportedSize", opt.size === undefined || opt.size === 3, path.slice(0, -".params".length));
 }
-const REGISTRY_CODES = ["BadParamKeys", "BadCenterUp", "BadCellCount", "BadCell", "BadStickerId", "UnknownSticker"];
+const REGISTRY_CODES = ["BadParamKeys", "BadCenterUp", "BadCellCount", "BadCell", "BadStickerId", "UnknownSticker", "UnsupportedSize"];
 const REGISTRY = { "front-image-classes": checkFrontImageClasses };
 
 export function checkRequest(request, opt = {}) {
