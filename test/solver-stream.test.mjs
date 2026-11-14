@@ -167,3 +167,9 @@ test("contract section 3.3 specifies final.rotation and section 8 the predicates
   const c = section(contract, "## 8. Capabilities and versioning");
   for (const needle of ["`predicates`", "`front-image-classes`", "version 1.2", "minor"]) assert.ok(c.includes(needle), `section 8 lacks: ${needle}`);
 });
+
+test("tasks and research record the registry entry and its dependency", () => {
+  const t = spec("tasks.md").split("\n").find((l) => l.startsWith("| T013a "));
+  assert.ok(t.includes("front-image-classes") && t.includes("solver-stream.md section 2.3"), "T013a row");
+  assert.ok(spec("research.md").includes("`front-image-classes`"), "research.md");
+});
