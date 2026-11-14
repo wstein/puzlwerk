@@ -16,7 +16,7 @@ Human first reviews this PR, proposed ADRs and Q1–Q7. Record approval scope an
 | --- | --- | --- |
 | M0: compatibility baseline | Audit pinned consumers; preserve licensed legacy definitions, coordinate mappings and old solved results; confirm build/runtime and benchmark runner | Human scope approval; Q1,Q6,Q7; consumer maintainers |
 | M1: exact foundation | Validated definitions/states, doubled coordinates, proper poses, moves/inverses, canonical codec; golden wire schema and complete examples | M0; ADR 0002/0003/0004 approval; phase approval |
-| M2: goals and validation | Color/identity/pose/sticker predicates, symmetry, global-frame semantics, layered reachability reports and bounded parsing | M1; Q4 (decided 2026-11-14); phase approval (given 2026-11-14) |
+| M2: goals and validation | Color/identity/pose/sticker predicates, symmetry, global-frame semantics, layered reachability reports (T010 to T013); goal wire codec, predicate registry and bounded goal parsing (T013a); outer-wide N=3 reachability (T013b) | M1; Q4 (decided 2026-11-14); phase approval (given 2026-11-14) |
 | M3: negotiated adapter | Capability probe, strict request/response, budgets/cancel, independent replay and negative fake-backend tests | M2; Q3; Cubacle maintainer contract agreement; phase approval |
 | M4: consumer pilots | Separate small CubeLab and CubeAssembler adapters with dual-run comparison; retain old definitions and rollback | M3 or approved core-only pilot; each consumer's approval/PR |
 
