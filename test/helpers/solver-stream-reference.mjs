@@ -4,6 +4,7 @@
 // invalid vector fails for the rule it names and for no other reason.
 import * as Codec from "../../core/res/PwCodec.res.mjs";
 import * as Move from "../../core/res/PwMove.res.mjs";
+import * as Orientation from "../../core/res/PwOrientation.res.mjs";
 
 export const FAIL_REASONS = ["timeout", "nodeLimit", "memoryLimit", "depthLimit", "cancelled", "incompleteMethod", "unsupported", "invalid", "error", "unsatisfiable"];
 const GOALS = ["state", "predicate", "subgoal"];
@@ -15,29 +16,52 @@ const keysAre = (o, required, optional = []) =>
   isObj(o) && required.every((k) => k in o) && Object.keys(o).every((k) => required.includes(k) || optional.includes(k));
 
 class Violation extends Error {
-  constructor(code) { super(code); this.code = code; }
+  constructor(code, path) { super(code); this.code = code; this.path = path; }
 }
-const gate = (opt, code, condition) => { if (!condition && opt.disable !== code) throw new Violation(code); };
+const gate = (opt, code, condition, path) => { if (!condition && opt.disable !== code) throw new Violation(code, path); };
+
+// Predicate registry of protocol minor 1.2 (contract section 2.3). Registry IDs exist only from minor 2; at minor 1 every
+// predicate `id` is opaque. `opt.stickers` is the set of sticker IDs of the request's definition.
+export const REGISTRY_MINOR = 2;
+const ID_PATTERN = /^[A-Za-z0-9._:-]+$/;
+function checkFrontImageClasses(params, opt, path) {
+  gate(opt, "BadParamKeys", keysAre(params, ["cells", "centerUp"]), path);
+  gate(opt, "BadCenterUp", typeof params.centerUp === "boolean", `${path}.centerUp`);
+  gate(opt, "BadCellCount", Array.isArray(params.cells) && params.cells.length === 9, `${path}.cells`);
+  (Array.isArray(params.cells) ? params.cells : []).forEach((cell, i) => {
+    const at = `${path}.cells[${i}]`;
+    gate(opt, "BadCell", Array.isArray(cell) && cell.length > 0, at);
+    (Array.isArray(cell) ? cell : []).forEach((sid, j) => {
+      gate(opt, "BadStickerId", typeof sid === "string" && ID_PATTERN.test(sid), `${at}[${j}]`);
+      gate(opt, "UnknownSticker", !opt.stickers || opt.stickers.has(sid), `${at}[${j}]`);
+    });
+  });
+}
+const REGISTRY_CODES = ["BadParamKeys", "BadCenterUp", "BadCellCount", "BadCell", "BadStickerId", "UnknownSticker"];
+const REGISTRY = { "front-image-classes": checkFrontImageClasses };
 
 export function checkRequest(request, opt = {}) {
   try {
-    const goal = (g) => {
-      gate(opt, "BadGoal", isObj(g) && GOALS.includes(g.kind));
+    const registry = request.version?.minor >= REGISTRY_MINOR;
+    const goal = (g, path) => {
+      gate(opt, "BadGoal", isObj(g) && GOALS.includes(g.kind), path);
       if (!isObj(g) || !GOALS.includes(g.kind)) return;
       // Closed key sets (contract section 2.1): state {kind, frame, state}; predicate {kind, id, params?}; subgoal {kind, id, goal}.
-      if (g.kind === "state") gate(opt, "BadGoal", keysAre(g, ["kind", "frame", "state"]) && ["fixed", "any-rotation"].includes(g.frame) && isObj(g.state));
-      if (g.kind === "predicate") gate(opt, "BadGoal", keysAre(g, ["kind", "id"], ["params"]) && typeof g.id === "string" && g.id !== "" && (!("params" in g) || isObj(g.params)));
+      if (g.kind === "state") gate(opt, "BadGoal", keysAre(g, ["kind", "frame", "state"]) && ["fixed", "any-rotation"].includes(g.frame) && isObj(g.state), path);
+      if (g.kind === "predicate") gate(opt, "BadGoal", keysAre(g, ["kind", "id"], ["params"]) && typeof g.id === "string" && g.id !== "" && (!("params" in g) || isObj(g.params)), path);
+      // A well-formed predicate with a registry ID gets its parameter schema; an unknown ID stays opaque (valid shape).
+      if (g.kind === "predicate" && registry && Object.hasOwn(REGISTRY, g.id)) REGISTRY[g.id](g.params ?? {}, opt, `${path}.params`);
       if (g.kind === "subgoal") {
-        gate(opt, "BadGoal", keysAre(g, ["kind", "id", "goal"]) && typeof g.id === "string" && g.id !== "");
-        if (isObj(g.goal)) goal(g.goal);
+        gate(opt, "BadGoal", keysAre(g, ["kind", "id", "goal"]) && typeof g.id === "string" && g.id !== "", path);
+        if (isObj(g.goal)) goal(g.goal, `${path}.goal`);
       }
     };
-    goal(request.goal);
+    goal(request.goal, "goal");
     const b = request.limits ?? {};
     gate(opt, "BadBudget", isObj(b) && Object.keys(b).every((k) => BUDGET.includes(k) && isInt(b[k], 1)));
     return { ok: true };
   } catch (e) {
-    if (e instanceof Violation) return { ok: false, code: e.code };
+    if (e instanceof Violation) return { ok: false, code: e.code, ...(REGISTRY_CODES.includes(e.code) ? { path: e.path } : {}) };
     throw e;
   }
 }
@@ -87,8 +111,14 @@ export function checkStream(ctx, events, opt = {}) {
           lastBound = Math.max(lastBound, e.lowerBound);
         } else gate(opt, "LowerBoundUnproven", !("lowerBoundMethod" in e));
       } else if (e.event === "final") {
-        gate(opt, "UnknownField", keysAre(e, [...head, "moves", "certificate"], [...ECHO, "finalStateHash"]));
+        // `rotation` (contract section 3.3) exists from minor 2 and only for a goal that allows a global rotation.
+        const rotation = e.version?.minor >= REGISTRY_MINOR ? ["rotation"] : [];
+        gate(opt, "UnknownField", keysAre(e, [...head, "moves", "certificate"], [...ECHO, "finalStateHash", ...rotation]));
         terminal = true;
+        if ("rotation" in e) {
+          gate(opt, "RotationNotAllowed", (goal.kind === "state" && goal.frame === "any-rotation") || (goal.kind === "predicate" && goal.id === "front-image-classes"));
+          gate(opt, "BadRotation", Array.isArray(e.rotation) && e.rotation.length === 9 && e.rotation.every(Number.isInteger) && Orientation.make(e.rotation).TAG === "Ok");
+        }
         gate(opt, "FinalPrefix", Array.isArray(e.moves) && committed.every((m, k) => same(m, e.moves[k])));
         gate(opt, "BudgetExceeded", e.moves.length <= (ctx.budget.maxMoves ?? Infinity));
         for (const mv of e.moves.slice(committed.length)) {
