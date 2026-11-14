@@ -290,12 +290,17 @@ test("N=3 outer-wide with a legal wide move: unknown with and without a certific
   const s = run(3, [rw]);
   // Without the policy check the face-turn invariants would wrongly disprove a state a legal move reaches.
   assert.equal(assess(3, s, ASSUME).reachability.TAG, "Disproved");
-  for (const certificate of [undefined, [rw]]) {
+  // Without a certificate: unknown. With a replay certificate that is legal under the policy: verified by
+  // replay (reachability under the policy), the profile invariants stay suppressed.
+  for (const [certificate, expected] of [[undefined, { TAG: "Unknown", _0: "ProfileOutsidePolicy" }], [[rw], { TAG: "VerifiedByReplay", _0: [move(3, rw)] }], [[], { TAG: "Unknown", _0: "ProfileOutsidePolicy" }]]) {
     const r = assess(3, s, { profile: FACE, certificate });
-    assert.deepEqual(r.reachability, { TAG: "Unknown", _0: "ProfileOutsidePolicy" });
+    assert.deepEqual(r.reachability, expected);
     assert.equal(r.profile, FACE);
     assert.deepEqual(r.invariants.map((i) => i.name), ["corner-twist-sum"]);
   }
+  // A certificate that is illegal under the policy does not verify.
+  const inner = { axis: "X", layers: [1], turns: 1 };
+  assert.deepEqual(assess(3, run(3, [inner]), { profile: FACE, certificate: [inner] }).reachability, { TAG: "Unknown", _0: "ProfileOutsidePolicy" });
   // Without a profile the certificate verifies and the report carries no profile.
   const free = assess(3, s, { certificate: [rw] });
   assert.equal(free.reachability.TAG, "VerifiedByReplay");
@@ -338,10 +343,29 @@ test("a verifying certificate wins over the invariant verdict; a rejected one le
   assert.equal(r.profile, FACE);
   // Wrong certificate on a reachable state: the complete method decides.
   assert.deepEqual(assess(2, s, { profile: FACE, certificate: [] }).reachability, { TAG: "VerifiedComplete", _0: "face-turn-invariants-v1" });
-  // Illegal certificate on an unreachable state: the invariant disproves.
+  // Mismatching certificate on an unreachable state: the invariant disproves. A move outside the profile is
+  // unknown instead (see the assessAssuming test).
   const corner = piecesOfKind(2, 3)[0];
   const twist = stabilizers(2, corner).find((o) => !Orientation.equal(o, Orientation.identity));
   const bad = edit(2, { [corner]: { o: twist } });
-  const inner = { axis: "X", layers: [0, 1], turns: 1 };
-  assert.deepEqual(assess(2, bad, { profile: FACE, certificate: [inner] }).reachability, { TAG: "Disproved", _0: "corner-twist-sum" });
+  assert.deepEqual(assess(2, bad, { profile: FACE, certificate: [] }).reachability, { TAG: "Disproved", _0: "corner-twist-sum" });
+  assert.deepEqual(assess(2, bad, { profile: FACE, certificate: [{ axis: "X", layers: [0, 1], turns: 1 }] }).reachability, { TAG: "Unknown", _0: "CertificateOutsideProfile" });
+});
+
+test("assessAssuming: every certificate move must be in the claimed profile", () => {
+  const s = run(3, [rw]);
+  // The reviewer's case: Rw is legal for the policy but outside FaceTurns; the profile invariants are violated.
+  const r = assess(3, s, { ...ASSUME, certificate: [rw] });
+  assert.deepEqual(r.reachability, { TAG: "Unknown", _0: "CertificateOutsideProfile" });
+  assert.equal(r.invariants.some((i) => !i.holds), true);
+  // Face turns only: the certificate verifies by replay.
+  const walk = [{ axis: "X", layers: [2], turns: -1 }, { axis: "Z", layers: [0], turns: 2 }];
+  assert.equal(assess(3, run(3, walk), { ...ASSUME, certificate: walk }).reachability.TAG, "VerifiedByReplay");
+  // One outside move anywhere in the sequence is enough; an inner slice and a two-layer wide move are outside.
+  for (const bad of [{ axis: "Y", layers: [1], turns: 1 }, { axis: "Y", layers: [0, 1], turns: 1 }]) {
+    const seq = [...walk, bad];
+    assert.deepEqual(assess(3, run(3, seq), { ...ASSUME, certificate: seq }).reachability, { TAG: "Unknown", _0: "CertificateOutsideProfile" });
+  }
+  // Without the profile the same certificate is not restricted.
+  assert.equal(assess(3, s, { assume: true, certificate: [rw] }).reachability.TAG, "VerifiedByReplay");
 });

@@ -8,6 +8,7 @@ type unknownReason =
   | CertificateIllegalMove
   | CertificateMismatch
   | ProfileOutsidePolicy
+  | CertificateOutsideProfile
 
 type reachability =
   | VerifiedByReplay(array<PwMove.t>)
@@ -228,13 +229,21 @@ let replay = (definition, state, certificate) =>
 // The profile is within the policy when every move the definition permits belongs to the profile's move
 // set. FaceTurns is the six outer face turns: the policy outer-wide at N=2 permits exactly those (up to the
 // whole-cube rotation that turning the opposite face adds); at N>=3 it permits wide moves too, and the
-// policy any permits every selection.
+// policy any permits every selection (at N=2 the policy any is outside the profile although the whole-cube
+// rotation there is R L'; this stays conservative: unknown).
 let profileWithinPolicy = (definition, profile) =>
   switch profile {
   | None => true
   | Some(FaceTurns) =>
     PwShell.sizeToInt(PwCodec.size(definition)) == 2 && PwCodec.movePolicy(definition) == OuterWide
   }
+
+// A move of the profile FaceTurns: one outer layer.
+let inProfile = (n, m) => {
+  let layers = PwMove.layers(m)
+  layers->Array.length == 1 &&
+    (layers->Array.getUnsafe(0) == 0 || layers->Array.getUnsafe(0) == n - 1)
+}
 
 let assessWith = (definition, state, profile, certificate, checkPolicy) =>
   switch PwCodec.decodeState(definition, PwCodec.encodeState(state)) {
@@ -258,7 +267,20 @@ let assessWith = (definition, state, profile, certificate, checkPolicy) =>
       | _ => None
       }
     }
+    let outside = switch (profile, certificate) {
+    | (Some(FaceTurns), Some(moves)) if applies => !(moves->Array.every(m => inProfile(n, m)))
+    | _ => false
+    }
     let reachability = switch certificate {
+    // The certificate leaves the profile: the claimed profile does not describe the sequence.
+    | _ if outside => Unknown(CertificateOutsideProfile)
+    // The profile does not cover the policy: a valid replay under the policy still proves reachability;
+    // the profile invariants are suppressed.
+    | Some(moves) if !applies =>
+      switch replay(definition, state, moves) {
+      | Matches => VerifiedByReplay(moves)
+      | _ => byInvariants->Option.getOr(Unknown(ProfileOutsidePolicy))
+      }
     | _ if !applies => byInvariants->Option.getOr(Unknown(ProfileOutsidePolicy))
     | Some(moves) =>
       switch replay(definition, state, moves) {
