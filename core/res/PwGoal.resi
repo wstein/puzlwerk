@@ -16,6 +16,9 @@ type rec node =
   | PiecePose(PwId.t, PwShell.slot, PwOrientation.t, array<PwOrientation.t>)
   // Sticker ID, destination of its owner, target world normal and up, symmetry about the target normal.
   | StickerAt(PwId.t, PwShell.slot, PwShell.vec, PwShell.vec, symmetry)
+  // Color tokens at outward face slots: (slot, outward normal, color). Identity, sticker up and every
+  // slot not listed are ignored; a partial goal lists only its samples.
+  | FaceColors(array<(PwShell.slot, PwShell.vec, PwId.t)>)
 
 type goal
 type error =
@@ -26,6 +29,8 @@ type error =
   | BadVector
   | BadSubgroup
   | BadSymmetry
+  | BadSample
+  | MissingColor
 
 // makeGoal(definition, appearance, frames, root). The appearance entries declare the design symmetry
 // of stickers (appearance-v1); a sticker without an entry is C1 and no goal may claim more than it
@@ -39,6 +44,19 @@ let makeGoal: (
   array<PwOrientation.t>,
   node,
 ) => result<goal, error>
+
+// The two legacy solved conventions (spec AC03) are separate, explicitly selected profiles; an adapter
+// never guesses which one a legacy consumer meant.
+// - FixedFrameSolved: every outward sticker shows its home color in the fixed puzzle frame.
+// - SolvedUpToRotation: the same, after one common global rotation of the 24 (all faces together).
+type profile = FixedFrameSolved | SolvedUpToRotation
+
+// The full classical solved goal: one color sample per outward sticker (6N^2), colors from the home
+// state of the definition. Every sticker needs a color, else MissingColor.
+let solvedGoal: (PwCodec.definition, profile) => result<goal, error>
+
+// Number of color samples in the goal (FaceColors nodes, summed).
+let sampleCount: goal => int
 
 // Empty All is true, empty Any is false. One common global rotation from the frames of the goal must
 // transform the complete target into a match; nodes never choose their frames separately.
