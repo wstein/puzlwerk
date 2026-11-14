@@ -68,12 +68,13 @@
       "initial": {"file": "state-2-scrambled.json"},
       "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
       "budget": {"maxMoves": 5},
+      "cancel": true,
       "events": [
         {"seq": 0, "event": "committed", "fromIndex": 0, "moves": [{"axis": "Z", "layers": [1], "turns": -1}]},
         {"seq": 1, "event": "failed", "reason": "cancelled"}
       ],
       "closed": true,
-      "expect": {"applied": 1, "evaluated": null}
+      "expect": {"applied": 1, "evaluated": null, "outcome": "cancelled"}
     },
     {
       "name": "timeout-without-commit",
@@ -101,6 +102,91 @@
       "events": [{"seq": 0, "event": "failed", "reason": "unsatisfiable", "method": "fixture:complete", "scope": "fixture:tiny-problem"}],
       "closed": true,
       "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "node-limit",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"nodeCount": 100},
+      "events": [{"seq": 0, "event": "failed", "reason": "nodeLimit", "detail": "nodeCount"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "memory-limit",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"memoryBytes": 1048576},
+      "events": [{"seq": 0, "event": "failed", "reason": "memoryLimit", "detail": "memoryBytes"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "depth-limit",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"maxMoves": 1},
+      "events": [{"seq": 0, "event": "failed", "reason": "depthLimit", "detail": "maxMoves"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "incomplete-method",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {},
+      "events": [{"seq": 0, "event": "failed", "reason": "incompleteMethod", "detail": "fixture:beam"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "error-backend",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {},
+      "events": [{"seq": 0, "event": "failed", "reason": "error", "detail": "BACKEND_INTERNAL"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "invalid-goal-extra-key",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "predicate", "id": "fixture:front-shows", "extra": 1},
+      "budget": {},
+      "events": [{"seq": 0, "event": "failed", "reason": "invalid", "detail": "INVALID_GOAL goal.extra"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "unsupported-predicate-id",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "predicate", "id": "fixture:unknown-id", "params": {}},
+      "budget": {},
+      "events": [{"seq": 0, "event": "failed", "reason": "unsupported", "detail": "goal.id=fixture:unknown-id"}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "predicate-goal-final",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "predicate", "id": "fixture:front-shows"},
+      "budget": {"maxMoves": 5},
+      "events": [{"seq": 0, "event": "final", "moves": [{"axis": "Z", "layers": [1], "turns": -1}, {"axis": "Y", "layers": [1], "turns": 1}, {"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "bestEffort"}}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "final-after-cancel-verified",
+      "initial": {"file": "state-2-scrambled.json"},
+      "goal": {"kind": "state", "frame": "fixed", "state": {"file": "state-2-home.json"}},
+      "budget": {"maxMoves": 5},
+      "cancel": true,
+      "events": [
+        {"seq": 0, "event": "committed", "fromIndex": 0, "moves": [{"axis": "Z", "layers": [1], "turns": -1}]},
+        {"seq": 1, "event": "final", "moves": [{"axis": "Z", "layers": [1], "turns": -1}, {"axis": "Y", "layers": [1], "turns": 1}, {"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "bestEffort"}}
+      ],
+      "closed": true,
+      "expect": {"applied": 1, "evaluated": true, "outcome": "cancelled"}
     }
   ],
   "invalid": [
@@ -139,12 +225,25 @@
     {"name":"missing-version-major","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.1.version.major"}],"code":"MissingEcho"},
     {"name":"missing-requestId","base":"one-shot-backend-final-only","ops":[{"op":"del","path":"events.0.requestId"}],"code":"MissingEcho"},
     {"name":"missing-seq","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"del","path":"events.3.seq"}],"code":"MissingEcho"},
-    {"name":"final-state-hash-wrong","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.finalStateHash","value":"sha256:d3ef69211616f9a785127079a7d6b3afc31b91fa23008e87bd8837d235f1b974"}],"code":"FinalHashMismatch"}
+    {"name":"final-state-hash-wrong","base":"three-answer-moves-two-committed-chunks","ops":[{"op":"set","path":"events.5.finalStateHash","value":"sha256:d3ef69211616f9a785127079a7d6b3afc31b91fa23008e87bd8837d235f1b974"}],"code":"FinalHashMismatch"},
+    {"name": "cancelled-without-cancel-request", "base": "cancelled-after-committed-prefix", "ops": [{"op": "set", "path": "cancel", "value": false}], "code": "CancelNotRequested"},
+    {"name": "progress-depth-decreases", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.4.depth", "value": 2}], "code": "ProgressDepthDecreased"},
+    {"name": "certificate-bound-below-progress-bound", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.5.certificate.lowerBound", "value": 0}], "code": "LowerBoundDecreased"},
+    {"name": "seq-reordered", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "set", "path": "events.1.seq", "value": 2}, {"op": "set", "path": "events.2.seq", "value": 1}], "code": "BadSeq"},
+    {"name": "committed-after-final", "base": "one-shot-backend-final-only", "ops": [{"op": "push", "path": "events", "value": {"protocol": "puzlwerk.solver", "version": {"major": 1, "minor": 1}, "requestId": "r1", "seq": 1, "event": "committed", "fromIndex": 0, "moves": [{"axis": "Z", "layers": [1], "turns": -1}]}}], "code": "AfterTerminal"},
+    {"name": "progress-after-final", "base": "three-answer-moves-two-committed-chunks", "ops": [{"op": "push", "path": "events", "value": {"protocol": "puzlwerk.solver", "version": {"major": 1, "minor": 1}, "requestId": "r1", "seq": 6, "event": "progress", "depth": 3, "beamSize": 1}}], "code": "AfterTerminal"},
+    {"name": "final-after-final", "base": "optimal-one-move", "ops": [{"op": "push", "path": "events", "value": {"protocol": "puzlwerk.solver", "version": {"major": 1, "minor": 1}, "requestId": "r1", "seq": 1, "event": "final", "moves": [{"axis": "X", "layers": [1], "turns": 1}], "certificate": {"kind": "bestEffort"}}}], "code": "AfterTerminal"},
+    {"name": "cancel-after-final", "base": "final-after-cancel-verified", "ops": [{"op": "push", "path": "events", "value": {"protocol": "puzlwerk.solver", "version": {"major": 1, "minor": 1}, "requestId": "r1", "seq": 2, "event": "failed", "reason": "cancelled"}}], "code": "AfterTerminal"},
+    {"name": "failed-after-failed", "base": "timeout-without-commit", "ops": [{"op": "push", "path": "events", "value": {"protocol": "puzlwerk.solver", "version": {"major": 1, "minor": 1}, "requestId": "r1", "seq": 1, "event": "failed", "reason": "timeout"}}], "code": "AfterTerminal"},
+    {"name": "unknown-failure-reason-complete", "base": "timeout-without-commit", "ops": [{"op": "set", "path": "events.0.reason", "value": "complete"}], "code": "BadFailReason"},
+    {"name": "final-carries-a-reason", "base": "optimal-one-move", "ops": [{"op": "set", "path": "events.0.reason", "value": "complete"}], "code": "UnknownField"}
   ],
   "requests": {
     "valid": [
       {"name": "state-goal", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "limits": {"wallTimeMs": 5000, "nodeCount": 1000, "memoryBytes": 67108864, "maxMoves": 30, "edgeLength": 12}},
       {"name": "predicate-goal", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {}}, "limits": {}},
+      {"name": "predicate-goal-without-params", "goal": {"kind": "predicate", "id": "fixture:front-shows"}, "limits": {}},
+      {"name": "predicate-goal-unknown-id-is-valid-shape", "goal": {"kind": "predicate", "id": "fixture:not-in-any-registry", "params": {"a": [1, "x"]}}, "limits": {}},
       {"name": "subgoal-of-predicate", "goal": {"kind": "subgoal", "id": "edge-7", "goal": {"kind": "predicate", "id": "fixture:front-shows", "params": {"month": "2030-02"}}}, "limits": {"edgeLength": 12}}
     ],
     "invalid": [
@@ -153,8 +252,16 @@
       {"name": "fractional-budget", "goal": {"kind": "state", "frame": "fixed", "state": {}}, "limits": {"nodeCount": 1.5}, "code": "BadBudget"},
       {"name": "color-goal-kind", "goal": {"kind": "color"}, "limits": {}, "code": "BadGoal"},
       {"name": "subgoal-without-id", "goal": {"kind": "subgoal", "goal": {"kind": "predicate", "id": "p", "params": {}}}, "limits": {}, "code": "BadGoal"},
-      {"name": "predicate-without-params", "goal": {"kind": "predicate", "id": "p"}, "limits": {}, "code": "BadGoal"},
-      {"name": "state-goal-without-frame", "goal": {"kind": "state", "state": {}}, "limits": {}, "code": "BadGoal"}
+      {"name": "state-goal-without-frame", "goal": {"kind": "state", "state": {}}, "limits": {}, "code": "BadGoal"},
+      {"name": "predicate-without-id", "goal": {"kind": "predicate", "params": {}}, "limits": {}, "code": "BadGoal"},
+      {"name": "predicate-with-empty-id", "goal": {"kind": "predicate", "id": ""}, "limits": {}, "code": "BadGoal"},
+      {"name": "predicate-extra-key", "goal": {"kind": "predicate", "id": "p", "extra": 1}, "limits": {}, "code": "BadGoal"},
+      {"name": "predicate-id-wrong-type", "goal": {"kind": "predicate", "id": 7}, "limits": {}, "code": "BadGoal"},
+      {"name": "predicate-params-wrong-type", "goal": {"kind": "predicate", "id": "p", "params": []}, "limits": {}, "code": "BadGoal"},
+      {"name": "state-goal-state-wrong-type", "goal": {"kind": "state", "frame": "fixed", "state": "home"}, "limits": {}, "code": "BadGoal"},
+      {"name": "state-goal-extra-key", "goal": {"kind": "state", "frame": "fixed", "state": {}, "extra": 1}, "limits": {}, "code": "BadGoal"},
+      {"name": "state-goal-unknown-frame", "goal": {"kind": "state", "frame": "sideways", "state": {}}, "limits": {}, "code": "BadGoal"},
+      {"name": "subgoal-extra-key", "goal": {"kind": "subgoal", "id": "e", "goal": {"kind": "predicate", "id": "p"}, "extra": 1}, "limits": {}, "code": "BadGoal"}
     ]
   }
 }
