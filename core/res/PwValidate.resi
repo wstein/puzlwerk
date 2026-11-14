@@ -24,6 +24,8 @@ type unknownReason =
   | CertificateMismatch
   // A profile was given and the definition's move policy permits moves outside it: no positive verdict.
   | ProfileOutsidePolicy
+  // The certificate contains a move outside the profile that was claimed (assessAssuming, or assess within the policy).
+  | CertificateOutsideProfile
 
 type reachability =
   | VerifiedByReplay(array<PwMove.t>)
@@ -49,15 +51,22 @@ let assess: (PwCodec.definition, PwCodec.state, option<profile>, option<array<Pw
 
 // With a profile, assess first checks the definition against it (data model: definition/profile
 // consistency comes first). The profile is within the policy only when every move the policy permits is in
-// the profile: FaceTurns holds for the policy outer-wide at N=2 only. Otherwise no positive verdict is
-// given, with or without a certificate: reachability is Unknown(ProfileOutsidePolicy), the profile
-// invariants are not reported, and only the corner twist sum (valid for every layer selection) can still
-// disprove. A certificate without a profile verifies as before.
+// the profile: FaceTurns holds for the policy outer-wide at N=2 only. The policy any at N=2 counts as outside
+// although the whole-cube rotation there is R L'; this stays conservative.
+// - Within the policy: the profile invariants and the complete method apply; a certificate whose moves are
+//   not all in the profile gives Unknown(CertificateOutsideProfile).
+// - Outside the policy: the profile invariants are not reported and give no verdict, the complete method is
+//   not used, and only the corner twist sum (valid for every layer selection) can still disprove. A valid
+//   replay certificate that is legal under the definition's policy still gives VerifiedByReplay (reachability
+//   under the policy is proven by the replay); otherwise Unknown(ProfileOutsidePolicy).
+// A certificate without a profile verifies as before.
 //
-// assessAssuming skips that check: the caller asserts that the puzzle's actual moves are the profile's (for
-// example a puzzle restricted to face turns). No definition policy expresses that yet (wire v1 has
-// outer-wide and any), so the complete method at N=3 is reachable only through this entry point; the
-// verdict is exactly as sound as the assertion, and the report carries the profile.
+// assessAssuming skips the policy check: the caller asserts that the puzzle's actual moves are the profile's
+// (for example a puzzle restricted to face turns), so every certificate move must be in the profile, else
+// Unknown(CertificateOutsideProfile). No definition policy expresses that yet (wire v1 has outer-wide and
+// any; owner decision 2026-11-14: no "face-turns" policy value now), so the complete method at N=3 is
+// reachable only through this entry point until T013b; the verdict is exactly as sound as the assertion, and
+// the report carries the profile.
 let assessAssuming: (
   PwCodec.definition,
   PwCodec.state,
