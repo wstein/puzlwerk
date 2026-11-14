@@ -187,6 +187,27 @@
       ],
       "closed": true,
       "expect": {"applied": 1, "evaluated": true, "outcome": "cancelled"}
+    },
+    {
+      "name": "front-image-classes-final-with-rotation",
+      "minor": 2,
+      "definition": "definition-3.json",
+      "initial": {"file": "state-3-home.json"},
+      "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": true}},
+      "budget": {"maxMoves": 5},
+      "events": [{"seq": 0, "event": "final", "moves": [], "certificate": {"kind": "bestEffort"}, "rotation": [1, 0, 0, 0, 1, 0, 0, 0, 1]}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
+    },
+    {
+      "name": "any-rotation-final-with-rotation",
+      "minor": 2,
+      "initial": {"file": "state-2-home.json"},
+      "goal": {"kind": "state", "frame": "any-rotation", "state": {"file": "state-2-home.json"}},
+      "budget": {"maxMoves": 5},
+      "events": [{"seq": 0, "event": "final", "moves": [], "certificate": {"kind": "bestEffort"}, "rotation": [0, 0, 1, 0, 1, 0, -1, 0, 0]}],
+      "closed": true,
+      "expect": {"applied": 0, "evaluated": null}
     }
   ],
   "invalid": [
@@ -235,7 +256,11 @@
     {"name": "cancel-after-final", "base": "final-after-cancel-verified", "ops": [{"op": "push", "path": "events", "value": {"protocol": "puzlwerk.solver", "version": {"major": 1, "minor": 1}, "requestId": "r1", "seq": 2, "event": "failed", "reason": "cancelled"}}], "code": "AfterTerminal"},
     {"name": "failed-after-failed", "base": "timeout-without-commit", "ops": [{"op": "push", "path": "events", "value": {"protocol": "puzlwerk.solver", "version": {"major": 1, "minor": 1}, "requestId": "r1", "seq": 1, "event": "failed", "reason": "timeout"}}], "code": "AfterTerminal"},
     {"name": "unknown-failure-reason-complete", "base": "timeout-without-commit", "ops": [{"op": "set", "path": "events.0.reason", "value": "complete"}], "code": "BadFailReason"},
-    {"name": "final-carries-a-reason", "base": "optimal-one-move", "ops": [{"op": "set", "path": "events.0.reason", "value": "complete"}], "code": "UnknownField"}
+    {"name": "final-carries-a-reason", "base": "optimal-one-move", "ops": [{"op": "set", "path": "events.0.reason", "value": "complete"}], "code": "UnknownField"},
+    {"name": "final-rotation-at-minor-1", "base": "front-image-classes-final-with-rotation", "ops": [{"op": "set", "path": "events.0.version.minor", "value": 1}], "code": "UnknownField"},
+    {"name": "final-rotation-with-fixed-frame", "base": "any-rotation-final-with-rotation", "ops": [{"op": "set", "path": "goal.frame", "value": "fixed"}], "code": "RotationNotAllowed"},
+    {"name": "final-rotation-is-a-reflection", "base": "any-rotation-final-with-rotation", "ops": [{"op": "set", "path": "events.0.rotation", "value": [-1, 0, 0, 0, 1, 0, 0, 0, 1]}], "code": "BadRotation"},
+    {"name": "final-rotation-has-eight-entries", "base": "any-rotation-final-with-rotation", "ops": [{"op": "del", "path": "events.0.rotation.8"}], "code": "BadRotation"}
   ],
   "requests": {
     "valid": [
@@ -262,5 +287,33 @@
       {"name": "state-goal-unknown-frame", "goal": {"kind": "state", "frame": "sideways", "state": {}}, "limits": {}, "code": "BadGoal"},
       {"name": "subgoal-extra-key", "goal": {"kind": "subgoal", "id": "e", "goal": {"kind": "predicate", "id": "p"}, "extra": 1}, "limits": {}, "code": "BadGoal"}
     ]
+  },
+  "registry": {
+    "note": "Predicate registry of protocol minor 1.2 (contract section 2.3). Requests are checked with the sticker IDs of the definition. Cell order is row-major as seen from the front with +Y up (slots of cube3: x -2,0,2 left to right, y 2,0,-2 top to bottom, z 2). Hand-derived from definition-3.json: the home front stickers are UFL.F UF.F UFR.F / FL.F F.F FR.F / DFL.F DF.F DFR.F.",
+    "front-image-classes": {
+      "since": {"major": 1, "minor": 2},
+      "definition": "definition-3.json",
+      "keys": ["cells", "centerUp"],
+      "valid": [
+        {"name": "home-front-center-up", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": true}}, "limits": {"maxMoves": 20}},
+        {"name": "several-ids-per-cell-center-free", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F", "UFL.U"], ["UF.F"], ["UFR.F", "UFR.R", "UFR.U"], ["FL.F"], ["F.F", "B.B"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F", "DFR.D"]], "centerUp": false}}, "limits": {}},
+        {"name": "inside-a-subgoal", "goal": {"kind": "subgoal", "id": "edge-1", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": false}}}, "limits": {"edgeLength": 12}},
+        {"name": "unknown-registry-id-is-valid-shape", "goal": {"kind": "predicate", "id": "front-image-classes-2", "params": {"anything": 1}}, "limits": {}}
+      ],
+      "invalid": [
+        {"name": "empty-cell", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], [], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": true}}, "code": "BadCell", "path": "goal.params.cells[2]"},
+        {"name": "eight-cells", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"]], "centerUp": true}}, "code": "BadCellCount", "path": "goal.params.cells"},
+        {"name": "ten-cells", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"], ["B.B"]], "centerUp": true}}, "code": "BadCellCount", "path": "goal.params.cells"},
+        {"name": "unknown-key", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": true, "symmetry": "C4"}}, "code": "BadParamKeys", "path": "goal.params"},
+        {"name": "missing-center-up", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]]}}, "code": "BadParamKeys", "path": "goal.params"},
+        {"name": "omitted-params", "goal": {"kind": "predicate", "id": "front-image-classes"}, "code": "BadParamKeys", "path": "goal.params"},
+        {"name": "center-up-is-a-string", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": "true"}}, "code": "BadCenterUp", "path": "goal.params.centerUp"},
+        {"name": "cell-is-not-an-array", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], "UF.F", ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": true}}, "code": "BadCell", "path": "goal.params.cells[1]"},
+        {"name": "id-with-a-space", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": true}}, "code": "BadStickerId", "path": "goal.params.cells[4][0]"},
+        {"name": "id-is-a-number", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], [7], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": true}}, "code": "BadStickerId", "path": "goal.params.cells[2][0]"},
+        {"name": "id-not-in-the-definition", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], ["F.F"], ["FR.F"], ["DFL.F"], ["DF.F", "XX.F"], ["DFR.F"]], "centerUp": true}}, "code": "UnknownSticker", "path": "goal.params.cells[7][1]"},
+        {"name": "cell-index-in-a-subgoal", "goal": {"kind": "subgoal", "id": "edge-1", "goal": {"kind": "predicate", "id": "front-image-classes", "params": {"cells": [["UFL.F"], ["UF.F"], ["UFR.F"], ["FL.F"], [], ["FR.F"], ["DFL.F"], ["DF.F"], ["DFR.F"]], "centerUp": true}}}, "code": "BadCell", "path": "goal.goal.params.cells[4]"}
+      ]
+    }
   }
 }

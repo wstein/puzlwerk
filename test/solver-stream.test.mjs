@@ -26,11 +26,12 @@ const stateText = (s) => (s.file ? text(s.file) : scramble(s.from, s.moves));
 const ENVELOPE = { protocol: "puzlwerk.solver", version: { major: 1, minor: 1 }, requestId: "r1" };
 // Every event carries protocol, version, requestId and seq (contract section 3). Vectors list seq; the envelope is
 // added here, before mutation, so an invalid vector can delete any one of the four fields.
-const withEnvelope = (v) => ({ ...v, events: v.events.map((e) => ({ ...structuredClone(ENVELOPE), ...e })) });
+// A vector may name another protocol minor (`minor`, default 1) and another definition (`definition`, default the 2x2x2).
+const withEnvelope = (v) => ({ ...v, events: v.events.map((e) => ({ ...structuredClone(ENVELOPE), version: { major: 1, minor: v.minor ?? 1 }, ...e })) });
 function fill(v) {
   const goalOf = (g) => (g.kind === "subgoal" ? { ...g, goal: goalOf(g.goal) } : g.kind === "state" ? { ...g, target: text(g.state.file) } : g);
   return {
-    ctx: { definition: text(vectors.definition), initial: stateText(v.initial), goal: goalOf(v.goal), requestId: ENVELOPE.requestId, budget: v.budget, closed: v.closed, cancelRequested: v.cancel === true },
+    ctx: { definition: text(v.definition ?? vectors.definition), initial: stateText(v.initial), goal: goalOf(v.goal), requestId: ENVELOPE.requestId, budget: v.budget, closed: v.closed, cancelRequested: v.cancel === true },
     events: v.events,
   };
 }
@@ -95,7 +96,7 @@ test("goal replay covers 6 valid vectors; failed streams and the predicate-goal 
   assert.deepEqual(skipped, [
     "cancelled-after-committed-prefix", "timeout-without-commit", "unsupported-goal", "unsatisfiable-names-method-and-scope",
     "node-limit", "memory-limit", "depth-limit", "incomplete-method", "error-backend", "invalid-goal-extra-key",
-    "unsupported-predicate-id", "predicate-goal-final",
+    "unsupported-predicate-id", "predicate-goal-final", "front-image-classes-final-with-rotation", "any-rotation-final-with-rotation",
   ]);
 });
 
@@ -114,3 +115,30 @@ for (const r of vectors.requests.invalid) {
     assert.ok(checkRequest(r, { disable: r.code }).ok, `${r.name}: another rule fires when ${r.code} is disabled`);
   });
 }
+
+// Predicate registry of protocol minor 1.2 (contract section 2.3): parameter schema of `front-image-classes`. The sticker IDs
+// are those of definition-3.json; an invalid vector fails with its code and path, and with that code off another rule or none fires.
+const registry = vectors.registry["front-image-classes"];
+const stickers = new Set(JSON.parse(text(registry.definition)).pieces.flatMap((p) => p.stickers.map((st) => st.id)));
+const asRequest = (r) => ({ ...r, version: { major: 1, minor: registry.since.minor } });
+test("registry vectors: the 3x3 definition has 54 sticker IDs and the entry has a closed key set", () => {
+  assert.equal(stickers.size, 54);
+  assert.deepEqual(registry.keys, ["cells", "centerUp"]);
+  assert.equal(registry.since.minor, 2);
+});
+for (const r of registry.valid) {
+  test(`registry valid request: ${r.name}`, () => assert.deepEqual(checkRequest(asRequest(r), { stickers }), { ok: true }));
+}
+for (const r of registry.invalid) {
+  test(`registry invalid request: ${r.name} fails with ${r.code} at ${r.path}`, () => {
+    assert.deepEqual(checkRequest(asRequest(r), { stickers }), { ok: false, code: r.code, path: r.path });
+    const without = checkRequest(asRequest(r), { stickers, disable: r.code });
+    assert.ok(without.ok || without.code !== r.code, `${r.name}: ${JSON.stringify(without)}`);
+  });
+}
+test("registry codes: every code of the entry has an invalid vector", () => {
+  assert.deepEqual([...new Set(registry.invalid.map((r) => r.code))].sort(), ["BadCell", "BadCellCount", "BadCenterUp", "BadParamKeys", "BadStickerId", "UnknownSticker"]);
+});
+test("at protocol minor 1 the registry does not exist: every predicate id is opaque", () => {
+  for (const r of registry.invalid) assert.deepEqual(checkRequest({ ...r, version: { major: 1, minor: 1 } }, { stickers }), { ok: true }, r.name);
+});
