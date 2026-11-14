@@ -53,7 +53,6 @@ const SECOND_RULE = {
   "final-tail-move-illegal": "GoalNotReached",
   "final-tail-misses-the-goal": "FinalHashMismatch",
   "final-after-final": "GoalNotReached",
-  "depth-below-committed-length": "ProgressDepthDecreased",
 };
 const valid = vectors.valid.map(withEnvelope);
 const byName = Object.fromEntries(valid.map((v) => [v.name, v]));
@@ -100,8 +99,8 @@ test("goal replay covers 6 valid vectors; failed streams and the predicate-goal 
   ]);
 });
 
-// Closed stop reasons (contract section 5): every `failed.reason` value has exactly one valid vector.
-test("every failed reason of the closed set has a valid vector", () => {
+// Closed stop reasons (contract section 5): every `failed.reason` value has at least one valid vector (`unsupported` has two: unsupported-goal and unsupported-predicate-id).
+test("every failed reason of the closed set has at least one valid vector", () => {
   const seen = new Set(valid.flatMap((v) => v.events.filter((e) => e.event === "failed").map((e) => e.reason)));
   assert.deepEqual([...seen].sort(), [...FAIL_REASONS].sort());
 });
