@@ -19,6 +19,7 @@ type error =
   | BadSymmetry
   | BadSample
   | MissingColor
+  | DuplicateId
 
 exception Invalid(error)
 let invalid = e => throw(Invalid(e))
@@ -74,23 +75,42 @@ let sameColor = (a: option<PwId.t>, b: option<PwId.t>) =>
   | _ => false
   }
 
-// Every member of the subgroup maps the sticker set of the piece onto itself: same normal, up and color.
-let preservesStickers = (piece: PwCodec.piece, h) =>
+let declaredSymmetry = (appearance: array<(PwId.t, symmetry)>, stickerId) =>
+  switch appearance->Array.find(((s, _)) => PwId.equal(s, stickerId)) {
+  | Some((_, sym)) => sym
+  | None => C1
+  }
+
+// The up vector turned k quarter turns about the normal (counterclockwise seen from the tip).
+let quarterRotated = (normal, up, k) => {
+  let rotated = ref(up)
+  for _ in 1 to k {
+    rotated := cross(normal, rotated.contents)
+  }
+  rotated.contents
+}
+
+// Every member of the subgroup maps the sticker set of the piece onto itself: same normal and color, and the
+// same up, or an up that differs by a quarter-turn count both stickers declare as equivalent (the shared
+// part of their declared symmetries: C1 {0} within C2 {0,2} within C4 {0,1,2,3}). Without a declaration
+// the up must be equal.
+let preservesStickers = (piece: PwCodec.piece, appearance, h) =>
   piece.stickers->Array.every(s => {
     let n = PwOrientation.apply(h, s.normal)
     let u = PwOrientation.apply(h, s.up)
-    piece.stickers->Array.some(t => t.normal == n && t.up == u && sameColor(t.color, s.color))
+    piece.stickers->Array.some(t => {
+      let shared = rank(declaredSymmetry(appearance, s.id)) < rank(declaredSymmetry(appearance, t.id))
+        ? declaredSymmetry(appearance, s.id)
+        : declaredSymmetry(appearance, t.id)
+      t.normal == n &&
+      sameColor(t.color, s.color) &&
+      quarterTurns(shared)->Array.some(k => quarterRotated(t.normal, t.up, k) == u)
+    })
   })
 
 let checkSlot = (definition, slot) =>
   if PwShell.makeSlot(PwCodec.size(definition), PwShell.toVec(slot))->Result.isError {
     invalid(BadSlot)
-  }
-
-let declaredSymmetry = (appearance: array<(PwId.t, symmetry)>, stickerId) =>
-  switch appearance->Array.find(((s, _)) => PwId.equal(s, stickerId)) {
-  | Some((_, sym)) => sym
-  | None => C1
   }
 
 let rec checkNode = (definition, pieces, appearance, node) =>
@@ -108,7 +128,7 @@ let rec checkNode = (definition, pieces, appearance, node) =>
     | None => invalid(UnknownPiece)
     }
     checkSlot(definition, slot)
-    if !isGroup(subgroup) || !(subgroup->Array.every(h => preservesStickers(piece, h))) {
+    if !isGroup(subgroup) || !(subgroup->Array.every(h => preservesStickers(piece, appearance, h))) {
       invalid(BadSubgroup)
     }
   | StickerAt(stickerId, slot, normal, up, symmetry) =>
@@ -148,11 +168,18 @@ type profile = FixedFrameSolved | SolvedUpToRotation
 let makeGoal = (definition, appearance, frames, root) =>
   try {
     let pieces = PwCodec.pieces(definition)
-    appearance->Array.forEach(((stickerId, _)) =>
+    let declared = Map.make()
+    appearance->Array.forEach(((stickerId, _)) => {
       if findSticker(pieces, stickerId) == None {
         invalid(UnknownSticker)
       }
-    )
+      // As in appearance-v1: one entry per sticker.
+      let key = PwId.toString(stickerId)
+      if declared->Map.has(key) {
+        invalid(DuplicateId)
+      }
+      declared->Map.set(key, true)
+    })
     if !isGroup(frames) {
       invalid(BadFrames)
     }
@@ -221,11 +248,7 @@ let rec evalNode = (pieces, state, g, node) =>
         atSlot(g, p, slot) &&
         PwOrientation.apply(o, sticker.normal) == targetNormal &&
         quarterTurns(symmetry)->Array.some(k => {
-          let rotated = ref(up)
-          for _ in 1 to k {
-            rotated := cross(normal, rotated.contents)
-          }
-          PwOrientation.apply(o, sticker.up) == PwOrientation.apply(g, rotated.contents)
+          PwOrientation.apply(o, sticker.up) == PwOrientation.apply(g, quarterRotated(normal, up, k))
         })
       }
     }

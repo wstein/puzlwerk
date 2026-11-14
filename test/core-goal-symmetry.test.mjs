@@ -125,6 +125,36 @@ test("a subgroup that contradicts the sticker metadata is rejected", () => {
   bad(Goal.makeGoal(def(3), [], [I], piecePose("F", slot(3, 0, 0, 2), I, [I, RZ, pow(RZ, 2), pow(RZ, 3)])), "BadSubgroup");
 });
 
+test("a declared appearance equivalence makes a quarter-turn subgroup of a center legal (data model)", () => {
+  const at = slot(3, 0, 0, 2);
+  const quarter = [I, RZ, pow(RZ, 2), pow(RZ, 3)];
+  const half = [I, pow(RZ, 2)];
+  const g = (appearance, sub) => Goal.makeGoal(def(3), appearance.map(([s, c]) => [id(s), c]), [I], piecePose("F", at, I, sub));
+  // C4 declared: the whole quarter-turn group is legal and the goal holds for every turn of the center.
+  const c4 = ok(g([["F.F", "C4"]], quarter));
+  for (let k = 0; k < 4; k++) {
+    const twisted = ok(Codec.stateOfPoses(def(3), Codec.poses(home(3)).map((p) => (Id.toString(Pose.pieceId(p)) === "F" ? Pose.make(Pose.pieceId(p), Pose.position(p), pow(RZ, k)) : p))));
+    assert.equal(Goal.evaluate(def(3), twisted, c4), true, `k=${k}`);
+  }
+  // C2 declared: the half-turn group is legal, the quarter-turn group is not.
+  ok(g([["F.F", "C2"]], half));
+  bad(g([["F.F", "C2"]], quarter), "BadSubgroup");
+  // C1 or no declaration: neither; a declaration on another sticker does not help.
+  bad(g([["F.F", "C1"]], half), "BadSubgroup");
+  bad(g([], half), "BadSubgroup");
+  bad(g([["U.U", "C4"]], quarter), "BadSubgroup");
+  // The declaration does not widen anything else: the exact pose still rejects a twisted center.
+  const twisted = ok(Codec.stateOfPoses(def(3), Codec.poses(home(3)).map((p) => (Id.toString(Pose.pieceId(p)) === "F" ? Pose.make(Pose.pieceId(p), Pose.position(p), RZ) : p))));
+  assert.equal(Goal.evaluate(def(3), twisted, ok(g([["F.F", "C4"]], [I]))), false);
+});
+
+test("two appearance entries for one sticker are rejected as in appearance-v1", () => {
+  const node = pieceAt("F", slot(3, 0, 0, 2));
+  bad(Goal.makeGoal(def(3), [[id("F.F"), "C1"], [id("F.F"), "C4"]], [I], node), "DuplicateId");
+  bad(Goal.makeGoal(def(3), [[id("F.F"), "C4"], [id("F.F"), "C4"]], [I], node), "DuplicateId");
+  ok(Goal.makeGoal(def(3), [[id("F.F"), "C4"], [id("U.U"), "C2"]], [I], node));
+});
+
 // A 2x2 definition whose UFR corner shows one color on all three stickers with ups chosen so that the
 // 120 degree turn about the corner diagonal maps the sticker set onto itself (x -> y -> z -> x).
 const symmetricCorner = (sameColor = true) => {
