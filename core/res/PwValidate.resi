@@ -22,6 +22,8 @@ type unknownReason =
   | NoMethod
   | CertificateIllegalMove
   | CertificateMismatch
+  // A profile was given and the definition's move policy permits moves outside it: no positive verdict.
+  | ProfileOutsidePolicy
 
 type reachability =
   | VerifiedByReplay(array<PwMove.t>)
@@ -33,6 +35,8 @@ type reachability =
 
 type report = {
   structural: result<unit, PwCodec.error>,
+  // The profile the assessment was asked for, carried so that a verdict names its assumption.
+  profile: option<profile>,
   invariants: array<invariant>,
   reachability: reachability,
 }
@@ -42,3 +46,21 @@ type report = {
 // contiguous wide selection of 2..N-1 layers from either side; Any: every selection). A valid certificate
 // verifies the state; a rejected one proves nothing and leaves the verdict to the invariants.
 let assess: (PwCodec.definition, PwCodec.state, option<profile>, option<array<PwMove.t>>) => report
+
+// With a profile, assess first checks the definition against it (data model: definition/profile
+// consistency comes first). The profile is within the policy only when every move the policy permits is in
+// the profile: FaceTurns holds for the policy outer-wide at N=2 only. Otherwise no positive verdict is
+// given, with or without a certificate: reachability is Unknown(ProfileOutsidePolicy), the profile
+// invariants are not reported, and only the corner twist sum (valid for every layer selection) can still
+// disprove. A certificate without a profile verifies as before.
+//
+// assessAssuming skips that check: the caller asserts that the puzzle's actual moves are the profile's (for
+// example a puzzle restricted to face turns). No definition policy expresses that yet (wire v1 has
+// outer-wide and any), so the complete method at N=3 is reachable only through this entry point; the
+// verdict is exactly as sound as the assertion, and the report carries the profile.
+let assessAssuming: (
+  PwCodec.definition,
+  PwCodec.state,
+  option<profile>,
+  option<array<PwMove.t>>,
+) => report

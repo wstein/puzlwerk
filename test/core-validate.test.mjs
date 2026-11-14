@@ -23,7 +23,10 @@ const move = (n, m) => ok(Move.make(size(n), m.axis, m.layers, m.turns));
 const apply = (n, state, m) => ok(Codec.stateOfPoses(def(n), Codec.poses(state).map((p) => Move.applyToPose(move(n, m), p))));
 const run = (n, moves, state = home(n)) => moves.reduce((s, m) => apply(n, s, m), state);
 const FACE = "FaceTurns";
-const assess = (n, state, { profile, certificate } = {}) => Validate.assess(def(n), state, profile, certificate?.map((m) => move(n, m)));
+// assume: the caller asserts that the actual moves are the profile's (assessAssuming); without it assess
+// checks the definition policy against the profile first.
+const assess = (n, state, { profile, certificate, assume } = {}) => (assume ? Validate.assessAssuming : Validate.assess)(def(n), state, profile, certificate?.map((m) => move(n, m)));
+const ASSUME = { profile: FACE, assume: true };
 const holdsOf = (report) => Object.fromEntries(report.invariants.map((i) => [i.name, i.holds]));
 const faceTurns = (n) => { const out = []; for (const axis of "XYZ") for (const layer of [0, n - 1]) for (const turns of [-1, 1, 2]) out.push({ axis, layers: [layer], turns }); return out; };
 
@@ -49,7 +52,7 @@ test("the structural result is reported on its own and does not imply reachabili
   // A structurally valid state with one twisted corner: structural passes, reachability is disproved.
   const corner = piecesOfKind(3, 3)[0];
   const twist = stabilizers(3, corner).find((o) => !Orientation.equal(o, Orientation.identity));
-  const bad = assess(3, edit(3, { [corner]: { o: twist } }), { profile: FACE });
+  const bad = assess(3, edit(3, { [corner]: { o: twist } }), ASSUME);
   assert.equal(bad.structural.TAG, "Ok");
   assert.equal(bad.reachability.TAG, "Disproved");
   // A state of another definition is reported as structurally invalid and never as reachable.
@@ -101,7 +104,7 @@ test("invariants hold along every random walk (face turns for N=2,3; any layer m
     let s = home(n);
     for (let i = 0; i < 300; i++) {
       s = apply(n, s, turns[Math.floor(rand() * turns.length)]);
-      const r = assess(n, s, { profile: FACE });
+      const r = assess(n, s, ASSUME);
       assert.ok(r.invariants.every((x) => x.holds), `N=${n} step ${i} ${JSON.stringify(r.invariants)}`);
       assert.deepEqual(r.reachability, { TAG: "VerifiedComplete", _0: "face-turn-invariants-v1" });
     }
@@ -121,7 +124,7 @@ test("the corner twist sum disproves reachability for every size and every move 
   for (const n of [2, 3, 4, 7]) {
     const corner = piecesOfKind(n, 3)[0];
     const twist = stabilizers(n, corner).find((o) => !Orientation.equal(o, Orientation.identity));
-    for (const options of [{}, { profile: FACE }]) {
+    for (const options of [{}, { profile: FACE }, ASSUME]) {
       const r = assess(n, edit(n, { [corner]: { o: twist } }), options);
       assert.deepEqual(r.reachability, { TAG: "Disproved", _0: "corner-twist-sum" }, `N=${n}`);
     }
@@ -130,7 +133,7 @@ test("the corner twist sum disproves reachability for every size and every move 
 
 test("N=4..7 with invariants that hold and no certificate: unknown, never reachable or impossible", () => {
   for (const n of [4, 5, 6, 7]) {
-    for (const options of [{}, { profile: FACE }]) {
+    for (const options of [{}, ASSUME]) {
       const r = assess(n, home(n), options);
       assert.deepEqual(r.reachability, { TAG: "Unknown", _0: "NoMethod" }, `N=${n}`);
       assert.deepEqual(r.invariants, [{ name: "corner-twist-sum", holds: true }]);
@@ -144,7 +147,7 @@ test("the face-turn invariants are claimed only under the face-turn profile (the
   const edge = piecesOfKind(3, 2)[0];
   const flip = stabilizers(3, edge).find((o) => !Orientation.equal(o, Orientation.identity));
   const s = edit(3, { [edge]: { o: flip } });
-  assert.deepEqual(assess(3, s, { profile: FACE }).reachability, { TAG: "Disproved", _0: "edge-flip-sum" });
+  assert.deepEqual(assess(3, s, ASSUME).reachability, { TAG: "Disproved", _0: "edge-flip-sum" });
   const free = assess(3, s);
   assert.deepEqual(free.reachability, { TAG: "Unknown", _0: "NoMethod" });
   assert.deepEqual(free.invariants.map((i) => i.name), ["corner-twist-sum"]);
@@ -157,7 +160,7 @@ test("the face-turn invariants are claimed only under the face-turn profile (the
 
 test("each N=3 face-turn invariant fails for exactly one hand-built state (AC11)", () => {
   const nonId = (n, pid) => stabilizers(n, pid).filter((o) => !Orientation.equal(o, Orientation.identity));
-  const fails = (s) => Object.entries(holdsOf(assess(3, s, { profile: FACE }))).filter(([, h]) => !h).map(([k]) => k);
+  const fails = (s) => Object.entries(holdsOf(assess(3, s, ASSUME))).filter(([, h]) => !h).map(([k]) => k);
   // one twisted corner
   const c = piecesOfKind(3, 3)[0];
   assert.deepEqual(fails(edit(3, { [c]: { o: nonId(3, c)[0] } })), ["corner-twist-sum"]);
@@ -188,7 +191,7 @@ test("each N=3 face-turn invariant fails for exactly one hand-built state (AC11)
   const quarter = nonId(3, "F").find((o) => Orientation.toArray(o).join() === "0,-1,0,1,0,0,0,0,1");
   const allHold = edit(3, { F: { o: quarter } }, corners2edges2);
   assert.deepEqual(fails(allHold), []);
-  assert.deepEqual(assess(3, allHold, { profile: FACE }).reachability, { TAG: "VerifiedComplete", _0: "face-turn-invariants-v1" });
+  assert.deepEqual(assess(3, allHold, ASSUME).reachability, { TAG: "VerifiedComplete", _0: "face-turn-invariants-v1" });
   // one center turned a quarter: odd twist sum with even permutation parity
   const center = "F";
   assert.deepEqual(fails(edit(3, { [center]: { o: nonId(3, center).find((o) => Orientation.toArray(o).join() === "0,-1,0,1,0,0,0,0,1") } })), ["center-twist-parity"]);
@@ -236,7 +239,7 @@ const countAccepted = (n, pieceIds) => {
     const changes = {};
     pieceIds.forEach((pid, i) => { changes[pid] = { o: choices[i][pick[i]] }; });
     total++;
-    if (assess(n, edit(n, changes), { profile: FACE }).reachability.TAG === "VerifiedComplete") accepted++;
+    if (assess(n, edit(n, changes), ASSUME).reachability.TAG === "VerifiedComplete") accepted++;
     let i = 0;
     while (i < pick.length && ++pick[i] === choices[i].length) { pick[i] = 0; i++; }
     if (i === pick.length) break;
@@ -272,11 +275,45 @@ test("random structurally valid states: the acceptance rate is 1/3 for N=2 and 1
     const rand = mulberry32(0xacc + n);
     let accepted = 0;
     for (let i = 0; i < samples; i++) {
-      const r = assess(n, randomState(n, rand, kinds), { profile: FACE });
+      const r = assess(n, randomState(n, rand, kinds), ASSUME);
       assert.equal(r.structural.TAG, "Ok");
       if (r.reachability.TAG === "VerifiedComplete") accepted++;
       else assert.equal(r.reachability.TAG, "Disproved");
     }
     assert.ok(accepted >= low && accepted <= high, `N=${n}: ${accepted} of ${samples} accepted, expected between ${low} and ${high}`);
   }
+});
+
+// ---- the profile is bound to the move policy (review round 1, finding 1; owner decision A) ----------------
+const rw = { axis: "X", layers: [1, 2], turns: -1 };
+test("N=3 outer-wide with a legal wide move: unknown with and without a certificate, the profile is carried", () => {
+  const s = run(3, [rw]);
+  // Without the policy check the face-turn invariants would wrongly disprove a state a legal move reaches.
+  assert.equal(assess(3, s, ASSUME).reachability.TAG, "Disproved");
+  for (const certificate of [undefined, [rw]]) {
+    const r = assess(3, s, { profile: FACE, certificate });
+    assert.deepEqual(r.reachability, { TAG: "Unknown", _0: "ProfileOutsidePolicy" });
+    assert.equal(r.profile, FACE);
+    assert.deepEqual(r.invariants.map((i) => i.name), ["corner-twist-sum"]);
+  }
+  // Without a profile the certificate verifies and the report carries no profile.
+  const free = assess(3, s, { certificate: [rw] });
+  assert.equal(free.reachability.TAG, "VerifiedByReplay");
+  assert.equal(free.profile, undefined);
+});
+
+test("the profile is within the policy only for N=2 outer-wide; the policy any is outside it", () => {
+  const r2 = assess(2, home(2), { profile: FACE });
+  assert.deepEqual(r2.reachability, { TAG: "VerifiedComplete", _0: "face-turn-invariants-v1" });
+  assert.equal(r2.profile, FACE);
+  assert.equal(r2.invariants.length, 1);
+  for (const n of [3, 4]) assert.deepEqual(assess(n, home(n), { profile: FACE }).reachability, { TAG: "Unknown", _0: "ProfileOutsidePolicy" }, `N=${n}`);
+  const anyDef = ok(Codec.decodeDefinition(JSON.stringify({ ...JSON.parse(definitionText(2)), movePolicy: "any" })));
+  assert.deepEqual(Validate.assess(anyDef, Codec.homeState(anyDef), FACE, undefined).reachability, { TAG: "Unknown", _0: "ProfileOutsidePolicy" });
+  // The corner twist sum still disproves under a mismatch: it holds for every layer selection.
+  const corner = piecesOfKind(3, 3)[0];
+  const twist = stabilizers(3, corner).find((o) => !Orientation.equal(o, Orientation.identity));
+  assert.deepEqual(assess(3, edit(3, { [corner]: { o: twist } }), { profile: FACE }).reachability, { TAG: "Disproved", _0: "corner-twist-sum" });
+  // The report of an invalid state carries the profile as well.
+  assert.equal(assess(2, home(3), { profile: FACE }).profile, FACE);
 });
