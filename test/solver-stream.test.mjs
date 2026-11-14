@@ -7,7 +7,7 @@ import * as Move from "../core/res/PwMove.res.mjs";
 import * as Shell from "../core/res/PwShell.res.mjs";
 
 // Conformance vectors of specs/001-core-foundation/contracts/solver-stream.md. Moves are replayed with the
-// ReScript core on the wire-v1 fixtures. Not covered: goal kind predicate (no registry), frame any-rotation,
+// ReScript core on the wire-v1 fixtures. Not covered: predicate evaluation (deferred to M2), frame any-rotation,
 // method truth of certificates, real solver output.
 const wire = new URL("./fixtures/wire/", import.meta.url);
 const text = (name) => readFileSync(new URL(name, wire), "utf8");

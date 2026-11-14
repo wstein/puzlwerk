@@ -10,7 +10,7 @@ Status: Proposed; owner approval and Cubacle maintainer approval required. Exten
 
 ## 2. Request
 
-**P** Additive to solver.md 1.0 in the sense of its own rule (additive fields need an advertised minor): protocol minor 1, so version 1.1 (**O** 2026-11-13), adds the request field `mode: "stream"`, the goal kinds below, `limits.edgeLength`, the events of section 3 and the capability `stream` (section 8). Every other field of the solve request keeps its solver.md name and meaning: `profile`, `definitionHash`, `stateHash`, `goalHash`, `definition`, `initialState`, `goal`, `metric`, `limits`, `seed`. A solver without the capability returns `unsupported` and does not stream. Not additive: the transport. solver.md has one JSON response per process; a stream is JSON lines, one JSON object per line on stdout (**O** 2026-11-13, owner), which needs its own negotiation (section 8). Transport details beyond JSON lines and the required echo fields (section 3) are **U**.
+**P** Additive to solver.md 1.0 in the sense of its own rule (additive fields need an advertised minor): protocol minor 1, so version 1.1 (**O** 2026-11-13; the changes of 2026-11-14 below stay inside this unreleased 1.1, no further minor), adds the request field `mode: "stream"`, the goal kinds below, `limits.edgeLength`, the events of section 3 and the capability `stream` (section 8). Every other field of the solve request keeps its solver.md name and meaning: `profile`, `definitionHash`, `stateHash`, `goalHash`, `definition`, `initialState`, `goal`, `metric`, `limits`, `seed`. A solver without the capability returns `unsupported` and does not stream. Not additive: the transport. solver.md has one JSON response per process; a stream is JSON lines, one JSON object per line on stdout (**O** 2026-11-13, owner), which needs its own negotiation, not designed here (**U**, section 9). Transport details beyond JSON lines and the required echo fields (section 3) are **U**.
 
 ```json
 {"protocol":"puzlwerk.solver","version":{"major":1,"minor":1},"requestId":"r1","kind":"solve","mode":"stream",
@@ -26,12 +26,22 @@ Shape illustration, not a valid fixture (placeholder hashes). `definition` and `
 | `goal.kind` | Content | Success test (the caller recomputes it) |
 | --- | --- | --- |
 | `state` | `state`: wire-v1 target; `frame`: `fixed` or `any-rotation` (solver.md frames) | final state equals the target under the frame rule |
-| `predicate` | `id`: string; `params`: object | opaque until M2 (no registry is defined): the solver evaluates the named predicate; who evaluates it for replay is deferred to M2 (**O** note below) |
+| `predicate` | `id`: nonempty string; optional `params`: object | the solver evaluates the named predicate; the success test and who evaluates it for replay are deferred to M2 (**O** note below) |
 | `subgoal` | `id`: label; `goal`: any goal above | the inner goal holds; the label is echoed, nothing else changes |
 
-**P** `predicate` covers goals such as "the front shows month M" without a full target state; the predicate is data named by ID, never code in the request. Until M2 the ID and `params` are opaque to this contract; a solver that does not know an `id` returns `unsupported`; it is never weakened to a color or state goal. A `subgoal` is a stage of a larger task (for example one edge of a chain): its final state is the state of the next request.
+**P** `predicate` covers goals such as "the front shows month M" without a full target state; the predicate is data named by ID, never code in the request. The `id` and the contents of `params` are opaque to this contract; a solver that does not know an `id` returns `failed` `unsupported`; it is never weakened to a color or state goal. A `subgoal` is a stage of a larger task (for example one edge of a chain): its final state is the state of the next request.
 
-**U** The goal document schema is milestone M2 and not written; the three kinds above are the stream-level shape only. **O** 2026-11-13 (owner): the predicate registry (IDs, parameter schemas, who evaluates a predicate for replay) is deferred to M2 with the goal document. Until then this contract treats `predicate` goals as opaque: `id` and `params` are passed through, no registry is defined, and the calendar beam keeps using a `state` goal.
+**O** 2026-11-13 (owner): the predicate registry (IDs, parameter schemas, who evaluates a predicate for replay) is deferred to M2 with the goal document. The calendar beam keeps using a `state` goal.
+
+**O** 2026-11-14 (owner): a minimal goal document is specified now. The `goal` of the request is exactly one of the objects below; the key sets are closed.
+
+| `kind` | Required keys | Optional keys | Value rules |
+| --- | --- | --- | --- |
+| `state` | `kind`, `frame`, `state` | none | `frame` is `fixed` or `any-rotation`; `state` is a wire-v1 state object |
+| `predicate` | `kind`, `id` | `params` | `id` is a nonempty string; `params`, if present, is a JSON object (its contents are opaque, an omitted `params` means the same as `{}`) |
+| `subgoal` | `kind`, `id`, `goal` | none | `id` is a nonempty string; `goal` is a `state` or `predicate` goal or another `subgoal` |
+
+A solver MUST reject a goal whose `kind` is not in the table, that lacks a required key, that has a key outside the two lists of its kind, or whose value has the wrong type, with `failed` `invalid` (detail: the path of the key, for example `goal.extra`). It MUST NOT ignore, strip or reinterpret an unknown key. A well-formed `predicate` goal with an `id` the solver does not support gets `failed` `unsupported`; the check for a valid shape comes first, so a malformed goal is `invalid` even if its `id` is unknown. Deferred to M2 and not defined here: the predicate registry (IDs, parameter schemas) and who evaluates a predicate when the caller replays `final.moves`; until M2 no caller can verify a `predicate` success, so the GUI treats such a run as unverified (section 5). Fixtures: valid `state`, valid `predicate` with and without `params`, unknown `id` (valid shape, stream `unsupported-predicate-id`), missing `id`, extra key, wrong type (section 9).
 
 ### 2.2 Budget (`limits`)
 
@@ -49,12 +59,14 @@ The budget is the `limits` object of solver.md plus `edgeLength`. All values are
 
 ## 3. Event stream
 
-One ordered sequence of events per request. One JSON object per line. **O** 2026-11-13 (owner): every event carries `protocol`, `version`, the request's `requestId` and `seq`, an integer that starts at 0 and grows by exactly 1; all four are required. A missing one is a protocol violation (`MissingEcho` in the reference check), distinct from a wrong value (`BadEnvelope`, `BadSeq`). Events of another `requestId` are not part of this stream.
+**O** 2026-11-14 (owner): events, cancel (section 4) and progress (rule 7) are a fixed part of this contract, no longer interim. The Cubacle ABI is out of scope here (section 7.1). Normative words: MUST and MUST NOT are violations the reference check reports; SHOULD is a recommendation the check does not enforce.
+
+The event set is closed: `committed`, `progress`, `final`, `failed`. One ordered sequence of events per request. One JSON object per line. **O** 2026-11-13 (owner): every event carries `protocol`, `version`, the request's `requestId` and `seq`, an integer that starts at 0 and grows by exactly 1; all four are required. A missing one is a protocol violation (`MissingEcho` in the reference check), distinct from a wrong value (`BadEnvelope`, `BadSeq`). Events of another `requestId` are not part of this stream.
 
 | Event | Fields | Meaning |
 | --- | --- | --- |
 | `committed` | `fromIndex`, `moves[]` | Moves `fromIndex` .. `fromIndex+len-1` of the answer are committed |
-| `progress` | `depth`, `beamSize`, optional `lowerBound` with `lowerBoundMethod` | Search status; no claim about the answer except a bound |
+| `progress` | `depth`, `beamSize`, optional `lowerBound` with `lowerBoundMethod` | Search status; no claim about the answer except a bound; optional, a solver MAY emit none |
 | `final` | `moves[]`, `certificate` | The complete answer and what is known about it; terminal |
 | `failed` | `reason`, optional `detail` | No complete answer; terminal |
 
@@ -62,14 +74,15 @@ A move is the canonical AST of the data model: `{"axis":"X|Y|Z","layers":[...],"
 
 ### 3.1 Rules
 
-1. **Order.** `seq` is gapless and increasing. Exactly one terminal event (`final` or `failed`) ends the stream and nothing follows it. A closed transport without a terminal event is a transport failure (section 5).
+1. **Order.** `seq` MUST be gapless and increasing in transmission order. Exactly one terminal event (`final` or `failed`) MUST end the stream and nothing MUST follow it: no further `committed`, `progress`, `final` or `failed`, also not `failed` `cancelled` after a `final`. `committed` and `progress` MAY alternate in any order before the terminal event. A closed transport without a terminal event is a transport failure (section 5).
 2. **Continuity.** `fromIndex` of a `committed` event equals the number of moves committed so far (0 for the first). `moves` is nonempty. No gap, overlap or repetition.
 3. **Legality.** Every committed move is legal under the definition's move policy on the state it applies to. The adapter applies each chunk on receipt and rejects an illegal one (`BACKEND_PROTOCOL`).
 4. **Final extends committed.** `final.moves` begins with exactly the committed moves; the remainder is the tail. A `final` without any `committed` event is valid (the whole answer is the tail); this is also the form of a one-shot backend (section 7).
 5. **Goal.** The caller replays `final.moves` on `initialState` and evaluates the goal itself. A backend assertion alone is never success (solver.md). A failed check ends the run as `REPLAY_FAILED`; the played prefix stays played.
 6. **Length.** The committed count never exceeds `limits.maxMoves`, checked on every `committed` event, and `final.moves` never exceeds it.
-7. **Progress.** `depth` (moves in the longest retained candidate) is at least the committed length; `beamSize` is at least 1. `lowerBound`, if present, is a proven lower bound on the answer length under the metric, needs `lowerBoundMethod` (an ID from `capabilities`), and never decreases between events. A search statistic without proof is not a `lowerBound`.
-8. **Unknown values.** An unknown event kind, field, certificate kind or failure reason rejects (solver.md); additive fields need a new advertised minor.
+7. **Progress.** A `progress` event has the fields `depth`, `beamSize` and optionally `lowerBound` with `lowerBoundMethod`, and no others. `depth` (moves in the longest retained candidate) MUST be an integer at least the committed length and MUST NOT decrease between `progress` events. `beamSize` MUST be an integer at least 1; it has no monotonicity rule. `lowerBound`, if present, is a proven lower bound on the answer length under the metric, MUST come with `lowerBoundMethod` (an ID from `capabilities`; the method alone without a bound is a violation), and MUST NOT decrease between `progress` events; a `bounded` certificate on `final` MUST NOT claim a lower `lowerBound` than the last `progress` event did. A search statistic without proof is not a `lowerBound`. `progress` makes no other claim: it never says that moves are committed or that an answer exists.
+8. **Unknown values.** An unknown event kind, field, certificate kind or failure reason rejects (solver.md). A new value of a closed set (events, certificate kinds, failure reasons, goal kinds) or an additive field needs a new advertised minor (section 8).
+9. **Cancel.** `failed` with `reason: "cancelled"` is valid only on a stream whose request was cancelled (section 4).
 
 **P** Terminal events (`final`, `failed`) may carry the result echo of solver.md as optional fields: `backend`, `definitionHash`, `stateHash`, `goalHash`, `elapsedMs`, `nodeCount`, `limits`, `metric`; `final` may add `finalStateHash`, which the caller compares with the hash of its own replayed state. The reference check verifies only `finalStateHash`; the other terminal echo fields stay optional and are accepted, not compared (the required fields are `protocol`, `version`, `requestId` and `seq` above). The solver.md field `optimality` (`proven|notProven`) is expressed by the certificate kind below.
 
@@ -87,11 +100,28 @@ A beam answer is `bestEffort` or `bounded`, never `optimal`, unless an audited e
 
 ## 4. Cancel and budget
 
-**P** The caller cancels with `{"kind":"cancel","requestId":"r1"}` on the same transport. The solver stops, emits the terminal event `failed` with `reason: "cancelled"` and no further `committed`. Committed events already in flight before the solver saw the cancel stay valid. A `final` that arrives after the cancel request is not accepted as solved (solver.md: "No response after cancellation is accepted as solved"); the caller ends the run as `cancelled` and keeps the moves it applied. The adapter may end the stream itself (terminate the child, solver.md) and synthesize `failed` with reason `cancelled` or `timeout`; it discards partial lines. **O** 2026-11-13: a verified `final` after cancel follows the rules of solver.md; this contract defines no second path.
+**O** 2026-11-14 (owner): this section is normative. The caller cancels with `{"kind":"cancel","requestId":"r1"}` on the same transport. After the solver sees it, the solver MUST stop, MUST NOT emit further `committed` events and SHOULD end the stream with the terminal event `failed` with `reason: "cancelled"`. `committed` and `progress` events already in flight before the solver saw the cancel stay valid; `committed` events stay committed (rule 2 of section 1). A `cancel` after the terminal event, or with an unknown `requestId`, has no effect and produces no event; a stream never gets a second terminal event (rule 1).
+
+A `final` that arrives after the cancel request is a well-formed stream: the check of section 3 still applies and its moves are replayed, but the run ends as `cancelled`, not as solved (solver.md: "No response after cancellation is accepted as solved"); the caller keeps the moves it applied. A verified `final` after cancel follows the rules of solver.md; this contract defines no second path (**O** 2026-11-13). The reference check reports `outcome: "cancelled"` for such streams and `CancelNotRequested` for `failed` `cancelled` on a stream without a cancel request. The adapter may end the stream itself (terminate the child, solver.md) and synthesize `failed` with reason `cancelled` or `timeout`; it discards partial lines.
 
 ## 5. Failure behavior
 
-`failed.reason` uses the vocabulary of solver.md: `timeout`, `nodeLimit`, `memoryLimit`, `depthLimit`, `cancelled`, `incompleteMethod`, `unsupported`, `invalid`, `error`, and `unsatisfiable`. `unsatisfiable` needs `method` and `scope` naming a complete method (solver.md); without them it is a protocol violation. All other reasons carry no claim that a solution does or does not exist.
+**O** 2026-11-14 (owner): the stop reasons are a closed enumeration. `failed.reason` is exactly one of the ten values below, which use the vocabulary of solver.md; `final` has no reason field (a `final` with one is an unknown field), its closed set is the certificate kind of section 3.2. A new value needs a new advertised minor (rule 8). An unknown value is a violation (`BadFailReason`).
+
+| `reason` | Carried by | Meaning |
+| --- | --- | --- |
+| `timeout` | `failed` | the wall time budget ended the search (also adapter-synthesized) |
+| `nodeLimit` | `failed` | the node budget ended the search |
+| `memoryLimit` | `failed` | the memory budget ended the search |
+| `depthLimit` | `failed` | the search is exhausted up to `maxMoves` or its depth bound without an answer; no proof |
+| `cancelled` | `failed` | the caller cancelled (section 4; also adapter-synthesized) |
+| `incompleteMethod` | `failed` | the method ended without an answer and is not complete |
+| `unsupported` | `failed` | a feature, goal kind, frame or predicate `id` is not supported; no search |
+| `invalid` | `failed` | the request or goal is malformed (solver.md codes in `detail`) |
+| `error` | `failed` | backend, internal or transport failure |
+| `unsatisfiable` | `failed` | no answer exists, by a complete method; needs `method` and `scope` (solver.md); without them it is a protocol violation |
+
+All reasons except `unsatisfiable` carry no claim that a solution does or does not exist. Fixtures: one valid stream per value (section 9).
 
 - Committed moves stay valid after any `failed`. The caller's state is the state after the moves it applied; it can request again from that state (section 6).
 - Protocol violations (gap, repeated `fromIndex`, move after terminal, illegal move, prefix mismatch, unknown kind, wrong `requestId`) make the adapter cancel the run and report `BACKEND_PROTOCOL`; the moves applied before the violation stay applied.
@@ -116,7 +146,7 @@ Nothing is rewound because only committed moves were ever played.
 
 **P** ABI 1 maps to the degenerate stream: status 0 gives `final` with all moves as tail and `bestEffort`; status 1 gives `failed` `invalid`; status 2 gives `failed` `depthLimit` (the search with `max_moves` found nothing, which is not `unsatisfiable`). The adapter converts wire-v1 to the scramble text through the Cubacle fixed frame (**O** Q3) and replays the answer. **O** 2026-11-13: ABI 1 delivers no `optimal` certificate, only `bounded` or `bestEffort` as above (status 0 stays `bestEffort`; `docs/wasm.md` calls the 2x2x2 answer optimal but names no audited method). **U** Whether and when `optimal` certificates become available is not decided.
 
-**O** 2026-11-13: Cubacle gets ABI 2 with a time-budget argument for `cubacle_solve` (`cubacle_abi_version() -> 2`). ABI 1 stays deliverable with a small default budget. Budget comes now, events later: streaming, cancel and progress are a separate, later ABI step, so a streaming module is a further ABI version, not part of ABI 2. The Cubacle change is not linked here (no Cubacle PR exists). **U** Not designed for the streaming step: how a synchronous WASM search yields events (a poll export plus cancel flag in linear memory, or a worker that posts events), the byte form of an event (the JSON of section 3 as UTF-8 is the proposal), and budget fields beyond the time budget. Shared-prefix access in Cubacle: **O** 2026-11-13 (owner): shared-prefix access of both searches is settled as a spike, wstein/puzlwerk#55; until it reports, the contract commits at edge end only (no commit inside an edge).
+**O** 2026-11-13: Cubacle gets ABI 2 with a time-budget argument for `cubacle_solve` (`cubacle_abi_version() -> 2`). ABI 1 stays deliverable with a small default budget. Budget comes now, events later: ABI 2 is the time budget only; the Cubacle ABI for streaming, cancel and progress is out of scope of this contract and a separate, later ABI step, so a streaming module is a further ABI version. Events, cancel and progress themselves are fixed by sections 3 and 4 (**O** 2026-11-14). The Cubacle change is not linked here (no Cubacle PR exists). **U** Not designed for that later ABI step: how a synchronous WASM search yields events (a poll export plus cancel flag in linear memory, or a worker that posts events), the byte form of an event (the JSON of section 3 as UTF-8 is the proposal), and budget fields beyond the time budget. Shared-prefix access in Cubacle: **O** 2026-11-13 (owner): shared-prefix access of both searches is settled as a spike, wstein/puzlwerk#55; until it reports, the contract commits at edge end only (no commit inside an edge).
 
 ### 7.2 Calendar beam
 
@@ -126,10 +156,12 @@ Nothing is rewound because only committed moves were ever played.
 
 ## 8. Capabilities and versioning
 
-**P** The `capabilities` response (solver.md) gains `stream`: `{"events":["committed","progress","final","failed"],"certificates":[...],"goalKinds":[...],"predicates":[...] (opaque until M2, **O** note in section 2.1),"lowerBoundMethods":[...],"cancel":"native|adapter"}`. A caller streams only what is listed. This contract is additive to protocol 1.x: a 1.0 peer never sees a stream. Breaking changes (event semantics, certificate meaning, rule 1) need a major version.
+**P** The `capabilities` response (solver.md) gains `stream`: `{"events":["committed","progress","final","failed"],"certificates":[...],"goalKinds":[...],"predicates":[...] (ids only; registry deferred to M2, **O** note in section 2.1),"lowerBoundMethods":[...],"cancel":"native|adapter"}`. A caller streams only what is listed. This contract is additive to protocol 1.x: a 1.0 peer never sees a stream. Breaking changes (event semantics, certificate meaning, rule 1) need a major version.
 
 ## 9. Conformance vectors
 
-`test/fixtures/solver-stream/vectors.json` holds valid streams with expected outcomes and invalid streams, each naming the code the reference check must report. Initial and target states are the wire-v1 fixtures in `test/fixtures/wire/` (2x2x2 `state-2-scrambled.json` is R U F' from home). The reference check replays moves with the ReScript core (`PwMove`, `PwCodec`). Not covered: the solver.md request fields other than `goal` and `limits` and the terminal echo fields other than `finalStateHash`, goal kind `predicate` (opaque until M2), frame `any-rotation` (not evaluated), certificate method truth (method IDs in vectors are fixture placeholders, not audited methods), real solver output, the Cubacle ABI and the calendar beam (no run).
+`test/fixtures/solver-stream/vectors.json` holds valid streams with expected outcomes and invalid streams, each naming the code the reference check must report. Initial and target states are the wire-v1 fixtures in `test/fixtures/wire/` (2x2x2 `state-2-scrambled.json` is R U F' from home). The reference check replays moves with the ReScript core (`PwMove`, `PwCodec`). Not covered: the solver.md request fields other than `goal` and `limits` and the terminal echo fields other than `finalStateHash`, predicate evaluation (deferred to M2, section 2.1), frame `any-rotation` (not evaluated), certificate method truth (method IDs in vectors are fixture placeholders, not audited methods), real solver output, the Cubacle ABI and the calendar beam (no run).
 
-Open points (**U**): the goal document (M2); the streaming ABI design (events, cancel, progress); the mapping of stop reasons (section 7); stream transport details beyond JSON lines and the required echo fields. Decided by the owner on 2026-11-13 and no longer open: shared-prefix access (spike wstein/puzlwerk#55, commits at edge end meanwhile), the interim move wire form until M2, the reading of "no exposure before verification", deferral of the predicate registry to M2, JSON lines and the required echo fields.
+Open points (**U**): stream transport details beyond JSON lines and the required echo fields (section 2); optimal certificates and budget fields beyond time for the Cubacle ABI (7.1); mapping the calendar beam's stops `search_stalled` and `best_effort_unreachable` to a reason (7.2); the registry and replay evaluation of predicates (M2, deferred by the owner, section 2.1). Decided by the owner on 2026-11-13 and no longer open: shared-prefix access (spike wstein/puzlwerk#55, commits at edge end meanwhile), the interim move wire form until M2, the reading of "no exposure before verification", deferral of the predicate registry to M2, JSON lines and the required echo fields. Decided by the owner on 2026-11-14 and no longer open: the minimal goal document (section 2.1), events, cancel and progress as a fixed contract (sections 3 and 4), the closed stop reasons (section 5). The streaming ABI of Cubacle is out of scope here, not open in this contract.
+
+**P** Approval: the Cubacle maintainer approval is the owner's comment on the pull request. The pull request goes Ready only after that comment and a CLEAR review of the exact head.
