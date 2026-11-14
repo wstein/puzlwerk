@@ -268,12 +268,17 @@ let assessWith = (definition, state, profile, certificate, checkPolicy) =>
       }
     }
     let outside = switch (profile, certificate) {
-    | (Some(FaceTurns), Some(moves)) if applies => !(moves->Array.every(m => inProfile(n, m)))
+    | (Some(FaceTurns), Some(moves)) if !checkPolicy => !(moves->Array.every(m => inProfile(n, m)))
     | _ => false
     }
     let reachability = switch certificate {
-    // The certificate leaves the profile: the claimed profile does not describe the sequence.
-    | _ if outside => Unknown(CertificateOutsideProfile)
+    // assessAssuming only: the certificate leaves the claimed profile, so the profile does not describe the
+    // sequence. The corner twist sum holds for every layer selection and still disproves.
+    | _ if outside =>
+      switch byInvariants {
+      | Some(Disproved("corner-twist-sum")) => Disproved("corner-twist-sum")
+      | _ => Unknown(CertificateOutsideProfile)
+      }
     // The profile does not cover the policy: a valid replay under the policy still proves reachability;
     // the profile invariants are suppressed.
     | Some(moves) if !applies =>
