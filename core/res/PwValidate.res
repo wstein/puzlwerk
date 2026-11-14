@@ -7,6 +7,7 @@ type unknownReason =
   | NoMethod
   | CertificateIllegalMove
   | CertificateMismatch
+  | ProfileOutsidePolicy
 
 type reachability =
   | VerifiedByReplay(array<PwMove.t>)
@@ -16,6 +17,7 @@ type reachability =
 
 type report = {
   structural: result<unit, PwCodec.error>,
+  profile: option<profile>,
   invariants: array<invariant>,
   reachability: reachability,
 }
@@ -223,21 +225,41 @@ let replay = (definition, state, certificate) =>
 
 // ---- assessment -----------------------------------------------------------------------------------
 
-let assess = (definition, state, profile, certificate) =>
+// The profile is within the policy when every move the definition permits belongs to the profile's move
+// set. FaceTurns is the six outer face turns: the policy outer-wide at N=2 permits exactly those (up to the
+// whole-cube rotation that turning the opposite face adds); at N>=3 it permits wide moves too, and the
+// policy any permits every selection.
+let profileWithinPolicy = (definition, profile) =>
+  switch profile {
+  | None => true
+  | Some(FaceTurns) =>
+    PwShell.sizeToInt(PwCodec.size(definition)) == 2 && PwCodec.movePolicy(definition) == OuterWide
+  }
+
+let assessWith = (definition, state, profile, certificate, checkPolicy) =>
   switch PwCodec.decodeState(definition, PwCodec.encodeState(state)) {
-  | Error(e) => {structural: Error(e), invariants: [], reachability: Unknown(StructurallyInvalid)}
+  | Error(e) => {
+      structural: Error(e),
+      profile,
+      invariants: [],
+      reachability: Unknown(StructurallyInvalid),
+    }
   | Ok(_) =>
     let (n, es) = entries(definition, state)
-    let invariants = invariantsOf(n, es, profile)
+    // Profile invariants apply only when the profile covers every permitted move; the corner twist sum
+    // holds for every layer selection and always applies.
+    let applies = !checkPolicy || profileWithinPolicy(definition, profile)
+    let invariants = invariantsOf(n, es, applies ? profile : None)
     let byInvariants = switch invariants->Array.find(i => !i.holds) {
     | Some(i) => Some(Disproved(i.name))
     | None =>
       switch profile {
-      | Some(FaceTurns) if n == 2 || n == 3 => Some(VerifiedComplete(completeMethod))
+      | Some(FaceTurns) if applies && (n == 2 || n == 3) => Some(VerifiedComplete(completeMethod))
       | _ => None
       }
     }
     let reachability = switch certificate {
+    | _ if !applies => byInvariants->Option.getOr(Unknown(ProfileOutsidePolicy))
     | Some(moves) =>
       switch replay(definition, state, moves) {
       | Matches => VerifiedByReplay(moves)
@@ -246,5 +268,11 @@ let assess = (definition, state, profile, certificate) =>
       }
     | None => byInvariants->Option.getOr(Unknown(NoMethod))
     }
-    {structural: Ok(), invariants, reachability}
+    {structural: Ok(), profile, invariants, reachability}
   }
+
+let assess = (definition, state, profile, certificate) =>
+  assessWith(definition, state, profile, certificate, true)
+
+let assessAssuming = (definition, state, profile, certificate) =>
+  assessWith(definition, state, profile, certificate, false)
