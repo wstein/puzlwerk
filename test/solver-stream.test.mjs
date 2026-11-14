@@ -142,3 +142,28 @@ test("registry codes: every code of the entry has an invalid vector", () => {
 test("at protocol minor 1 the registry does not exist: every predicate id is opaque", () => {
   for (const r of registry.invalid) assert.deepEqual(checkRequest({ ...r, version: { major: 1, minor: 1 } }, { stickers }), { ok: true }, r.name);
 });
+
+// Doc-level expectations: the contract, the task list and the research register name the registry entry, its closed key set, the
+// version, the slot order, the replay and every code the reference check reports for it.
+const spec = (name) => readFileSync(new URL(`../specs/001-core-foundation/${name}`, import.meta.url), "utf8");
+const section = (md, heading) => {
+  const start = md.indexOf(heading);
+  assert.ok(start >= 0, `heading ${heading} missing`);
+  const next = md.slice(start + heading.length).search(/\n#{2,3} /);
+  return next < 0 ? md.slice(start) : md.slice(start, start + heading.length + next);
+};
+const contract = spec("contracts/solver-stream.md");
+test("contract section 2.3 specifies the entry front-image-classes", () => {
+  const s = section(contract, "### 2.3 Predicate registry");
+  for (const needle of [
+    "protocol minor 2", "version 1.2", "`front-image-classes`", ...registry.keys.map((k) => `\`${k}\``), "exactly 9", "nonempty", "wire-v1",
+    "row-major as seen from the front with +Y up", "24 global rotations", "C1", "centre only", "`failed` `unsupported`", "`failed` `invalid`",
+    "All", "Any", "StickerAt", "100,000", "depth 3", ...registry.invalid.map((r) => r.code),
+  ]) assert.ok(s.includes(needle), `section 2.3 lacks: ${needle}`);
+});
+test("contract section 3.3 specifies final.rotation and section 8 the predicates capability", () => {
+  const r = section(contract, "### 3.3 Final rotation");
+  for (const needle of ["`rotation`", "version 1.2", "nine integers", "`RotationNotAllowed`", "`BadRotation`", "`any-rotation`", "`front-image-classes`"]) assert.ok(r.includes(needle), `section 3.3 lacks: ${needle}`);
+  const c = section(contract, "## 8. Capabilities and versioning");
+  for (const needle of ["`predicates`", "`front-image-classes`", "version 1.2", "minor"]) assert.ok(c.includes(needle), `section 8 lacks: ${needle}`);
+});
