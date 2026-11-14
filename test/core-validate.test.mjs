@@ -343,13 +343,15 @@ test("a verifying certificate wins over the invariant verdict; a rejected one le
   assert.equal(r.profile, FACE);
   // Wrong certificate on a reachable state: the complete method decides.
   assert.deepEqual(assess(2, s, { profile: FACE, certificate: [] }).reachability, { TAG: "VerifiedComplete", _0: "face-turn-invariants-v1" });
-  // Mismatching certificate on an unreachable state: the invariant disproves. A move outside the profile is
-  // unknown instead (see the assessAssuming test).
+  // Mismatching or illegal certificate: the invariants decide (the whole-cube X move is illegal for N=2).
   const corner = piecesOfKind(2, 3)[0];
   const twist = stabilizers(2, corner).find((o) => !Orientation.equal(o, Orientation.identity));
   const bad = edit(2, { [corner]: { o: twist } });
   assert.deepEqual(assess(2, bad, { profile: FACE, certificate: [] }).reachability, { TAG: "Disproved", _0: "corner-twist-sum" });
-  assert.deepEqual(assess(2, bad, { profile: FACE, certificate: [{ axis: "X", layers: [0, 1], turns: 1 }] }).reachability, { TAG: "Unknown", _0: "CertificateOutsideProfile" });
+  assert.deepEqual(assess(2, bad, { profile: FACE, certificate: [{ axis: "X", layers: [0, 1], turns: 1 }] }).reachability, { TAG: "Disproved", _0: "corner-twist-sum" });
+  const whole = { axis: "X", layers: [0, 1], turns: 1 };
+  assert.deepEqual(assess(2, home(2), { profile: FACE, certificate: [whole] }).reachability, { TAG: "VerifiedComplete", _0: "face-turn-invariants-v1" });
+  assert.deepEqual(assess(3, home(3), { ...ASSUME, certificate: [whole] }).reachability.TAG, "Unknown");
 });
 
 test("assessAssuming: every certificate move must be in the claimed profile", () => {
@@ -368,4 +370,13 @@ test("assessAssuming: every certificate move must be in the claimed profile", ()
   }
   // Without the profile the same certificate is not restricted.
   assert.equal(assess(3, s, { assume: true, certificate: [rw] }).reachability.TAG, "VerifiedByReplay");
+});
+
+test("assessAssuming: a violated corner twist sum stays disproved, whatever the certificate", () => {
+  const corner = piecesOfKind(3, 3)[0];
+  const twist = stabilizers(3, corner).find((o) => !Orientation.equal(o, Orientation.identity));
+  const bad = edit(3, { [corner]: { o: twist } });
+  assert.deepEqual(assess(3, bad, { ...ASSUME, certificate: [rw] }).reachability, { TAG: "Disproved", _0: "corner-twist-sum" });
+  // Other violated invariants do not disprove when the certificate leaves the profile.
+  assert.deepEqual(assess(3, run(3, [rw]), { ...ASSUME, certificate: [rw] }).reachability, { TAG: "Unknown", _0: "CertificateOutsideProfile" });
 });

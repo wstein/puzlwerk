@@ -24,7 +24,7 @@ type unknownReason =
   | CertificateMismatch
   // A profile was given and the definition's move policy permits moves outside it: no positive verdict.
   | ProfileOutsidePolicy
-  // The certificate contains a move outside the profile that was claimed (assessAssuming, or assess within the policy).
+  // assessAssuming only: the certificate contains a move outside the claimed profile.
   | CertificateOutsideProfile
 
 type reachability =
@@ -53,8 +53,8 @@ let assess: (PwCodec.definition, PwCodec.state, option<profile>, option<array<Pw
 // consistency comes first). The profile is within the policy only when every move the policy permits is in
 // the profile: FaceTurns holds for the policy outer-wide at N=2 only. The policy any at N=2 counts as outside
 // although the whole-cube rotation there is R L'; this stays conservative.
-// - Within the policy: the profile invariants and the complete method apply; a certificate whose moves are
-//   not all in the profile gives Unknown(CertificateOutsideProfile).
+// - Within the policy: the profile invariants and the complete method apply; a certificate that is rejected
+//   (illegal or mismatching) leaves the verdict to the invariants.
 // - Outside the policy: the profile invariants are not reported and give no verdict, the complete method is
 //   not used, and only the corner twist sum (valid for every layer selection) can still disprove. A valid
 //   replay certificate that is legal under the definition's policy still gives VerifiedByReplay (reachability
@@ -63,7 +63,8 @@ let assess: (PwCodec.definition, PwCodec.state, option<profile>, option<array<Pw
 //
 // assessAssuming skips the policy check: the caller asserts that the puzzle's actual moves are the profile's
 // (for example a puzzle restricted to face turns), so every certificate move must be in the profile, else
-// Unknown(CertificateOutsideProfile). No definition policy expresses that yet (wire v1 has outer-wide and
+// Unknown(CertificateOutsideProfile) (a violated corner twist sum still gives Disproved). This rule is the
+// author's design, not an owner decision. No definition policy expresses that yet (wire v1 has outer-wide and
 // any; owner decision 2026-11-14: no "face-turns" policy value now), so the complete method at N=3 is
 // reachable only through this entry point until T013b; the verdict is exactly as sound as the assertion, and
 // the report carries the profile.
