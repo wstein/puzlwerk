@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { checkRequest, checkStream } from "./helpers/solver-stream-reference.mjs";
+import { FAIL_REASONS, checkRequest, checkStream } from "./helpers/solver-stream-reference.mjs";
 import * as Codec from "../core/res/PwCodec.res.mjs";
 import * as Move from "../core/res/PwMove.res.mjs";
 import * as Shell from "../core/res/PwShell.res.mjs";
@@ -30,7 +30,7 @@ const withEnvelope = (v) => ({ ...v, events: v.events.map((e) => ({ ...structure
 function fill(v) {
   const goalOf = (g) => (g.kind === "subgoal" ? { ...g, goal: goalOf(g.goal) } : g.kind === "state" ? { ...g, target: text(g.state.file) } : g);
   return {
-    ctx: { definition: text(vectors.definition), initial: stateText(v.initial), goal: goalOf(v.goal), requestId: ENVELOPE.requestId, budget: v.budget, closed: v.closed },
+    ctx: { definition: text(vectors.definition), initial: stateText(v.initial), goal: goalOf(v.goal), requestId: ENVELOPE.requestId, budget: v.budget, closed: v.closed, cancelRequested: v.cancel === true },
     events: v.events,
   };
 }
@@ -52,6 +52,8 @@ const SECOND_RULE = {
   "committed-layer-out-of-range": "FinalPrefix",
   "final-tail-move-illegal": "GoalNotReached",
   "final-tail-misses-the-goal": "FinalHashMismatch",
+  "final-after-final": "GoalNotReached",
+  "depth-below-committed-length": "ProgressDepthDecreased",
 };
 const valid = vectors.valid.map(withEnvelope);
 const byName = Object.fromEntries(valid.map((v) => [v.name, v]));
@@ -87,11 +89,21 @@ for (const v of vectors.invalid) {
     else assert.equal(result.ok, true, JSON.stringify(result));  });
 }
 
-test("goal replay covers 5 valid vectors; the 4 failed-stream vectors are not goal-evaluated", () => {
+test("goal replay covers 6 valid vectors; failed streams and the predicate-goal stream are not goal-evaluated", () => {
   const evaluated = valid.filter((v) => v.expect.evaluated === true).length;
-  assert.equal(evaluated, 5);
+  assert.equal(evaluated, 6);
   const skipped = valid.filter((v) => v.expect.evaluated === null).map((v) => v.name);
-  assert.deepEqual(skipped, ["cancelled-after-committed-prefix", "timeout-without-commit", "unsupported-goal", "unsatisfiable-names-method-and-scope"]);
+  assert.deepEqual(skipped, [
+    "cancelled-after-committed-prefix", "timeout-without-commit", "unsupported-goal", "unsatisfiable-names-method-and-scope",
+    "node-limit", "memory-limit", "depth-limit", "incomplete-method", "error-backend", "invalid-goal-extra-key",
+    "unsupported-predicate-id", "predicate-goal-final",
+  ]);
+});
+
+// Closed stop reasons (contract section 5): every `failed.reason` value has exactly one valid vector.
+test("every failed reason of the closed set has a valid vector", () => {
+  const seen = new Set(valid.flatMap((v) => v.events.filter((e) => e.event === "failed").map((e) => e.reason)));
+  assert.deepEqual([...seen].sort(), [...FAIL_REASONS].sort());
 });
 
 for (const r of vectors.requests.valid) {

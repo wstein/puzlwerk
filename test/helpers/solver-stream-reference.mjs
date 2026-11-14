@@ -24,8 +24,9 @@ export function checkRequest(request, opt = {}) {
     const goal = (g) => {
       gate(opt, "BadGoal", isObj(g) && GOALS.includes(g.kind));
       if (!isObj(g) || !GOALS.includes(g.kind)) return;
-      if (g.kind === "state") gate(opt, "BadGoal", keysAre(g, ["kind", "frame", "state"]) && ["fixed", "any-rotation"].includes(g.frame));
-      if (g.kind === "predicate") gate(opt, "BadGoal", keysAre(g, ["kind", "id", "params"]) && typeof g.id === "string" && g.id !== "" && isObj(g.params));
+      // Closed key sets (contract section 2.1): state {kind, frame, state}; predicate {kind, id, params?}; subgoal {kind, id, goal}.
+      if (g.kind === "state") gate(opt, "BadGoal", keysAre(g, ["kind", "frame", "state"]) && ["fixed", "any-rotation"].includes(g.frame) && isObj(g.state));
+      if (g.kind === "predicate") gate(opt, "BadGoal", keysAre(g, ["kind", "id"], ["params"]) && typeof g.id === "string" && g.id !== "" && (!("params" in g) || isObj(g.params)));
       if (g.kind === "subgoal") {
         gate(opt, "BadGoal", keysAre(g, ["kind", "id", "goal"]) && typeof g.id === "string" && g.id !== "");
         if (isObj(g.goal)) goal(g.goal);
@@ -57,7 +58,7 @@ export function checkStream(ctx, events, opt = {}) {
   };
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const committed = [];
-  let terminal = false, lastBound = -1, evaluated = null;
+  let terminal = false, lastBound = -1, lastDepth = 0, evaluated = null;
   try {
     events.forEach((e, i) => {
       gate(opt, "AfterTerminal", !terminal);
@@ -80,6 +81,8 @@ export function checkStream(ctx, events, opt = {}) {
       } else if (e.event === "progress") {
         gate(opt, "UnknownField", keysAre(e, [...head, "depth", "beamSize"], ["lowerBound", "lowerBoundMethod"]));
         gate(opt, "ProgressDepth", isInt(e.depth, committed.length) && isInt(e.beamSize, 1));
+        gate(opt, "ProgressDepthDecreased", e.depth >= lastDepth);
+        lastDepth = Math.max(lastDepth, e.depth);
         if ("lowerBound" in e) {
           gate(opt, "LowerBoundUnproven", typeof e.lowerBoundMethod === "string" && isInt(e.lowerBound, 0));
           gate(opt, "LowerBoundDecreased", e.lowerBound >= lastBound);
@@ -101,6 +104,7 @@ export function checkStream(ctx, events, opt = {}) {
         if (c.kind === "bounded") {
           gate(opt, "CertificateFields", keysAre(c, ["kind", "lowerBound", "lowerBoundMethod"]) && isInt(c.lowerBound, 0) && typeof c.lowerBoundMethod === "string");
           gate(opt, "CertificateBound", c.lowerBound <= e.moves.length);
+          gate(opt, "LowerBoundDecreased", c.lowerBound >= lastBound);
         }
         if (c.kind === "bestEffort") gate(opt, "CertificateFields", keysAre(c, ["kind"]));
         if (goal.kind === "state" && goal.frame === "fixed") {
@@ -112,11 +116,13 @@ export function checkStream(ctx, events, opt = {}) {
         gate(opt, "UnknownField", keysAre(e, [...head, "reason"], ["detail", "method", "scope", ...ECHO]));
         terminal = true;
         gate(opt, "BadFailReason", FAIL_REASONS.includes(e.reason));
+        if (e.reason === "cancelled") gate(opt, "CancelNotRequested", ctx.cancelRequested === true);
         if (e.reason === "unsatisfiable") gate(opt, "UnsatNoMethod", typeof e.method === "string" && typeof e.scope === "string");
       } else gate(opt, "UnknownEvent", false);
     });
     gate(opt, "NoTerminal", terminal || !ctx.closed);
-    return { ok: true, applied: committed.length, evaluated };
+    // A final that arrives after a cancel request is a well-formed stream, but the run ends as cancelled (section 4).
+    return { ok: true, applied: committed.length, evaluated, ...(ctx.cancelRequested ? { outcome: "cancelled" } : {}) };
   } catch (e) {
     if (e instanceof Violation) return { ok: false, code: e.code };
     throw e;
