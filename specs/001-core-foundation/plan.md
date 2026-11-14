@@ -16,7 +16,7 @@ Human first reviews this PR, proposed ADRs and Q1–Q7. Record approval scope an
 | --- | --- | --- |
 | M0: compatibility baseline | Audit pinned consumers; preserve licensed legacy definitions, coordinate mappings and old solved results; confirm build/runtime and benchmark runner | Human scope approval; Q1,Q6,Q7; consumer maintainers |
 | M1: exact foundation | Validated definitions/states, doubled coordinates, proper poses, moves/inverses, canonical codec; golden wire schema and complete examples | M0; ADR 0002/0003/0004 approval; phase approval |
-| M2: goals and validation | Color/identity/pose/sticker predicates, symmetry, global-frame semantics, layered reachability reports and bounded parsing | M1; Q4; phase approval |
+| M2: goals and validation | Color/identity/pose/sticker predicates, symmetry, global-frame semantics, layered reachability reports and bounded parsing | M1; Q4 (decided 2026-11-14); phase approval (not given) |
 | M3: negotiated adapter | Capability probe, strict request/response, budgets/cancel, independent replay and negative fake-backend tests | M2; Q3; Cubacle maintainer contract agreement; phase approval |
 | M4: consumer pilots | Separate small CubeLab and CubeAssembler adapters with dual-run comparison; retain old definitions and rollback | M3 or approved core-only pilot; each consumer's approval/PR |
 
@@ -31,6 +31,8 @@ Property suites use recorded seeds and at least 1,000 sequences per certified si
 Classical compatibility means original definitions and goal semantics pass unchanged through approved adapters. Facelet-only export cannot losslessly represent rich identity; reject it unless the caller explicitly selects a documented lossy color-only projection. Browser rendering and Playwright are not needed for this headless specification; consumer UI tests belong to M4.
 
 ## Provisional performance acceptance (AC17, Q5)
+
+Q5 decided 2026-11-14 (owner decision): the budgets and the reference runner below are adopted as proposed. They stay proposals until measured. No phase approval was given.
 
 Record CPU, OS, RAM, Node/compiler versions and commit; use a dedicated 2-vCPU/4-GiB Linux runner, one benchmark process, 100 warm-up samples and 1,000 measured samples, report median/p95. Benchmarks exclude Rust search, compilation, rendering and process startup. Proposed budgets: N=7 single layer transformation p95≤2 ms; complete structural validation p95≤10 ms; encode+decode+validate a ≤1 MiB fixture p95≤50 ms; 10,000 N=7 moves complete in ≤10 s with peak RSS≤256 MiB. Retained state storage should scale O(N²), each move no worse than O(N²), and explicit global-frame goal evaluation at most 24 evaluations. Deep goal-node cost is linear in encoded node count aside from indexed state lookups.
 
