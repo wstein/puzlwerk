@@ -1,0 +1,183 @@
+{"id":"fx-de-a-1","status":"ok","moves":"U L2 D2 R' B L2 F' L F","rotation":"x y'","nodes":6507}
+{"id":"fx-de-a-2","status":"ok","moves":"F L2 D R2 B2 D R L U","rotation":"x' y'","nodes":23254}
+{"id":"fx-de-a-3","status":"ok","moves":"L' D L2 B2 D2 B2 U'","rotation":"x y'","nodes":352}
+{"id":"fx-de-a-4","status":"ok","moves":"U R' F2 U2 F L D F2 D2","rotation":"x y'","nodes":1387}
+{"id":"fx-de-a-5","status":"ok","moves":"U D R' D' F R2 U'","rotation":"y'","nodes":42}
+{"id":"fx-de-a-6","status":"ok","moves":"U R' F2 U2 F L D F2 D2","rotation":"x y'","nodes":2154}
+{"id":"fx-de-a-7","status":"ok","moves":"U' F' L' B' R B' U","rotation":"x' y'","nodes":132}
+{"id":"fx-de-a-8","status":"ok","moves":"U R' F L2 B2 R' L U B'","rotation":"x' y'","nodes":3131}
+{"id":"fx-de-a-9","status":"ok","moves":"U L2 U' B2 R' F' U R' L","rotation":"x z'","nodes":3678}
+{"id":"fx-de-a-10","status":"ok","moves":"R' U2 F2 U' D B2 R2 B","rotation":"x z'","nodes":1246}
+{"id":"fx-de-a-11","status":"ok","moves":"F D L2 D2 L F2 R' L2","rotation":"x z","nodes":512}
+{"id":"fx-de-a-12","status":"ok","moves":"F R' U2 F2 D B' D' F","rotation":"x","nodes":447}
+{"id":"fx-de-a-13","status":"ok","moves":"R' F2 R2 D' F' L2 U2 L'","rotation":"x z","nodes":391}
+{"id":"fx-de-a-14","status":"ok","moves":"U B' R D' F D B U2 F'","rotation":"x","nodes":6101}
+{"id":"fx-de-a-15","status":"ok","moves":"U F2 B R2 F' D2 F2 D' R'","rotation":"x z'","nodes":2329}
+{"id":"fx-de-a-16","status":"ok","moves":"R' U2 D B2 U F B R' F'","rotation":"x z'","nodes":28230}
+{"id":"fx-de-a-17","status":"ok","moves":"U' L B2 R2 B2 D2 R'","rotation":"x z2","nodes":190}
+{"id":"fx-de-a-18","status":"ok","moves":"F U' R2 F2 R D B R2 B2","rotation":"x z'","nodes":5930}
+{"id":"fx-de-a-19","status":"ok","moves":"U' F U2 B' R L U F D'","rotation":"x2","nodes":1428}
+{"id":"fx-de-a-20","status":"ok","moves":"U F' L2 U2 L B D L2 D2","rotation":"x2 z","nodes":1733}
+{"id":"fx-de-a-unpadded-1","status":"ok","moves":"D' B2 U2 L U' L' F' R","rotation":"x' z","nodes":2948}
+{"id":"fx-de-a-unpadded-2","status":"ok","moves":"U R D B' R D2 L2 D' F2","rotation":"x2 y","nodes":10997}
+{"id":"fx-de-a-unpadded-3","status":"ok","moves":"R U R2 B2 U2 B2 D'","rotation":"x y","nodes":124}
+{"id":"fx-de-a-unpadded-4","status":"ok","moves":"U R U2 F2 R2 F L' U B'","rotation":"x' z'","nodes":2116}
+{"id":"fx-de-a-unpadded-5","status":"ok","moves":"U D2 L' B L D2 L U'","rotation":"y","nodes":531}
+{"id":"fx-de-a-unpadded-6","status":"ok","moves":"U R U2 F2 R2 F L' U B'","rotation":"x' z'","nodes":2437}
+{"id":"fx-de-a-unpadded-7","status":"ok","moves":"R F' R D R2 B2 R F","rotation":"x' y","nodes":2386}
+{"id":"fx-de-a-unpadded-8","status":"ok","moves":"U L' B R2 F2 R L' U F'","rotation":"x y","nodes":5658}
+{"id":"fx-de-a-unpadded-9","status":"ok","moves":"D' F B2 R' L D B","rotation":"x z2","nodes":161}
+{"id":"fx-de-a-unpadded-10","status":"ok","moves":"R' U2 F2 U' D B2 R2 B","rotation":"x z'","nodes":1246}
+{"id":"fx-de-a-unpadded-11","status":"ok","moves":"F D L2 D2 L F2 R' L2","rotation":"x z","nodes":512}
+{"id":"fx-de-a-unpadded-12","status":"ok","moves":"F R' U2 F2 D B' D' F","rotation":"x","nodes":447}
+{"id":"fx-de-a-unpadded-13","status":"ok","moves":"R' F2 R2 D' F' L2 U2 L'","rotation":"x z","nodes":391}
+{"id":"fx-de-a-unpadded-14","status":"ok","moves":"U B' R D' F D B U2 F'","rotation":"x","nodes":6101}
+{"id":"fx-de-a-unpadded-15","status":"ok","moves":"U F2 B R2 F' D2 F2 D' R'","rotation":"x z'","nodes":2329}
+{"id":"fx-de-a-unpadded-16","status":"ok","moves":"R' U2 D B2 U F B R' F'","rotation":"x z'","nodes":28230}
+{"id":"fx-de-a-unpadded-17","status":"ok","moves":"U' L B2 R2 B2 D2 R'","rotation":"x z2","nodes":190}
+{"id":"fx-de-a-unpadded-18","status":"ok","moves":"F U' R2 F2 R D B R2 B2","rotation":"x z'","nodes":5930}
+{"id":"fx-de-a-unpadded-19","status":"ok","moves":"L2 D' R' D B L' B' D' L","rotation":"x2 z","nodes":6195}
+{"id":"fx-de-a-unpadded-20","status":"ok","moves":"U F' L2 U2 L B D L2 D2","rotation":"x2 z","nodes":1733}
+{"id":"fx-en-3-zero-1","status":"ok","moves":"U R2 F' R F U'","rotation":"y'","nodes":42}
+{"id":"fx-en-3-zero-2","status":"ok","moves":"U R D R U' R2 D'","rotation":"y'","nodes":167}
+{"id":"fx-en-3-zero-3","status":"ok","moves":"R D R2 B' R B D'","rotation":"y'","nodes":595}
+{"id":"fx-en-3-zero-4","status":"ok","moves":"R U R2 D R' U' D'","rotation":"y'","nodes":876}
+{"id":"fx-en-3-zero-5","status":"ok","moves":"U F' R2 U F' U' F2 U'","rotation":"y'","nodes":935}
+{"id":"fx-en-3-zero-6","status":"ok","moves":"R2 F' R U2 F' U2 F2","rotation":"y'","nodes":257}
+{"id":"fx-en-3-zero-7","status":"ok","moves":"U R' F2 U F2 U2","rotation":"y'","nodes":59}
+{"id":"fx-en-3-zero-8","status":"ok","moves":"U D R2 D' F' R2 F U'","rotation":"y'","nodes":4929}
+{"id":"fx-en-3-zero-9","status":"ok","moves":"U' D F D' F' L' F' R2 B2","rotation":"x' y'","nodes":12918}
+{"id":"fx-en-3-zero-10","status":"ok","moves":"U R D R U' R2 D'","rotation":"y'","nodes":265}
+{"id":"fx-en-3-zero-11","status":"ok","moves":"U2 F' R U2 F R' U2","rotation":"y'","nodes":598}
+{"id":"fx-en-3-zero-12","status":"ok","moves":"U F' R2 F D R2 U' D'","rotation":"y'","nodes":1926}
+{"id":"fx-en-3-zero-13","status":"ok","moves":"R U D R U' R2 D'","rotation":"y'","nodes":626}
+{"id":"fx-en-3-zero-14","status":"ok","moves":"R U R2 F' R F U'","rotation":"y'","nodes":594}
+{"id":"fx-en-3-zero-15","status":"ok","moves":"U D R2 D' F' R2 F U'","rotation":"y'","nodes":1015}
+{"id":"fx-en-3-zero-16","status":"ok","moves":"F' R2 U R' U' F","rotation":"y'","nodes":109}
+{"id":"fx-en-3-zero-17","status":"ok","moves":"U R F' R F U'","rotation":"y'","nodes":76}
+{"id":"fx-en-3-zero-18","status":"ok","moves":"U F' R2 U F' U' F2 U'","rotation":"y'","nodes":5513}
+{"id":"fx-en-3-zero-19","status":"ok","moves":"B2 D' F D2 F' B2","rotation":"y'","nodes":38}
+{"id":"fx-en-3-zero-20","status":"ok","moves":"R U D R U' R2 D'","rotation":"y'","nodes":647}
+{"id":"fx-en-3-unpadded-1","status":"ok","moves":"U R2 F' R F U'","rotation":"y'","nodes":20}
+{"id":"fx-en-3-unpadded-2","status":"ok","moves":"U R D R U' R2 D'","rotation":"y'","nodes":840}
+{"id":"fx-en-3-unpadded-3","status":"ok","moves":"R D R2 B' R B D'","rotation":"y'","nodes":340}
+{"id":"fx-en-3-unpadded-4","status":"ok","moves":"R U R2 D R' U' D'","rotation":"y'","nodes":657}
+{"id":"fx-en-3-unpadded-5","status":"ok","moves":"U F' R2 U F' U' F2 U'","rotation":"y'","nodes":1097}
+{"id":"fx-en-3-unpadded-6","status":"ok","moves":"R2 F' R U2 F' U2 F2","rotation":"y'","nodes":259}
+{"id":"fx-en-3-unpadded-7","status":"ok","moves":"U R' F2 U F2 U2","rotation":"y'","nodes":58}
+{"id":"fx-en-3-unpadded-8","status":"ok","moves":"U D R2 D' F' R2 F U'","rotation":"y'","nodes":4412}
+{"id":"fx-en-3-unpadded-9","status":"ok","moves":"R D2 R' D B' R' D B","rotation":"y'","nodes":1932}
+{"id":"fx-en-3-unpadded-10","status":"ok","moves":"U R D R U' R2 D'","rotation":"y'","nodes":265}
+{"id":"fx-en-3-unpadded-11","status":"ok","moves":"U2 F' R U2 F R' U2","rotation":"y'","nodes":598}
+{"id":"fx-en-3-unpadded-12","status":"ok","moves":"U F' R2 F D R2 U' D'","rotation":"y'","nodes":1926}
+{"id":"fx-en-3-unpadded-13","status":"ok","moves":"R U D R U' R2 D'","rotation":"y'","nodes":626}
+{"id":"fx-en-3-unpadded-14","status":"ok","moves":"R U R2 F' R F U'","rotation":"y'","nodes":594}
+{"id":"fx-en-3-unpadded-15","status":"ok","moves":"U D R2 D' F' R2 F U'","rotation":"y'","nodes":1015}
+{"id":"fx-en-3-unpadded-16","status":"ok","moves":"F' R2 U R' U' F","rotation":"y'","nodes":109}
+{"id":"fx-en-3-unpadded-17","status":"ok","moves":"U R F' R F U'","rotation":"y'","nodes":76}
+{"id":"fx-en-3-unpadded-18","status":"ok","moves":"U F' R2 U F' U' F2 U'","rotation":"y'","nodes":5513}
+{"id":"fx-en-3-unpadded-19","status":"ok","moves":"B2 D' F D2 F' B2","rotation":"y'","nodes":38}
+{"id":"fx-en-3-unpadded-20","status":"ok","moves":"R U D R U' R2 D'","rotation":"y'","nodes":647}
+{"id":"e-solved-home-up","status":"ok","moves":"","rotation":"","nodes":0}
+{"id":"e-solved-home-free","status":"ok","moves":"","rotation":"","nodes":0}
+{"id":"e-solved-face-U","status":"ok","moves":"","rotation":"x'","nodes":0}
+{"id":"e-solved-face-R","status":"ok","moves":"","rotation":"y","nodes":0}
+{"id":"e-solved-face-D","status":"ok","moves":"","rotation":"x","nodes":0}
+{"id":"e-solved-face-L","status":"ok","moves":"","rotation":"y'","nodes":0}
+{"id":"e-solved-face-B","status":"ok","moves":"","rotation":"y2","nodes":0}
+{"id":"e-always-true","status":"ok","moves":"","rotation":"","nodes":0}
+{"id":"e-unsat-centre-corner","status":"noroute"}
+{"id":"e-unsat-same-sticker","status":"noroute"}
+{"id":"e-unsat-edge-in-corner","status":"noroute"}
+{"id":"e-scr1-up","status":"ok","moves":"R2","rotation":"","nodes":2}
+{"id":"e-scr1-free","status":"ok","moves":"U'","rotation":"","nodes":2}
+{"id":"e-scr2-up","status":"ok","moves":"L'","rotation":"z","nodes":2}
+{"id":"e-scr2-free","status":"ok","moves":"F L","rotation":"","nodes":3}
+{"id":"e-scr3-up","status":"ok","moves":"R2 F U","rotation":"","nodes":4}
+{"id":"e-scr3-free","status":"ok","moves":"U2 D R'","rotation":"","nodes":4}
+{"id":"e-scr4-up","status":"ok","moves":"L' F D2","rotation":"z2","nodes":4}
+{"id":"e-scr4-free","status":"ok","moves":"L2 D' F' L","rotation":"","nodes":5}
+{"id":"e-color-U","status":"ok","moves":"L2 F2 R2 L'","rotation":"x' z","nodes":15}
+{"id":"e-color-R","status":"ok","moves":"R L F2 B'","rotation":"y","nodes":10}
+{"id":"e-color-F","status":"ok","moves":"R2 L","rotation":"","nodes":3}
+{"id":"e-color-D","status":"ok","moves":"D2 L' D' F' R","rotation":"x","nodes":24}
+{"id":"e-color-L","status":"ok","moves":"B U' D B","rotation":"x2 y'","nodes":6}
+{"id":"e-color-B","status":"ok","moves":"U2 B' R F L","rotation":"x2","nodes":9}
+{"id":"e-half-turn-class-0","status":"ok","moves":"U2 D2 R2 D'","rotation":"","nodes":7}
+{"id":"e-half-turn-class-1","status":"ok","moves":"D2 F2 U R2","rotation":"","nodes":8}
+{"id":"e-rot-face-0","status":"ok","moves":"F' U","rotation":"y","nodes":3}
+{"id":"e-rot-face-1","status":"ok","moves":"D","rotation":"y'","nodes":2}
+{"id":"e-rot-face-2","status":"ok","moves":"D' R","rotation":"x'","nodes":3}
+{"id":"e-multi-0","status":"ok","moves":"R'","rotation":"z2","nodes":2}
+{"id":"e-multi-1","status":"ok","moves":"D L U' D","rotation":"","nodes":5}
+{"id":"e-multi-2","status":"ok","moves":"D' R2 L2 U","rotation":"","nodes":379}
+{"id":"e-multi-3","status":"ok","moves":"B' R' B' D'","rotation":"","nodes":114}
+{"id":"e-centre-twist2","status":"ok","moves":"U R2 D2 L' F2 L D2 R2 U'","rotation":"","nodes":265174}
+{"id":"e-centre-twist2-free","status":"ok","moves":"","rotation":"","nodes":0}
+{"id":"e-invalid-corner-twist","status":"invalid"}
+{"id":"e-invalid-edge-swap","status":"invalid"}
+{"id":"e-invalid-centre-parity","status":"invalid"}
+{"id":"bf-de-a-1","status":"ok","moves":"D' F B2","rotation":"y'","nodes":4}
+{"id":"bf-de-a-2","status":"ok","moves":"U2 B' U' D'","rotation":"","nodes":5}
+{"id":"bf-de-a-3","status":"ok","moves":"U R2 U2 D'","rotation":"y2","nodes":5}
+{"id":"bf-de-a-4","status":"ok","moves":"U' D F' R'","rotation":"x2 z","nodes":7}
+{"id":"bf-de-a-5","status":"ok","moves":"U' L B2 U2 R2 L","rotation":"y2","nodes":21}
+{"id":"bf-de-a-6","status":"ok","moves":"U' D","rotation":"y'","nodes":3}
+{"id":"bf-de-a-7","status":"ok","moves":"B L' U' D'","rotation":"","nodes":5}
+{"id":"bf-de-a-8","status":"ok","moves":"D R2 L","rotation":"y2","nodes":4}
+{"id":"bf-de-a-9","status":"ok","moves":"F' D'","rotation":"y2","nodes":3}
+{"id":"bf-de-a-10","status":"ok","moves":"R2 L' D F2 U' F L'","rotation":"z'","nodes":30}
+{"id":"bf-de-a-unpadded-11","status":"ok","moves":"U2 D'","rotation":"","nodes":3}
+{"id":"bf-de-a-unpadded-12","status":"ok","moves":"L2 U D'","rotation":"","nodes":4}
+{"id":"bf-de-a-unpadded-13","status":"ok","moves":"B2 U D2 R L2","rotation":"","nodes":8}
+{"id":"bf-de-a-unpadded-14","status":"ok","moves":"R2 L2 U2","rotation":"y2","nodes":4}
+{"id":"bf-de-a-unpadded-15","status":"ok","moves":"U2 B U' B2 L F2 B","rotation":"y","nodes":44}
+{"id":"bf-de-a-unpadded-16","status":"ok","moves":"","rotation":"z","nodes":0}
+{"id":"bf-de-a-unpadded-17","status":"ok","moves":"L B R2 L","rotation":"y2","nodes":5}
+{"id":"bf-de-a-unpadded-18","status":"ok","moves":"F' B2 R' L'","rotation":"y2","nodes":5}
+{"id":"bf-de-a-unpadded-19","status":"ok","moves":"L' U2 D'","rotation":"y2","nodes":4}
+{"id":"bf-de-a-unpadded-20","status":"ok","moves":"F B2 R' D'","rotation":"y","nodes":5}
+{"id":"bf-en-3-zero-21","status":"ok","moves":"F' U2 D","rotation":"y'","nodes":4}
+{"id":"bf-en-3-zero-22","status":"ok","moves":"F B' U2 D","rotation":"y'","nodes":5}
+{"id":"bf-en-3-zero-23","status":"ok","moves":"F D2","rotation":"z2","nodes":3}
+{"id":"bf-en-3-zero-24","status":"ok","moves":"F' B R L F2 B","rotation":"y","nodes":26}
+{"id":"bf-en-3-zero-25","status":"ok","moves":"R L' B U2 D'","rotation":"y'","nodes":6}
+{"id":"bf-en-3-zero-26","status":"ok","moves":"R2 L2","rotation":"y2","nodes":3}
+{"id":"bf-en-3-zero-27","status":"ok","moves":"U' F' U' D'","rotation":"","nodes":5}
+{"id":"bf-en-3-zero-28","status":"ok","moves":"B2","rotation":"x' z'","nodes":2}
+{"id":"bf-en-3-zero-29","status":"ok","moves":"D R F L' U D2","rotation":"x' y'","nodes":17}
+{"id":"bf-en-3-zero-30","status":"ok","moves":"R U' F' R' L2 U' D'","rotation":"y'","nodes":100}
+{"id":"bf-en-3-unpadded-31","status":"ok","moves":"B U2 D","rotation":"y'","nodes":4}
+{"id":"bf-en-3-unpadded-32","status":"ok","moves":"D2 R","rotation":"z","nodes":3}
+{"id":"bf-en-3-unpadded-33","status":"ok","moves":"B' U D R' L'","rotation":"x","nodes":15}
+{"id":"bf-en-3-unpadded-34","status":"ok","moves":"U F2 B U' R L2","rotation":"x","nodes":14}
+{"id":"bf-en-3-unpadded-35","status":"ok","moves":"B2 R F U' D'","rotation":"y'","nodes":7}
+{"id":"bf-en-3-unpadded-36","status":"ok","moves":"F' B","rotation":"y'","nodes":3}
+{"id":"bf-en-3-unpadded-37","status":"ok","moves":"R2 L2","rotation":"","nodes":3}
+{"id":"bf-en-3-unpadded-38","status":"ok","moves":"B D' B'","rotation":"x y","nodes":4}
+{"id":"bf-en-3-unpadded-39","status":"ok","moves":"U B' U D2","rotation":"y'","nodes":5}
+{"id":"bf-en-3-unpadded-40","status":"ok","moves":"B2 U' R2 D","rotation":"y2","nodes":14}
+{"id":"bfrot-de-a-1","status":"ok","moves":"U' D2 R'","rotation":"x","nodes":7}
+{"id":"bfrot-de-a-2","status":"ok","moves":"U' L' B","rotation":"x","nodes":4}
+{"id":"bfrot-de-a-3","status":"ok","moves":"R U' R'","rotation":"x","nodes":4}
+{"id":"bfrot-de-a-4","status":"ok","moves":"F' U2","rotation":"x2 z","nodes":3}
+{"id":"bfrot-de-a-5","status":"ok","moves":"B' R' D","rotation":"y'","nodes":4}
+{"id":"bfrot-de-a-6","status":"ok","moves":"U' D2","rotation":"y2","nodes":3}
+{"id":"bfrot-de-a-unpadded-7","status":"ok","moves":"F' R L","rotation":"y2","nodes":4}
+{"id":"bfrot-de-a-unpadded-8","status":"ok","moves":"L' F' L F2","rotation":"x","nodes":5}
+{"id":"bfrot-de-a-unpadded-9","status":"ok","moves":"B U' R' U","rotation":"y2","nodes":5}
+{"id":"bfrot-de-a-unpadded-10","status":"ok","moves":"U2 R2 L2","rotation":"","nodes":4}
+{"id":"bfrot-de-a-unpadded-11","status":"ok","moves":"R2 D","rotation":"y2","nodes":3}
+{"id":"bfrot-de-a-unpadded-12","status":"ok","moves":"F2 L'","rotation":"x2","nodes":3}
+{"id":"bfrot-en-3-zero-13","status":"ok","moves":"L'","rotation":"","nodes":2}
+{"id":"bfrot-en-3-zero-14","status":"ok","moves":"F2 U2 D2","rotation":"y'","nodes":4}
+{"id":"bfrot-en-3-zero-15","status":"ok","moves":"F L'","rotation":"","nodes":3}
+{"id":"bfrot-en-3-zero-16","status":"ok","moves":"U B2 U'","rotation":"y'","nodes":4}
+{"id":"bfrot-en-3-zero-17","status":"ok","moves":"F L2 F'","rotation":"x","nodes":4}
+{"id":"bfrot-en-3-zero-18","status":"ok","moves":"B2 R'","rotation":"","nodes":3}
+{"id":"bfrot-en-3-unpadded-19","status":"ok","moves":"F'","rotation":"x2 y","nodes":2}
+{"id":"bfrot-en-3-unpadded-20","status":"ok","moves":"B R U2","rotation":"","nodes":4}
+{"id":"bfrot-en-3-unpadded-21","status":"ok","moves":"L","rotation":"x'","nodes":2}
+{"id":"bfrot-en-3-unpadded-22","status":"ok","moves":"F D L'","rotation":"x","nodes":4}
+{"id":"bfrot-en-3-unpadded-23","status":"ok","moves":"R2 L' F","rotation":"x","nodes":4}
+{"id":"bfrot-en-3-unpadded-24","status":"ok","moves":"L2 F'","rotation":"y'","nodes":3}
