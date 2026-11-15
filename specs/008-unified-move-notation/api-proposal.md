@@ -31,3 +31,72 @@ Core currently emits `.res.mjs` and has ReScript `.resi` interfaces; direct test
 ## Reuse and license boundary
 
 Reuse CubeLab's documented dialect evidence, test vectors and structure requirements. `MoveParser`, `MoveTransform`, and `MoveExecutor` are candidates for a targeted adapter or extraction only after source dependency and license review: their own AST, sticker state and 2–5 guard do not make them drop-in `PwMove` implementations. CubeLab's AGPL and the recorded EUPL core decision require an explicit compatibility determination and provenance before copying code; no conclusion is assumed. Prefer one final policy owner in Core while retaining external compatibility behind adapters. No source movement is authorized by this proposal.
+
+## Illustrative typed contract
+
+The following signatures are a proposed design, not current exports or implementation approval. Exact names and the physical-frame mapping require design review against Core. The caller supplies a validated descriptor and a frame; Core owns validation and move semantics. The frame identifies the physical axes relative to the notation faces, not the viewer camera or solved-state equivalence. A rotation-intent marker is explicit for an all-layer move; it cannot turn a camera orbit into a puzzle move.
+
+```rescript
+// Schematic interface: PwFrame is a proposed validated Core frame type.
+type descriptor = {size: PwShell.size, frame: PwFrame.t}
+type displayProfile = WcaWithExplicitLayers
+type sourceDialect = Modern | LegacyInner | Ruwix | Sse | Acube
+type sourceVersion = string
+type rotationIntent = OrdinaryMove | PhysicalRotation
+
+type notationError =
+  | SizeMismatch
+  | InvalidFrame
+  | IllegalMove
+  | UnsupportedSelection
+  | UnsupportedProfile
+  | RotationIntentRequired
+  | UnsupportedStructure(string)
+type locatedDiagnostic = {start: int, stop: int, code: string, message: string}
+type compatibility = {wcaTokens: bool, dialectCompatible: bool, reasons: array<string>}
+
+let formatMove: (descriptor, displayProfile, rotationIntent, PwMove.t) =>
+  result<string, notationError>
+let formatAlgorithm: (descriptor, displayProfile, array<(rotationIntent, PwMove.t)>) =>
+  result<string, (int, notationError)>
+let parseCompatibility: (descriptor, sourceDialect, sourceVersion, string) =>
+  result<StructuredAlgorithm.t, array<locatedDiagnostic>>
+let assessCompatibility: (descriptor, sourceDialect, sourceVersion, string) =>
+  result<compatibility, array<locatedDiagnostic>>
+let serializeStructured: (descriptor, sourceDialect, StructuredAlgorithm.t) =>
+  result<string, notationError>
+```
+
+`StructuredAlgorithm.t` is a proposed structure-bearing compatibility type: executable leaves hold validated `PwMove.t` plus explicit rotation intent, while groups, repeats and supported annotations retain their structure and order. Its constructors and handling of unsupported nodes require a separate design; it is not the existing CubeLab type or a second semantic move model. The source version is mandatory for stored/imported data; unknown provenance needs an explicit user choice before calling the adapter. Offsets are UTF-16 code-unit offsets with an exclusive `stop`, consistent with the existing Core parser's documented offsets. `formatAlgorithm` consumes an executed flat sequence and identifies the first failing move by zero-based index. `serializeStructured` must return `UnsupportedStructure` if it cannot preserve a node; exact source text and discarded trivia need separate storage.
+
+For TypeScript, use a thin hand-authored adapter around generated ReScript JavaScript and declarations validated against the generated runtime. This avoids exposing compiler-specific variant encoding or allowing a consumer to construct a `PwMove` by assertion; it is a proposed boundary, not a currently available export. Its branded values come only from validated Core constructors or adapters. A future generator can replace the hand adapter if it provides the same contract and is verified against the emitted runtime.
+
+```ts
+declare const moveBrand: unique symbol;
+declare const frameBrand: unique symbol;
+declare const algorithmBrand: unique symbol;
+type Move = { readonly [moveBrand]: true };
+type PhysicalFrame = { readonly [frameBrand]: true };
+type StructuredAlgorithm = { readonly [algorithmBrand]: true };
+type Descriptor = { readonly size: number; readonly frame: PhysicalFrame };
+type RotationIntent = "ordinaryMove" | "physicalRotation";
+type DisplayProfile = "wcaWithExplicitLayers";
+type SourceDialect = "modern" | "legacyInner" | "ruwix" | "sse" | "acube";
+type SourceVersion = string;
+type NotationError =
+  | { readonly kind: "sizeMismatch" | "invalidFrame" | "illegalMove" }
+  | { readonly kind: "unsupportedSelection" | "unsupportedProfile" | "rotationIntentRequired" }
+  | { readonly kind: "unsupportedStructure"; readonly detail: string };
+type Diagnostic = { readonly start: number; readonly stop: number; readonly code: string; readonly message: string };
+type Result<T, E> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: E };
+type Compatibility = { readonly wcaTokens: boolean; readonly dialectCompatible: boolean; readonly reasons: readonly string[] };
+type ExecutedMove = { readonly move: Move; readonly intent: RotationIntent };
+
+declare function formatMove(d: Descriptor, p: DisplayProfile, m: ExecutedMove): Result<string, NotationError>;
+declare function formatAlgorithm(d: Descriptor, p: DisplayProfile, moves: readonly ExecutedMove[]): Result<string, { readonly index: number; readonly error: NotationError }>;
+declare function parseCompatibility(d: Descriptor, dialect: SourceDialect, version: SourceVersion, text: string): Result<StructuredAlgorithm, readonly Diagnostic[]>;
+declare function assessCompatibility(d: Descriptor, dialect: SourceDialect, version: SourceVersion, text: string): Result<Compatibility, readonly Diagnostic[]>;
+declare function serializeStructured(d: Descriptor, dialect: SourceDialect, alg: StructuredAlgorithm): Result<string, NotationError>;
+```
+
+The adapter must validate a descriptor's integer size against Core's `PwShell.size` constructor and reject a mismatched move size; TypeScript's `number` alone is not validation. Its construction functions and detailed compatibility result need final design before implementation. Adapters report malformed input without throwing across the public boundary. Compatibility reports distinguish token syntax from competition legality; supported dialect names and version identifiers are illustrative and do not narrow existing CubeLab imports. Tests must compile these declarations and exercise real generated values, malformed JavaScript input and each result variant. Q2's existing `PwNotation.parse` remains separate and unchanged.
