@@ -47,7 +47,7 @@ historical ADRs and source hashes keep their original wording.
 - [002 solver extraction requirements](../../specs/002-solver-2x2/spec.md)
 - [006 shared cube model: comparison and convergence plan](../../specs/006-shared-model/README.md) (proposal; the owner decides the canonical model)
 - [008 unified user-facing move notation](../../specs/008-unified-move-notation/README.md) (architecture proposal; implementation not authorized)
-- [009 viewer consolidation](../../specs/009-viewer-consolidation/spec.md) (proposal; implementation and migration require owner decisions)
+- [009 viewer consolidation](../../specs/009-viewer-consolidation/spec.md) (bounded pilot authorized; consumer migrations require separate owner decisions)
 
 No accepted architecture is silently inferred or overwritten by this migration.
 The Stage 2 [Starlight publishing view](../site/README.md) is merged (PR #18) and

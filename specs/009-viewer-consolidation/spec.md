@@ -1,6 +1,6 @@
 # Viewer consolidation proposal
 
-Status: proposal for owner review. This specifies an interface candidate and a pilot plan; it approves no package, implementation, migration, publication, license, or ADR. [Cubistry #111](https://github.com/wstein/cubistry/issues/111) is the source proposal; this document makes its boundaries reviewable without replacing its authority. The [inventory](inventory.md) records the existing implementations and [license brief](license-package-proposal.md) records unresolved provenance and distribution questions.
+Status: bounded pilot authorized by the owner on 2026-11-15. The separate TypeScript viewer uses Three.js and Cubistry material under AGPL-3.0-or-later with retained MIT and Three.js notices. Core remains rendering-independent. This does not authorize consumer migration, publication, a core license change, or an ADR. [Cubistry #111](https://github.com/wstein/cubistry/issues/111) is the source proposal; this document makes its boundaries reviewable without replacing its authority. The [inventory](inventory.md) records the existing implementations and [license brief](license-package-proposal.md) records unresolved provenance and distribution questions.
 
 ## Objective and acceptance
 
@@ -8,7 +8,7 @@ A separately packaged viewer can present application-supplied cube projections a
 
 ## Candidate contract
 
-These TypeScript declarations are a design proposal, not implemented or a promise of final package API. All arrays and values are snapshots: a caller must not mutate them while in use. Coordinates are right-handed, in one adapter-selected scene frame, with +X right, +Y up, +Z front; distances share one unit. Quaternions are `[x,y,z,w]`, finite and normalized; positions, axes and angles are finite. IDs are nonempty and unique within a projection, stable across transition endpoints. These rendering numbers do not define canonical physical identities, frames, legality or state. The adapter maps canonical physical poses and appearance to this frame and validates legal transitions before calling the viewer.
+These TypeScript declarations describe the bounded pilot contract; they are not a promise of a final package API. All arrays and values are snapshots: a caller must not mutate them while in use. Coordinates are right-handed, in one adapter-selected scene frame, with +X right, +Y up, +Z front; distances share one unit. Quaternions are `[x,y,z,w]`, finite and normalized; positions, axes and angles are finite. IDs are nonempty and unique within a projection, stable across transition endpoints. These rendering numbers do not define canonical physical identities, frames, legality or state. The adapter maps canonical physical poses and appearance to this frame and validates legal transitions before calling the viewer.
 
 ```ts
 type Vec3 = readonly [number, number, number];
@@ -70,12 +70,12 @@ Pause, visibility, reduced motion, cancellation timing, the easing curve and coo
 
 The [candidate source selection](source-selection.md) and `source-register.json` file register provide pilot-specific evidence; they do not authorize copying or implementation.
 
-VC4 is a separately authorized PuzlWerk extraction pilot with one fixed scene and one animated turn. Existing applications and their viewers remain unchanged; the pilot replaces no consumer. Before a go: select the source files and package license, complete the file-level provenance and compatibility assessment in the [license brief](license-package-proposal.md), resolve the remaining timing and asset/render details, approve this interface and obtain an explicit owner implementation-phase go. Stop if any prerequisite is unresolved.
+VC4 is a separately authorized PuzlWerk extraction pilot with one fixed scene and one animated turn. Existing applications and their viewers remain unchanged; the pilot replaces no consumer. The owner authorized this bounded pilot on 2026-11-15 with the registered Cubistry source and retained AGPL-3.0-or-later terms and MIT/Three.js notices. Consumer compatibility and distribution remain separately unresolved.
 
-The focused pilot checks compare the fixed reference scene's frame and sticker up direction, and the animated turn's axis and signed angle against that reference, including the direction ambiguity of 180°, 270° and 360° rotations. Check cancellation, asset resolution and disposal, including late asset completion. Record commands and results; results are **UNKNOWN until run**. Stop on a failed check or an unresolved provenance, contract or timing detail. Scan workflows and consumer parity are not pilot acceptance criteria.
+The focused pilot checks must compare the fixed reference scene's frame and sticker up direction, and the animated turn's axis and signed angle against that reference, including the direction ambiguity of 180°, 270° and 360° rotations. Check cancellation, asset resolution and disposal, including late asset completion. Record commands and results; results are **UNKNOWN until run**. Stop on a failed check or an unresolved provenance, contract or timing detail. Scan workflows and consumer parity are not pilot acceptance criteria.
 
 ## VC5: consumer migrations
 
 Each consumer migration requires a separate owner go, in the intended order CubeAssembler, Cubistry, then CubeLab. The CubeAssembler migration must preserve 2×2–7×7 scan-to-view, validation, colors, view controls, turns, gestures, cancellation and error handling. Its acceptance includes browser and visual parity, owner live desktop and mobile touch acceptance, and rollback to the existing viewer without changing canonical scan/state data. Record actual devices, browsers, commands and results; parity remains **UNKNOWN until run**. Agree performance targets from measured before/after startup, frame time, idle rendering, memory and responsiveness; baseline and results are **UNKNOWN until measured**. Stop on failed parity or live acceptance, unacceptable regression or unresolved mapping; retain the existing viewer until the owner resolves the issue. Subsequent consumers need their own applicable parity, live acceptance and rollback criteria and separate go.
 
-No baseline, demo, test suite, package or implementation is created by this proposal.
+The bounded pilot package and local demo are implemented; consumer migrations remain separately gated.
