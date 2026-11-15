@@ -33,7 +33,7 @@ test("the core source directory is compiled and exists", () => {
 });
 
 test("the deterministic check command formats, typechecks, builds and tests", () => {
-  assert.equal(pkg.scripts.check, "npm run format:check && npm run typecheck && npm test");
+  assert.equal(pkg.scripts.check, "npm run format:check && npm run typecheck && npm test && npm run test --workspace @puzlwerk/viewer");
   assert.match(pkg.scripts.test, /^npm run build && node --test test\/\*\.test\.mjs$/);
   assert.match(pkg.scripts.build, /^rescript build/);
 });
