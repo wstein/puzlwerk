@@ -4,6 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import * as Model from "../packages/solver-3x3-front/tools/front-model.mjs";
@@ -286,4 +287,26 @@ test("nodes are counted beyond 2^31 without wrapping (a float counter, exact to 
   const src = fs.readFileSync(path.join(pkgDir, "res/FrontSearch.res.mjs"), "utf8");
   assert.match(src, /nodes = s\.nodes \+ 1(\.0)?[;\n]/);
   assert.doesNotMatch(src, /s\.nodes \+ 1 \| 0/);
+});
+
+test("the package carries license, notice and provenance files, and npm packs them", () => {
+  const dir = path.join(here, "../packages/solver-3x3-front");
+  for (const f of ["LICENSE", "COPYING", "NOTICE", "provenance.json", "README.md"]) assert.ok(fs.existsSync(path.join(dir, f)), f);
+  const meta = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf8"));
+  assert.equal(meta.license, "AGPL-3.0-or-later");
+  for (const f of ["LICENSE", "COPYING", "NOTICE", "provenance.json"]) assert.ok(meta.files.includes(f), `files lacks ${f}`);
+  const notice = fs.readFileSync(path.join(dir, "NOTICE"), "utf8");
+  assert.match(notice, /Copyright \(c\) 2024 Chen Shuang/);
+  assert.match(notice, /Permission is hereby granted, free of charge/);
+  const packed = JSON.parse(execFileSync("npm", ["pack", "--workspace", "@puzlwerk/solver-3x3-front", "--dry-run", "--json"], { cwd: path.join(here, ".."), encoding: "utf8" }))[0];
+  for (const f of ["LICENSE", "COPYING", "NOTICE", "provenance.json", "README.md"]) assert.ok(packed.files.some((x) => x.path === f), `pack lacks ${f}`);
+});
+
+test("provenance.json pins the Cubacle revision and lists the ported Rust sources with their hashes", () => {
+  const p = JSON.parse(fs.readFileSync(path.join(here, "../packages/solver-3x3-front/provenance.json"), "utf8"));
+  assert.equal(p.revision, "8b4aafea3fd2719af84d1e3548009eff5e7733b5");
+  assert.equal(p.baseRevision, "0216da533c39bd64cfe96a2f10210ec04be668b1");
+  assert.equal(p.license, "AGPL-3.0-or-later");
+  assert.ok(p.files.length >= 9);
+  for (const f of p.files) assert.match(f.sha256, /^[0-9a-f]{64}$/, f.source);
 });
