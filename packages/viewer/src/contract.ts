@@ -33,7 +33,12 @@ export function validateProjection(p: CubeProjection): Result<void> {
   }
   return ok(undefined);
 }
-const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+function canonical(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).filter(([,v]) => v !== undefined).sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => [k,canonical(v)]));
+  return value;
+}
+export const sameValues = (a: unknown, b: unknown) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
 export function validateTransition(t: Transition): Result<void> {
   if (!t) return fail('InvalidTransition', 'Missing transition');
   const fromValidation = validateProjection(t.from); if (!fromValidation.ok) return fromValidation;
@@ -46,8 +51,8 @@ export function validateTransition(t: Transition): Result<void> {
   const rotation = new Q().setFromAxisAngle(new Vector3(...t.axis), t.signedAngleRadians);
   for (const source of t.from.pieces) {
     const target = targets.get(source.id);
-    if (!target || !same(source.stickers, target.stickers)) return fail('InvalidTransition', 'Sticker definitions differ');
-    if (!selected.has(source.id)) { if (!same(source.transform, target.transform)) return fail('InvalidTransition', 'Unselected piece changed'); continue; }
+    if (!target || !sameValues([...source.stickers].sort((a,b) => a.id.localeCompare(b.id)), [...target.stickers].sort((a,b) => a.id.localeCompare(b.id)))) return fail('InvalidTransition', 'Sticker definitions differ');
+    if (!selected.has(source.id)) { if (!sameValues(source.transform, target.transform)) return fail('InvalidTransition', 'Unselected piece changed'); continue; }
     const position = new Vector3(...source.transform.position).sub(pivot).applyQuaternion(rotation).add(pivot);
     const actual = new Vector3(...target.transform.position);
     const expectedQ = rotation.clone().multiply(new Q(...source.transform.rotation));
