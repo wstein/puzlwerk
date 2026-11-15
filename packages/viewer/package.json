@@ -9,8 +9,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test test/*.test.mjs"
+    "test": "npm run build && node --test test/*.test.mjs",
+    "dev": "npm run build && node demo/server.mjs"
   },
-  "dependencies": { "three": "0.187.0" },
-  "devDependencies": { "@types/three": "0.187.0" }
+  "dependencies": {
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.187.0"
+  }
 }
