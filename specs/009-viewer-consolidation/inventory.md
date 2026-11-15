@@ -11,7 +11,7 @@ Status: evidence for a proposed consolidation, not implementation approval. This
 
 ## Cubistry
 
-Snapshot [`f976f40813d8e47f911ba6addab2603eb096f066`](https://github.com/wstein/cubistry/tree/f976f40813d8e47f911ba6addab2603eb096f066/packages/cube-viewer). `packages/cube-viewer/package.json` declares private `@cubistry/cube-viewer`, AGPL-3.0-or-later, `three` 0.187.0 and `@cubistry/cube-core`, `cube-mechanics`, `cube-assets` dependencies.
+Snapshot [`f976f40813d8e47f911ba6addab2603eb096f066`](https://github.com/wstein/cubistry/tree/f976f40813d8e47f911ba6addab2603eb096f066/packages/cube-viewer). Remote main advanced to `efafcc1d97687eccea0cde87a230f447ce1b6c66`; the diff from this snapshot changes calendar application files, documentation and tests, but no `packages/cube-viewer` files. The pinned snapshot remains the evidence for this inventory. `packages/cube-viewer/package.json` declares private `@cubistry/cube-viewer`, AGPL-3.0-or-later, `three` 0.187.0 and `@cubistry/cube-core`, `cube-mechanics`, `cube-assets` dependencies.
 
 | Source | Existing behavior and boundary |
 | --- | --- |
