@@ -1,0 +1,30 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { validateProjection, validateTransition } from '../dist/contract.js';
+
+const t = (position = [0, 0, 0], rotation = [0, 0, 0, 1]) => ({ position, rotation });
+const piece = (id, position) => ({ id, transform: t(position), stickers: [{ id: `${id}-s`, transform: t(), size: [1, 1], color: '#fff' }] });
+const from = { pieces: [piece('a', [1, 0, 0]), piece('b', [-1, 0, 0])] };
+const to = { pieces: [piece('a', [0, 1, 0]), piece('b', [-1, 0, 0])] };
+to.pieces[0].transform.rotation = [0, 0, Math.SQRT1_2, Math.SQRT1_2];
+const turn = { from, to, pieceIds: ['a'], axis: [0, 0, 1], signedAngleRadians: Math.PI / 2, pivot: [0, 0, 0], durationMs: 100 };
+
+test('projection rejects duplicate IDs, invalid transforms, and sticker sizes', () => {
+  assert.equal(validateProjection(from).ok, true);
+  for (const invalid of [
+    { pieces: [from.pieces[0], from.pieces[0]] },
+    { pieces: [piece('a', [NaN, 0, 0])] },
+    { pieces: [{ ...piece('a', [0, 0, 0]), stickers: [{ ...piece('a', [0, 0, 0]).stickers[0], size: [0, 1] }] }] },
+  ]) assert.equal(validateProjection(invalid).error.code, 'InvalidProjection');
+});
+
+test('transition checks signed target and retains unselected definitions', () => {
+  assert.equal(validateTransition(turn).ok, true);
+  for (const invalid of [
+    { ...turn, signedAngleRadians: -Math.PI / 2 },
+    { ...turn, durationMs: -1 },
+    { ...turn, axis: [0, 0, 2] },
+    { ...turn, pieceIds: ['a', 'a'] },
+    { ...turn, to: { pieces: [to.pieces[0], piece('b', [-2, 0, 0])] } },
+  ]) assert.equal(validateTransition(invalid).error.code, 'InvalidTransition');
+});
