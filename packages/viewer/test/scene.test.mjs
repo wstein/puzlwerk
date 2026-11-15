@@ -62,9 +62,42 @@ test('turn rotates around supplied nonzero pivot', async () => {
   assert.ok(Math.abs(h.draws.at(-1).x-.5)<1e-6); assert.ok(Math.abs(h.draws.at(-1).y-.5)<1e-6);
   h.step(50); assert.equal((await pending).ok,true);
 });
-test('reduced motion completes visually without waiting for the animation clock', async () => {
-  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}},()=>true);
+test('zero duration completes visually without waiting for the animation clock', async () => {
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}});
   await scene.setProjection(projection);
-  assert.equal((await scene.transition(turn(Math.PI))).ok,true);
+  assert.equal((await scene.transition(turn(Math.PI,0))).ok,true);
   scene.dispose();
+});
+test('hidden animation pauses without rendering and resumes without a time jump', async () => {
+  let now=0, next=0, hidden=false, listener; const frames=new Map(), draws=[];
+  const clock={now:()=>now,request:cb=>{frames.set(++next,cb);return next},cancel:id=>frames.delete(id),isHidden:()=>hidden,onVisibility:cb=>{listener=cb;return ()=>{listener=undefined;}}};
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},clock,{render:s=>draws.push(s.getObjectByName('a').getWorldPosition({setFromMatrixPosition(m){this.x=m.elements[12];this.y=m.elements[13];return this}})),dispose(){}});
+  const step=ms=>{now+=ms;const callbacks=[...frames.values()];frames.clear();callbacks.forEach(cb=>cb(now));};
+  await scene.setProjection(projection); step(0); const pending=scene.transition(turn(Math.PI)); step(25);
+  const before={...draws.at(-1)}; hidden=true; listener(); assert.equal(frames.size,0); step(500); assert.deepEqual(draws.at(-1),before);
+  hidden=false; listener(); step(0); assert.ok(Math.abs(draws.at(-1).x-before.x)<1e-6); assert.ok(Math.abs(draws.at(-1).y-before.y)<1e-6);
+  step(75); assert.equal((await pending).ok,true); scene.dispose(); assert.equal(listener,undefined);
+});
+test('smoothstep easing applies the supplied duration once', async () => {
+  const h=harness(); await h.scene.setProjection(projection); h.step(0);
+  const pending=h.scene.transition(turn(Math.PI)); h.step(25);
+  const angle=Math.PI*(3*.25**2-2*.25**3);
+  assert.ok(Math.abs(h.draws.at(-1).x-Math.cos(angle))<1e-6);
+  assert.ok(Math.abs(h.draws.at(-1).y-Math.sin(angle))<1e-6);
+  h.step(75); assert.equal((await pending).ok,true);
+});
+test('late asset from cancelled request cannot replace a subsequent projection', async () => {
+  let resolve; const h=harness(()=>new Promise(r=>resolve=r));
+  const asset={pieces:[{...projection.pieces[0],stickers:[{...projection.pieces[0].stickers[0],imageId:'image'}]}]};
+  const a=h.scene.setProjection(asset); h.scene.cancel(); assert.equal((await a).error.code,'Cancelled');
+  const b={pieces:[{...projection.pieces[0],transform:t([2,0,0])}]};
+  assert.equal((await h.scene.setProjection(b)).ok,true); h.step(0); const count=h.draws.length;
+  resolve({ok:true,value:{}}); await new Promise(r=>setImmediate(r)); h.step(0);
+  assert.equal(h.draws.length,count); assert.equal(h.draws.at(-1).x,2);
+  assert.equal((await h.scene.transition({...turn(0,0),from:b,to:b})).ok,true);
+});
+test('invalidation is coalesced while a transition is active', async () => {
+  const h=harness(); await h.scene.setProjection(projection); h.step(0);
+  const pending=h.scene.transition(turn(Math.PI)); assert.equal(h.scene.invalidate().ok,true); assert.equal(h.frames.size,1);
+  h.step(100); assert.equal((await pending).ok,true); assert.equal(h.frames.size,0);
 });

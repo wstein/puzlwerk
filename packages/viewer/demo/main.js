@@ -33,7 +33,7 @@ const status=document.querySelector('#status');
 const initial=await scene.setProjection(from); if(!initial.ok) throw new Error(initial.error.message);
 status.textContent='Ready';
 document.querySelector('#turn').addEventListener('click',async()=>{
-  const result=await scene.transition({from,to,pieceIds:pieces.filter((_,i)=>slots[i].z===1).map(p=>p.id),axis:[0,0,1],signedAngleRadians:Math.PI/2,pivot:[0,0,0],durationMs:700});
+  const result=await scene.transition({from,to,pieceIds:pieces.filter((_,i)=>slots[i].z===1).map(p=>p.id),axis:[0,0,1],signedAngleRadians:Math.PI/2,pivot:[0,0,0],durationMs:matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 700});
   status.textContent=result.ok?'Turn complete':result.error.message;
 });
 window.pilot={scene,from,to,slots};

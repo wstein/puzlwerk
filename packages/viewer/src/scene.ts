@@ -1,30 +1,42 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Pivot grouping adapted from Cubistry physical-scene.ts; see NOTICE.
 import * as THREE from 'three';
-import { fail, ok, validateProjection, validateTransition } from './contract.js';
+import { fail, ok, sameValues, validateProjection, validateTransition } from './contract.js';
 import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
 
-type Clock = { now(): number; request(cb: (time: number) => void): number; cancel(id: number): void };
+type Clock = { now(): number; request(cb: (time: number) => void): number; cancel(id: number): void; isHidden?(): boolean; onVisibility?(cb: () => void): () => void };
 type Backend = { render(scene: THREE.Scene): void; dispose(): void };
 type Pending = { controller: AbortController; finish(result: Result<void>): void; from?: CubeProjection };
 const copy = <T>(x: T): T => structuredClone(x);
 const sameProjection = (a: CubeProjection, b: CubeProjection) => {
   const normalize = (p: CubeProjection) => [...p.pieces].sort((x,y) => x.id.localeCompare(y.id)).map(x => ({...x, stickers: [...x.stickers].sort((s,t) => s.id.localeCompare(t.id))}));
-  return JSON.stringify(normalize(a)) === JSON.stringify(normalize(b));
+  return sameValues(normalize(a), normalize(b));
 };
 
-export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend, reducedMotion: () => boolean = () => false): CubeScene {
+export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend): CubeScene {
   const scene = new THREE.Scene();
   const root = new THREE.Group(); scene.add(root);
   scene.add(new THREE.HemisphereLight(0xffffff, 0x555555, 2));
   let projection: CubeProjection | undefined, pending: Pending | undefined, disposed = false, lost = false;
   let frame: number | undefined, animation: ((now: number) => boolean) | undefined;
+  let pausedAt: number | undefined, pausedDuration = 0, dirty = false;
+  const hidden = () => clock.isHidden?.() ?? false;
+  const unsubscribe = clock.onVisibility?.(() => {
+    if (hidden()) {
+      if (animation && pausedAt === undefined) pausedAt = clock.now();
+      if (frame !== undefined) { clock.cancel(frame); frame = undefined; dirty = true; }
+    } else {
+      if (pausedAt !== undefined) { pausedDuration += clock.now() - pausedAt; pausedAt = undefined; }
+      if (dirty || animation) draw();
+    }
+  });
   const resources: {dispose(): void}[] = [];
   function clear() { root.clear(); for (const r of resources.splice(0)) r.dispose(); }
-  function draw() { if (!disposed && !lost && frame === undefined) frame = clock.request(tick); }
+  function draw() { dirty = true; if (!disposed && !lost && !hidden() && frame === undefined) frame = clock.request(tick); }
   function tick(time: number) {
     frame = undefined;
-    if (disposed || lost) return;
+    if (disposed || lost || hidden()) return;
+    dirty = false;
     const again = animation?.(time) ?? false;
     scene.updateMatrixWorld(true); backend.render(scene);
     if (again) draw();
@@ -84,9 +96,10 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const pivot = new THREE.Group(); pivot.position.set(...t.pivot); root.add(pivot); root.updateMatrixWorld(true);
       for (const id of t.pieceIds) { const body = root.getObjectByName(id); if (body) pivot.attach(body); }
       const axis = new THREE.Vector3(...t.axis); const started = clock.now();
-      const duration = reducedMotion() ? 0 : t.durationMs;
+      const duration = t.durationMs;
+      pausedDuration = 0; pausedAt = hidden() ? started : undefined;
       const update = (now: number) => {
-        const progress = duration === 0 ? 1 : Math.min(1,Math.max(0,(now-started)/duration));
+        const progress = duration === 0 ? 1 : Math.min(1,Math.max(0,(now-started-pausedDuration)/duration));
         const eased = progress * progress * (3 - 2 * progress);
         pivot.quaternion.setFromAxisAngle(axis,t.signedAngleRadians*eased);
         if (progress < 1) return true;
@@ -115,8 +128,8 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       }
       return ok(undefined);
     },
-    invalidate() { const s = status(); if (s.ok) draw(); return s; },
-    dispose() { if (disposed) return; api.cancel(); disposed = true; if (frame !== undefined) clock.cancel(frame); frame = undefined; clear(); backend.dispose(); },
+    invalidate() { const s = disposed ? fail('Disposed','Scene disposed') : lost ? fail('ContextLost','Context lost') : ok(undefined); if (s.ok) draw(); return s; },
+    dispose() { if (disposed) return; api.cancel(); disposed = true; unsubscribe?.(); if (frame !== undefined) clock.cancel(frame); frame = undefined; clear(); backend.dispose(); },
   };
   // Context loss is wired by the browser host; kept private to the implementation.
   Object.assign(api, {contextLost() { if (disposed || lost) return; const op = pending; if (op) { const finishOriginal = op.finish; op.finish = () => finishOriginal(fail('ContextLost','Context lost')); api.cancel(); } lost = true; if (frame !== undefined) clock.cancel(frame); frame = undefined; }});

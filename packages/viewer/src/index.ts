@@ -10,9 +10,9 @@ export function createCubeScene(host: HTMLElement, options: ViewerOptions): Resu
   const camera = new THREE.PerspectiveCamera(35,1,.1,100); camera.position.set(4,3,5); camera.lookAt(0,0,0);
   host.appendChild(renderer.domElement);
   let observer: ResizeObserver | undefined;
-  const clock = {now:()=>performance.now(),request:(cb:(time:number)=>void)=>requestAnimationFrame(cb),cancel:(id:number)=>cancelAnimationFrame(id)};
+  const clock = {now:()=>performance.now(),request:(cb:(time:number)=>void)=>requestAnimationFrame(cb),cancel:(id:number)=>cancelAnimationFrame(id), isHidden:()=>document.hidden, onVisibility:(cb:()=>void)=>{document.addEventListener('visibilitychange',cb);return ()=>document.removeEventListener('visibilitychange',cb);}};
   const backend = {render(scene: THREE.Scene) { const w=Math.max(1,host.clientWidth), h=Math.max(1,host.clientHeight); renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.render(scene,camera); },dispose() { observer?.disconnect(); renderer.domElement.removeEventListener('webglcontextlost',onLost); renderer.dispose(); renderer.domElement.remove(); }};
-  const scene = createSceneForTest(options,clock,backend,()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+  const scene = createSceneForTest(options,clock,backend);
   const onLost = (event: Event) => { event.preventDefault(); (scene as CubeScene & {contextLost():void}).contextLost(); };
   renderer.domElement.addEventListener('webglcontextlost',onLost);
   if (typeof ResizeObserver !== 'undefined') { observer=new ResizeObserver(()=>{scene.invalidate();}); observer.observe(host); }
