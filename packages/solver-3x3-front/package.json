@@ -1,0 +1,17 @@
+{
+  "name": "@puzlwerk/solver-3x3-front",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.mjs"
+    }
+  },
+  "files": [
+    "src/",
+    "res/"
+  ]
+}
