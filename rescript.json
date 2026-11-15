@@ -6,6 +6,10 @@
       "subdirs": true
     },
     {
+      "dir": "packages/solver-3x3-front/res",
+      "subdirs": true
+    },
+    {
       "dir": "core/res",
       "subdirs": true
     }
