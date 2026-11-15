@@ -6,6 +6,8 @@ efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
 78840b75e2e70ddc2a0fe551a85ff4908a334ab4, SHA-256
 73c9882b48c107b43513600e3dafbf1c2f9be1b1b44b30fcc1c2ebaf29c7c79f.
 Source: https://github.com/wstein/cubistry/tree/efafcc1d97687eccea0cde87a230f447ce1b6c66
+The adapted target src/scene.ts has SHA-256
+f40dd741af141ac298d24666202b7a4cd8f3ab9396c3113e1ade2c27cd6e9c37.
 The adaptation accepts a general axis and pivot, snapshots, cancellation, and
 explicit target poses; it omits Cubistry's application dependencies, geometry,
 artwork and controls. The box and plane geometry in this pilot is new. No other
