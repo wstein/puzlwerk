@@ -391,7 +391,8 @@ let solve = (
                     }
                   }
                 }
-                packed := packed.contents + digit.contents * [1, 24, 576, 13824][i]->Option.getUnsafe
+                packed :=
+                  packed.contents + digit.contents * [1, 24, 576, 13824][i]->Option.getUnsafe
               }
               si(s.gc, j, packed.contents)
             }
