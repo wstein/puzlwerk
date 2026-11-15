@@ -1,0 +1,36 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createSceneForTest } from '../dist/scene.js';
+const t = (position = [0,0,0], rotation = [0,0,0,1]) => ({position,rotation});
+const projection = {pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t(),size:[1,1],color:'#fff'}]}]};
+function harness(resolver = async () => ({ok:true,value:{}})) {
+  let now=0, next=0; const frames=new Map(), draws=[];
+  const clock={now:()=>now,request:cb=>{frames.set(++next,cb);return next},cancel:id=>frames.delete(id)};
+  const scene=createSceneForTest({resolveAsset:resolver},clock,{render:s=>draws.push(s.getObjectByName('a')?.getWorldPosition({setFromMatrixPosition(m){this.x=m.elements[12];this.y=m.elements[13];this.z=m.elements[14];return this}})),dispose(){}});
+  return {scene,draws,frames, step(ms){now+=ms;const callbacks=[...frames.values()];frames.clear();callbacks.forEach(f=>f(now));}};
+}
+function turn(angle,duration=100) {
+  const q=[0,0,Math.sin(angle/2),Math.cos(angle/2)];
+  return {from:projection,to:{pieces:[{...projection.pieces[0],transform:t([Math.cos(angle),Math.sin(angle),0],q)}]},pieceIds:['a'],axis:[0,0,1],signedAngleRadians:angle,pivot:[0,0,0],durationMs:duration};
+}
+test('signed turns animate through intermediate frames and settle without idle frames', async () => {
+  for (const angle of [Math.PI,-Math.PI,3*Math.PI/2,2*Math.PI]) {
+    const h=harness(); assert.equal((await h.scene.setProjection(projection)).ok,true); h.step(0);
+    const promise=h.scene.transition(turn(angle)); await Promise.resolve(); h.step(50);
+    const p=h.draws.at(-1); assert.ok(Math.abs(p.x-Math.cos(angle/2))<1e-6); assert.ok(Math.abs(p.y-Math.sin(angle/2))<1e-6);
+    h.step(50); assert.equal((await promise).ok,true); assert.equal(h.frames.size,0);
+  }
+});
+test('cancel restores source and ends the operation', async () => {
+  const h=harness(); await h.scene.setProjection(projection); h.step(0);
+  const pending=h.scene.transition(turn(Math.PI)); await Promise.resolve(); h.step(50);
+  assert.equal(h.scene.cancel().ok,true); assert.equal((await pending).error.code,'Cancelled'); h.step(0);
+  assert.ok(Math.abs(h.draws.at(-1).x-1)<1e-6);
+});
+test('late resolver completion cannot commit after cancellation', async () => {
+  let resolve; const h=harness(()=>new Promise(r=>resolve=r));
+  const asset={pieces:[{...projection.pieces[0],stickers:[{...projection.pieces[0].stickers[0],imageId:'image'}]}]};
+  const pending=h.scene.setProjection(asset); h.scene.cancel(); assert.equal((await pending).error.code,'Cancelled');
+  resolve({ok:true,value:{}}); await Promise.resolve(); assert.equal(h.draws.length,0); assert.equal(h.frames.size,0);
+  h.scene.dispose(); assert.equal((await h.scene.setProjection(projection)).error.code,'Disposed');
+});
