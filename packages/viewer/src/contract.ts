@@ -35,7 +35,9 @@ export function validateProjection(p: CubeProjection): Result<void> {
 }
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 export function validateTransition(t: Transition): Result<void> {
-  if (!t || !validateProjection(t.from).ok || !validateProjection(t.to).ok) return fail('InvalidTransition', 'Invalid endpoint');
+  if (!t) return fail('InvalidTransition', 'Missing transition');
+  const fromValidation = validateProjection(t.from); if (!fromValidation.ok) return fromValidation;
+  const toValidation = validateProjection(t.to); if (!toValidation.ok) return toValidation;
   if (!array(t.axis, 3) || !unit(t.axis) || !array(t.pivot, 3) || !Number.isFinite(t.signedAngleRadians) || !Number.isFinite(t.durationMs) || t.durationMs < 0 || !Array.isArray(t.pieceIds) || new Set(t.pieceIds).size !== t.pieceIds.length) return fail('InvalidTransition', 'Invalid turn');
   const targets = new Map(t.to.pieces.map(p => [p.id, p]));
   const selected = new Set(t.pieceIds);
