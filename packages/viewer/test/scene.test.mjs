@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createSceneForTest } from '../dist/scene.js';
+import * as Orientation from '../../../core/res/PwOrientation.res.mjs';
 const t = (position = [0,0,0], rotation = [0,0,0,1]) => ({position,rotation});
 const projection = {pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t(),size:[1,1],color:'#fff'}]}]};
 function harness(resolver = async () => ({ok:true,value:{}})) {
@@ -100,4 +101,33 @@ test('invalidation is coalesced while a transition is active', async () => {
   const h=harness(); await h.scene.setProjection(projection); h.step(0);
   const pending=h.scene.transition(turn(Math.PI)); assert.equal(h.scene.invalidate().ok,true); assert.equal(h.frames.size,1);
   h.step(100); assert.equal((await pending).ok,true); assert.equal(h.frames.size,0);
+});
+test('piece and sticker frames retain their world up and normal through a turn', async () => {
+  const s=Math.SQRT1_2;
+  // Piece starts at +90° around Z; sticker starts at +90° around its local X.
+  // Therefore piece up = -X, sticker up = +Z, sticker normal = +X.
+  const from={pieces:[{id:'piece',transform:t([1,0,0],[0,0,s,s]),stickers:[{id:'sticker',transform:t([0,0,.5],[s,0,0,s]),size:[.8,.6],color:'#fff'}]}]};
+  const to={pieces:[{...from.pieces[0],transform:t([0,1,0],[0,0,1,0])}]};
+  let now=0,next=0; const frames=new Map(), draws=[];
+  const clock={now:()=>now,request:cb=>{frames.set(++next,cb);return next;},cancel:id=>frames.delete(id)};
+  const axes=object=>{const m=object.matrixWorld.elements;return {up:[m[4],m[5],m[6]],normal:[m[8],m[9],m[10]]};};
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},clock,{render:root=>draws.push({piece:axes(root.getObjectByName('piece')),sticker:axes(root.getObjectByName('sticker'))}),dispose(){}});
+  const step=ms=>{now+=ms;const callbacks=[...frames.values()];frames.clear();callbacks.forEach(cb=>cb(now));};
+  const near=(actual,expected)=>actual.forEach((v,i)=>assert.ok(Math.abs(v-expected[i])<1e-6,`${actual} != ${expected}`));
+  await scene.setProjection(from); step(0);
+  near(draws.at(-1).piece.up,[-1,0,0]); near(draws.at(-1).piece.normal,[0,0,1]);
+  near(draws.at(-1).sticker.up,[0,0,1]); near(draws.at(-1).sticker.normal,[1,0,0]);
+  const pending=scene.transition({from,to,pieceIds:['piece'],axis:[0,0,1],signedAngleRadians:Math.PI/2,pivot:[0,0,0],durationMs:100});
+  step(25);
+  // At 25% time smoothstep is 5/32, so the extra rotation is 5π/64.
+  const c=Math.cos(5*Math.PI/64), d=Math.sin(5*Math.PI/64);
+  near(draws.at(-1).piece.up,[-c,-d,0]); near(draws.at(-1).piece.normal,[0,0,1]);
+  near(draws.at(-1).sticker.up,[0,0,1]); near(draws.at(-1).sticker.normal,[c,d,0]);
+  step(75); assert.equal((await pending).ok,true);
+  // F1/Core's +Z half-turn matrix maps local +Y to -Y and -Y to +Y.
+  const coreHalfTurn=Orientation.make([-1,0,0,0,-1,0,0,0,1])._0;
+  const coreAxis=v=>{const r=Orientation.apply(coreHalfTurn,v);return [r.x,r.y,r.z];};
+  near(draws.at(-1).piece.up,coreAxis({x:0,y:1,z:0})); near(draws.at(-1).piece.normal,coreAxis({x:0,y:0,z:1}));
+  near(draws.at(-1).sticker.up,coreAxis({x:0,y:0,z:1})); near(draws.at(-1).sticker.normal,coreAxis({x:0,y:-1,z:0}));
+  scene.dispose();
 });
