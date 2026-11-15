@@ -28,3 +28,7 @@ test('transition checks signed target and retains unselected definitions', () =>
     { ...turn, to: { pieces: [to.pieces[0], piece('b', [-2, 0, 0])] } },
   ]) assert.equal(validateTransition(invalid).error.code, 'InvalidTransition');
 });
+test('equivalent sticker field and array order does not change transition identity', () => {
+  const reordered={pieces:to.pieces.map(p=>({stickers:p.stickers.map(s=>({color:s.color,size:s.size,transform:s.transform,id:s.id})).reverse(),transform:p.transform,id:p.id})).reverse()};
+  assert.equal(validateTransition({...turn,to:reordered}).ok,true);
+});
