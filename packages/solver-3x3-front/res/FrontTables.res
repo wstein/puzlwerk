@@ -345,7 +345,11 @@ let build = (goal: FrontGoal.t, plan: plan, gate: gate): t => {
       for p in 0 to 575 {
         let lo = mod(p, digits)
         let hi = p / digits
-        si(pa, (j * turns + m) * 576 + p, gu(t0, m * digits + lo) + digits * gu(t1, m * digits + hi))
+        si(
+          pa,
+          (j * turns + m) * 576 + p,
+          gu(t0, m * digits + lo) + digits * gu(t1, m * digits + hi),
+        )
         si(
           pb,
           (j * turns + m) * 576 + p,
