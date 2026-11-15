@@ -68,6 +68,8 @@ Pause, visibility, reduced motion, cancellation timing, the easing curve and coo
 
 ## VC4: isolated extraction pilot
 
+The [candidate source selection](source-selection.md) and `source-register.json` file register provide pilot-specific evidence; they do not authorize copying or implementation.
+
 VC4 is a separately authorized PuzlWerk extraction pilot with one fixed scene and one animated turn. Existing applications and their viewers remain unchanged; the pilot replaces no consumer. Before a go: select the source files and package license, complete the file-level provenance and compatibility assessment in the [license brief](license-package-proposal.md), resolve the remaining timing and asset/render details, approve this interface and obtain an explicit owner implementation-phase go. Stop if any prerequisite is unresolved.
 
 The focused pilot checks compare the fixed reference scene's frame and sticker up direction, and the animated turn's axis and signed angle against that reference, including the direction ambiguity of 180°, 270° and 360° rotations. Check cancellation, asset resolution and disposal, including late asset completion. Record commands and results; results are **UNKNOWN until run**. Stop on a failed check or an unresolved provenance, contract or timing detail. Scan workflows and consumer parity are not pilot acceptance criteria.

@@ -1,0 +1,219 @@
+{
+  "scope": "candidate selection only; no reuse authorization",
+  "distribution_intent": "local pilot proposed; no distribution authorized",
+  "files": [
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/physical-scene.ts",
+      "git_blob": "78840b75e2e70ddc2a0fe551a85ff4908a334ab4",
+      "sha256": "73c9882b48c107b43513600e3dafbf1c2f9be1b1b44b30fcc1c2ebaf29c7c79f",
+      "spdx_header": "AGPL-3.0-or-later",
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "three",
+        "./body-artwork.ts",
+        "./appearance.ts",
+        "@cubistry/cube-core",
+        "./two-radius-body.ts",
+        "./layer-widths.ts",
+        "./projected-uv.ts",
+        "./cut-faces.ts"
+      ],
+      "disposition": "adapted",
+      "proposed_target_module": "scene/physical-scene",
+      "role": "scene and turn pivot"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/body-artwork.ts",
+      "git_blob": "608f01e9bcb6e23514cd76517656d7cb32856f8d",
+      "sha256": "ed67b4f913b50e142b3262a4b81ac5ba19748921b424fdda57bf3661c906b5c5",
+      "spdx_header": null,
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "three",
+        "@cubistry/cube-core"
+      ],
+      "disposition": "adapted",
+      "proposed_target_module": "scene/body-artwork",
+      "role": "body UV helpers, only if retained by scene"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/layer-widths.ts",
+      "git_blob": "c0239c3830f4177f8ef30f616c39e6e93977c48b",
+      "sha256": "0977d80f09a4e939d471b74c867c6e7a76a19dbdfc8cc1243cafed4ba7ff7416",
+      "spdx_header": "AGPL-3.0-or-later",
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "@cubistry/cube-core"
+      ],
+      "disposition": "adapted",
+      "proposed_target_module": "scene/layer-widths",
+      "role": "scene layer geometry"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/projected-uv.ts",
+      "git_blob": "cda846f60bbcca518af1aff217cbd3ca0264f985",
+      "sha256": "f30ca569a5cbe84a3369ecee03134ce67006d755db6d64b93479460af1584397",
+      "spdx_header": "AGPL-3.0-or-later",
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "@cubistry/cube-core",
+        "./layer-widths.ts"
+      ],
+      "disposition": "adapted",
+      "proposed_target_module": "scene/projected-uv",
+      "role": "projection helpers, only if retained by scene"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/cut-faces.ts",
+      "git_blob": "683055a7f6fa191ad6cff7a7ed324bccfe65af0b",
+      "sha256": "b77409426386d2409b367350641c5e63fc04a327f26443df433724aff2b89fb1",
+      "spdx_header": "AGPL-3.0-or-later",
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "three"
+      ],
+      "disposition": "adapted",
+      "proposed_target_module": "scene/cut-faces",
+      "role": "cut surface helpers, only if retained by scene"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/two-radius-body.ts",
+      "git_blob": "7b933cff1ac6587debd59fc8bf5ebe9ee64908b7",
+      "sha256": "d0a822c0fbc2e0b84b73944bb17831872f5d2cbfa3ed72e0e83403b2b6220c38",
+      "spdx_header": "AGPL-3.0-or-later",
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "three"
+      ],
+      "disposition": "adapted",
+      "proposed_target_module": "geometry/body",
+      "role": "body geometry and scene type"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/presentation-preset.ts",
+      "git_blob": "0d02cc60f6aa3eb0fee4a7818d5b00fcd1572140",
+      "sha256": "6ae77f5c4579689272106d21de91a1de23ed9dcfa762e30ad9e36944f784466b",
+      "spdx_header": "AGPL-3.0-or-later",
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "three",
+        "three/addons/geometries/RoundedBoxGeometry.js",
+        "./physical-scene.ts",
+        "./two-radius-body.ts",
+        "./layer-widths.ts"
+      ],
+      "disposition": "adapted",
+      "proposed_target_module": "geometry/preset",
+      "role": "geometry/material subset; omit storage and controls"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/motion-timing.ts",
+      "git_blob": "46c25a181221eaa9d7d706db019961d0adf1e4bc",
+      "sha256": "c6ccc46698f6ab10b00e43e25b60135aa5dc0b289d5cc59228e330daa644aa09",
+      "spdx_header": null,
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [],
+      "disposition": "reference-only",
+      "proposed_target_module": "animation/timing",
+      "role": "timing comparison; ownership is decided in spec 009, implementation details remain open"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/index.ts",
+      "git_blob": "56bf1ac8e4338d9d9d3b6d31ee05466e91bf4904",
+      "sha256": "dbece6c5eaa072c4dfa371d757cf3db8a4d3a41d8181b0db04934e99c28408e3",
+      "spdx_header": "AGPL-3.0-or-later",
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "three",
+        "@cubistry/cube-core",
+        "@cubistry/cube-mechanics",
+        "@cubistry/cube-assets",
+        "./facelet-image.ts",
+        "./motion-timing.ts",
+        "./orbit-input.ts",
+        "./motion-timing.ts",
+        "./appearance.ts",
+        "./appearance.ts",
+        "./picture-mode.ts",
+        "./picture-mode.ts",
+        "./projected-uv.ts",
+        "./projected-uv.ts",
+        "./studio.ts",
+        "./studio.ts",
+        "./physical-scene.ts",
+        "./presentation-preset.ts",
+        "./presentation-preset.ts",
+        "./cut-faces.ts",
+        "./physical-scene.ts",
+        "./two-radius-body.ts",
+        "./layer-widths.ts",
+        "./rotation-binding.ts",
+        "./lighting-switches.ts",
+        "./lighting-switches.ts",
+        "./rotation-binding.ts",
+        "./smart-rotation.ts",
+        "./presentation-input.ts",
+        "./presentation-rotation.ts",
+        "./presentation-rotation.ts"
+      ],
+      "disposition": "reference-only",
+      "proposed_target_module": "scene/host",
+      "role": "turn lifecycle reference; do not import whole host"
+    },
+    {
+      "repository": "https://github.com/wstein/cubistry",
+      "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "path": "packages/cube-viewer/src/appearance.ts",
+      "git_blob": "7612b7407dae6117e55efe9742ffc5315cfff614",
+      "sha256": "6580e935571fcd16bb14311ab45c4c865f30e55ee9a11ef6d2943b8c7a690ebe",
+      "spdx_header": null,
+      "root_license": "LICENSE: AGPL-3.0; package declares AGPL-3.0-or-later",
+      "notice": "No root NOTICE at revision; licenses.html records Three.js MIT; src/CUBE_ASSEMBLER_LICENSE.txt records MIT port terms. Check applicability per artifact.",
+      "ported_mit_origin": "No explicit CubeAssembler port marker found in this file; history/rights verification remains open",
+      "direct_imports": [
+        "@cubistry/cube-core",
+        "@cubistry/cube-assets",
+        "./picture-mode.ts"
+      ],
+      "disposition": "reference-only",
+      "proposed_target_module": "scene/types",
+      "role": "Construction type dependency; do not import controls"
+    }
+  ]
+}
