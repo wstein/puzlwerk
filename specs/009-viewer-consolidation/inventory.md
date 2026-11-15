@@ -1,0 +1,41 @@
+# Viewer inventory
+
+Status: evidence for a proposed consolidation, not implementation approval. This snapshot records existing behavior; test files listed below exist but were not executed for this inventory. Source links pin revisions so later changes do not silently change the evidence.
+
+## Sources and boundaries
+
+- PuzlWerk [`5bee91e5b717fed41caf9f076a7d6efecb0d58da`](https://github.com/wstein/puzlwerk/tree/5bee91e5b717fed41caf9f076a7d6efecb0d58da): [appearance contract](../001-core-foundation/contracts/appearance-v1.md), [foundation model](../001-core-foundation/data-model.md), and [shared model comparison](../006-shared-model/comparison.md). Reuse those authorities; this inventory does not redefine them.
+- [PuzlWerk #9](https://github.com/wstein/puzlwerk/issues/9), [#11](https://github.com/wstein/puzlwerk/issues/11), [#12](https://github.com/wstein/puzlwerk/issues/12), and [Cubistry #111](https://github.com/wstein/cubistry/issues/111) provide the proposal context. The owner's November 5 comments on #111 distinguish canonical puzzle orientation from camera/orbit/POV and refine transitions to endpoints plus axis and signed angle: endpoints alone do not determine a half-turn direction. The viewer does not interpret notation. Timing and easing ownership remains open; these comments approve neither implementation nor migration.
+- The core/application owns canonical physical state and puzzle orientation; an application adapter projects it to rendering transformations. Rendered poses and interpolated frames are projections, not physical state. Camera/orbit changes view orientation. Notation, input policy, move selection and state commits belong to the application and core, not the viewer. A quaternion derived for rendering does not replace the proposed integer rotation matrix in the core.
+- Intended dependency direction: core <- viewer <- application. The existing Cubistry viewer has direct core, mechanics and assets dependencies, so extraction requires explicit adapters rather than assuming that direction already holds. CubeAssembler, then Cubistry, then CubeLab is the intended migration order; each migration requires separate owner approval. CubeLab retains native WebGL until its separately approved migration.
+
+## Cubistry
+
+Snapshot [`f976f40813d8e47f911ba6addab2603eb096f066`](https://github.com/wstein/cubistry/tree/f976f40813d8e47f911ba6addab2603eb096f066/packages/cube-viewer). `packages/cube-viewer/package.json` declares private `@cubistry/cube-viewer`, AGPL-3.0-or-later, `three` 0.187.0 and `@cubistry/cube-core`, `cube-mechanics`, `cube-assets` dependencies.
+
+| Source | Existing behavior and boundary |
+| --- | --- |
+| `src/index.ts`: `CubeViewer`, `SharedCubeViewport` | Standalone renderer or caller-owned renderer/scene/camera; `configure` validates print, state, assets and bottom-left texture origin; `presentedState`, `animate`, `setAppearance`, `resetCamera`, `destroy`. Rejects concurrent turn, stale starting state, configuration or destruction while busy. Reduced motion skips visual turn; failed animation cleans pivot and restores presented state. Standalone uses resize observer and animation loop; shared mode does not own renderer. |
+| `src/physical-scene.ts`: `PhysicalCubeScene`, `sync`, `beginTurn`, `dispose` | Builds and updates physical cubie/sticker render objects; turn takes cubie IDs, axis and signed angle, exposes update/dispose. `PictureProjection`, `setConstruction`, artwork and cut faces are rendering facilities, not authoritative state. |
+| `src/studio.ts`, `presentation-preset.ts` | Lighting, floor, shadow and render settings; studio can dispose its resources. |
+| `src/orbit-input.ts`, `smart-rotation.ts`, `rotation-binding.ts`, `presentation-input.ts`, `presentation-rotation.ts` | Camera/presentation rotation, drag, pitch bounds and camera fitting. These are distinct from physical orientation. |
+| `src/two-radius-body.ts`, `layer-widths.ts`, `cut-faces.ts`, `body-artwork.ts`, `projected-uv.ts` | Geometry, layer dimensions, cut surfaces, artwork and UV projection. |
+| `src/appearance.ts`, `picture-mode.ts`, `facelet-image.ts` | Appearance and picture projection, including UI controls and URL-related choice; these application-facing controls require separation from a reusable renderer. |
+| `src/motion-timing.ts`, `index.ts` | Optional `MotionTimingSource`; current viewer uses smoothstep and its own duration defaults, with externally supplied timing also supported. Current behavior does not decide future timing/easing ownership. |
+| `src/play-gesture*.ts` | Play gesture and turn mapping are application input behavior, outside this inventory's extraction scope. |
+
+Existing tests include `tests/physical-scene.test.mjs`, `viewer-rendering.test.mjs`, `studio.test.mjs`, `studio-shadow-update.test.mjs`, `picture-mode-viewer.test.mjs`, `calendar-viewer-timing.test.mjs` and `tests/browser/studio-modes-smoke.spec.mjs`. They are coverage evidence, not a passing baseline for this snapshot.
+
+## CubeAssembler
+
+Snapshot [`8ac10f5ae65f68e56a08bad5bdb738efe0e5bd4f`](https://github.com/wstein/cube-assembler/tree/8ac10f5ae65f68e56a08bad5bdb738efe0e5bd4f). Package license is MIT. `src/client/view3d/cubeView3D.tsx` composes Preact hooks `useCubeRenderer`, `useCubeCamera`, `useCubeTurns` and `useCubeGestures`; `cubeMesh.ts` wraps `core/view/CubeMesh.res`, and `cubeGesture.ts` wraps ReScript gesture logic. `useCubeTurns` depends on cube state, scramble generation, preferences and sound, so it is not a renderer-only API. `useCubeRenderer` uses mesh and shadow renderers; camera and gestures use `core/view/TurnAnimation`, `DragInertia`, `CubeGesture` and `TurnFeel`. Other relevant files are `webglShader.ts`, `cubeShadow.ts`, `cubeView3DGraphics.ts`, `cubeDragInteraction.ts`, `cubeView3DPresentation.tsx`, `axisGizmo.tsx`, and `core/view/{Mat4,CubeViewState,RandomSpin,AxisGizmo,CubeShadow,CubeLabFingerprint}.res` with corresponding interfaces where present. Scanner, camera capture and validation remain application responsibilities.
+
+Existing evidence includes `test/turnAnimation.test.ts`, `test/turnFeel.test.ts`, `test/turnCueDirection.test.ts`, `e2e/cubeView3D-view.spec.ts` and `e2e/cubeView3D-gestures.spec.ts` including mid-turn snapshots. Not executed here.
+
+## CubeLab
+
+Snapshot [`5ab482719a31b894bd32d78ea76c64609b89acb2`](https://github.com/wstein/cubelab/tree/5ab482719a31b894bd32d78ea76c64609b89acb2). `src/client/cube-gl.ts` exports `CubeViewport` and `createCubeViewport`; `src/Components/CubeViewport.astro` provides its controls. [Viewport documentation](https://github.com/wstein/cubelab/blob/5ab482719a31b894bd32d78ea76c64609b89acb2/docs/3d-viewport.md) describes native WebGL mesh, shader layer selection by cubie center, signed angles, cubic ease-out, cancellation and disposal, demand rendering, visibility suspension, context-loss reporting, camera and smart-cube integration. It distinguishes notation rotations from camera orbit and preserves canonical state outside fractional frames. `docs/three-renderer-migration.md` is a staged migration plan, not approval. Existing `test/cube-geometry.test.mjs` and client playback tests are evidence, not executed here. CubeLab's documentation describes its viewport implementation as independent of flix-cube source, with design vocabulary informed by that project; verify provenance of any selected files before reuse.
+
+## Provenance gate
+
+The package-level licenses above do not establish file-level authorship or all inherited notices. Cubistry includes `src/CUBE_ASSEMBLER_LICENSE.txt`; inspect history and notices for every file selected for reuse, including dependencies and assets, before copying. No file is selected or licensed for extraction by this inventory. The separate license review must record each reuse candidate's source revision, history, license and required notices; unresolved origin blocks reuse.
