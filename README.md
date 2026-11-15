@@ -68,3 +68,5 @@ rename does not publish packages or change repository settings. See the
 ## Bounded 3×3 picture solver
 
 The private [center-aware solver package](docs/knowledge-base/solver-3x3-picture.md) reuses the reviewed CubeLab implementation for calendar integration. Physical centers, goal symmetry and budget failures are explicit; ordinary 2×2 behavior remains unchanged.
+
+The private [front-goal solver package](docs/knowledge-base/solver-3x3-front.md) finds shortest routes to a picture on the front face of a 3×3×3 in ReScript, with budgets, progress and cancel.
