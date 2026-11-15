@@ -33,7 +33,7 @@ const routeCases = cases.filter((c) => oracle.get(c.id).status === "ok");
 
 test("res/FrontData.res is the output of the independent derivation (tools/front-model.mjs)", () => {
   const strip = (s) => s.replace(/\/\/[^\n]*/g, "").replace(/\s+/g, "").replace(/,\]/g, "]");
-  const committed = fs.readFileSync(path.join(here, "../packages/solver-3x3-front/res/FrontData.res"), "utf8");
+  const committed = fs.readFileSync(path.join(pkgDir, "res/FrontData.res"), "utf8");
   assert.equal(strip(committed), strip(generate()));
 });
 
