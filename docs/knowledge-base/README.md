@@ -21,6 +21,7 @@ Decisions, requirements and API reference keep their authorities here: ADRs in
 
 - [Scoped 2×2 API, modes, physical profile, metrics, provenance and license](solver-2x2.md)
 - [Bounded 3×3 picture solver, physical center goals and limits](solver-3x3-picture.md)
+- [Front-goal 3x3 solver (ReScript), request format, budgets, parity with the Rust engine](solver-3x3-front.md)
 - [Architecture and ownership design intent](architecture.md)
 - [Proposed Cubacle solver contract overview](solver-contract.md)
 - [Development workflow and initial work order](workflow.md)
