@@ -6,14 +6,14 @@ export const DEFAULT_SEARCH_MS = 4000;
 export const DEFAULT_MAX_NODES = 5_000_000;
 export const DEFAULT_MAX_MOVES = 21;
 
-// true: a child is dropped as soon as one table reaches the depth left (same decisions and node counts, fewer table reads);
-// false: all nine tables are read for every child, as the Rust engine does. For measurement.
+// INTERNAL, for measurement and tests only; not part of the API (absent from index.d.ts), may change or vanish.
+// true (default): a child is dropped as soon as one table reaches the depth left (same decisions and node counts, fewer
+// table reads); false: all nine tables are read for every child, as the Rust engine does.
 let lazyBound = true;
-export function setLazyBound(on) {
+export function unstable_setLazyBound(on) {
   lazyBound = Boolean(on);
 }
 
-const INT_MAX = 2 ** 31 - 1;
 const bad = (reason) => Object.freeze({ version: 1, status: "invalid", reason });
 
 /**
@@ -31,6 +31,8 @@ export function solveFront3x3(request) {
     searchMs = DEFAULT_SEARCH_MS,
     maxNodes = DEFAULT_MAX_NODES,
     maxMoves = DEFAULT_MAX_MOVES,
+    onProgress,
+    cancel,
   } = request;
   if (typeof facelets !== "string" || !/^[URFDLB]{54}$/.test(facelets) || [..."URFDLB"].some((c) => facelets.split(c).length !== 10))
     return bad("facelets are not 54 letters of URFDLB");
@@ -46,6 +48,8 @@ export function solveFront3x3(request) {
   }
   for (const [name, v] of [["tableMs", tableMs], ["searchMs", searchMs], ["maxNodes", maxNodes], ["maxMoves", maxMoves]])
     if (!Number.isInteger(v) || v < 0) return bad(`${name} is not a non-negative integer`);
+  if (onProgress !== undefined && typeof onProgress !== "function") return bad("onProgress is not a function");
+  if (cancel !== undefined && !(cancel instanceof Int32Array)) return bad("cancel is not an Int32Array");
   const out = Search.solve(
     facelets,
     [...centerTwists],
@@ -53,9 +57,11 @@ export function solveFront3x3(request) {
     Boolean(centerUp),
     tableMs,
     searchMs,
-    Math.min(maxNodes, INT_MAX),
+    maxNodes,
     Math.min(maxMoves, 255),
     lazyBound,
+    ...observers(onProgress),
+    cancel,
   );
   switch (out.TAG) {
     case "Found":
@@ -64,6 +70,10 @@ export function solveFront3x3(request) {
       return Object.freeze({ version: 1, status: "searchBudget", nodes: out.nodes });
     case "TableBudgetOut":
       return Object.freeze({ version: 1, status: "tableBudget", permille: out.permille });
+    case "TableCancelledOut":
+      return Object.freeze({ version: 1, status: "cancelled", stage: "tables", permille: out.permille });
+    case "SearchCancelled":
+      return Object.freeze({ version: 1, status: "cancelled", stage: "search", nodes: out.nodes });
     case "NoRoute":
       return Object.freeze({ version: 1, status: "noRoute", reason: out._0 });
     default:
@@ -71,14 +81,25 @@ export function solveFront3x3(request) {
   }
 }
 
+// onProgress({stage: "tables", permille}) while the tables are built (strictly rising, ends with 1000) and
+// onProgress({stage: "search", nodes, depth}) every 65,536 nodes; a return value of false cancels.
+function observers(onProgress) {
+  if (!onProgress) return [undefined, undefined];
+  return [
+    (permille) => onProgress({ stage: "tables", permille }) !== false,
+    (nodes, depth) => onProgress({ stage: "search", nodes, depth }) !== false,
+  ];
+}
+
 const U8 = (s) => (/^\+?\d+$/.test(s) && Number(s) <= 255 ? Number(s) : null);
 const U64 = (s) => (/^\+?\d+$/.test(s) ? Number(s) : null);
 
 /**
  * The text interface of the Cubacle WASM export (api.md of the spike, ABI 3): one TAB separated line in, [status, text] out.
- * Status 0 ok, 1 bad input, 2 no route, 3 search budget, 4 table budget.
+ * Status 0 ok, 1 bad input, 2 no route, 3 search budget, 4 table budget or table build cancelled (permille=),
+ * 5 search cancelled (nodes=; not in the Rust export). options: { onProgress, cancel } as in solveFront3x3.
  */
-export function solveFrontText(input) {
+export function solveFrontText(input, options = {}) {
   const badText = (why) => [1, `1\t${why}`];
   const f = input.split("\t");
   if (f[0] !== "1") return badText(`unsupported version ${JSON.stringify(f[0])}, expected 1`);
@@ -108,9 +129,11 @@ export function solveFrontText(input) {
     f[4] === "1",
     tableMs === 0 ? DEFAULT_TABLE_MS : tableMs,
     searchMs === 0 ? DEFAULT_SEARCH_MS : searchMs,
-    Math.min(maxNodes === 0 ? DEFAULT_MAX_NODES : maxNodes, INT_MAX),
+    maxNodes === 0 ? DEFAULT_MAX_NODES : maxNodes,
     maxMoves > 0 ? Math.min(maxMoves, 255) : DEFAULT_MAX_MOVES,
     lazyBound,
+    ...observers(options.onProgress),
+    options.cancel,
   );
   switch (out.TAG) {
     case "Found":
@@ -118,7 +141,10 @@ export function solveFrontText(input) {
     case "SearchBudget":
       return [3, `1\tnodes=${out.nodes}`];
     case "TableBudgetOut":
+    case "TableCancelledOut":
       return [4, `1\tpermille=${out.permille}`];
+    case "SearchCancelled":
+      return [5, `1\tnodes=${out.nodes}`];
     case "NoRoute":
       return [2, `1\t${out._0}`];
     default:

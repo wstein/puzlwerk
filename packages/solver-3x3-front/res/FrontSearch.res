@@ -3,8 +3,10 @@
 open FrontArr
 
 type outcome =
-  | Found({moves: string, rotation: string, nodes: int, tablesMs: float})
-  | SearchBudget({nodes: int})
+  | Found({moves: string, rotation: string, nodes: float, tablesMs: float})
+  | SearchBudget({nodes: float})
+  | SearchCancelled({nodes: float})
+  | TableCancelledOut({permille: int})
   | TableBudgetOut({permille: int})
   | NoRoute(string)
   | Invalid(string)
@@ -143,10 +145,16 @@ type search = {
   hasTwist: bool,
   nGroups: int,
   lazyBound: bool,
-  maxNodes: int,
+  maxNodes: float,
   deadline: float,
-  mutable nodes: int,
+  onSearch: option<(float, int) => bool>, // nodes, depth every 65,536 nodes; false cancels
+  cancel: option<i32>,
+  // nodes is a float (exact to 2^53); tick counts to 65,536 for the clock, the observer and the cancel flag
+  mutable nodes: float,
+  mutable tick: int,
+  mutable depth: int,
   mutable stopped: bool,
+  mutable cancelled: bool,
 }
 
 // the flat index of group j after turn m from flat index f
@@ -194,9 +202,34 @@ let childValueLazy = (s: search, d: int, m: int, left: int): int => {
 
 let allowed = (f: int, g: int): bool => !(g == f || (f >= 3 && g == f - 3))
 
+// Every 65,536 nodes: the cancel flag, the deadline, the observer. True ends the search.
+let atBoundary = (s: search): bool =>
+  if cancelRequested(s.cancel) {
+    s.cancelled = true
+    true
+  } else if now() >= s.deadline {
+    true
+  } else {
+    switch s.onSearch {
+    | Some(f) =>
+      if f(s.nodes, s.depth) {
+        false
+      } else {
+        s.cancelled = true
+        true
+      }
+    | None => false
+    }
+  }
+
 let rec dfs = (s: search, d: int, left: int, last: int): bool => {
-  s.nodes = s.nodes + 1
-  if s.nodes > s.maxNodes || (band(s.nodes, 0xFFFF) == 0 && now() >= s.deadline) {
+  s.nodes = s.nodes +. 1.0
+  s.tick = s.tick + 1
+  let boundary = s.tick == 65536
+  if boundary {
+    s.tick = 0
+  }
+  if s.nodes > s.maxNodes || (boundary && atBoundary(s)) {
     s.stopped = true
     false
   } else if left == 0 {
@@ -278,9 +311,12 @@ let solve = (
   ~centerUp: bool,
   ~tableMs: float,
   ~searchMs: float,
-  ~maxNodes: int,
+  ~maxNodes: float,
   ~maxMoves: int,
   ~lazyBound: bool,
+  ~onTables: option<int => bool>,
+  ~onSearch: option<(float, int) => bool>,
+  ~cancel: option<i32>,
 ): outcome =>
   switch cubieOfFacelets(facelets) {
   | None => Invalid("the start cube state is impossible")
@@ -297,7 +333,7 @@ let solve = (
       if FrontGoal.isImpossible(goal) {
         NoRoute("no state meets the front goal in any rotation")
       } else {
-        let gate = FrontTables.makeGate(tableMs <= 0.0 ? 0.0 : tableMs)
+        let gate = FrontTables.makeGate(tableMs <= 0.0 ? 0.0 : tableMs, onTables, cancel)
         // the position stacks: level 0 is the start
         let levels = maxMoves + 2
         let s0 = {
@@ -329,8 +365,13 @@ let solve = (
           lazyBound,
           maxNodes,
           deadline: infinity,
-          nodes: 0,
+          onSearch,
+          cancel,
+          nodes: 0.0,
+          tick: 0,
+          depth: 0,
           stopped: false,
+          cancelled: false,
         }
         for t in 0 to 7 {
           su(s0.cp, t, band(cube.ca[t]->Option.getUnsafe, 7))
@@ -344,12 +385,13 @@ let solve = (
         Array.forEachWithIndex(twists, (k, g) => tw0 := tw0.contents->bor(band(k, 3)->shl(2 * g)))
         si(s0.tw, 0, tw0.contents)
         if FrontGoal.isMet(goal.c, s0.cp, s0.co, 0, s0.ep, s0.eo, 0, tw0.contents) {
-          Found({moves: "", rotation: rotationWord(goal, s0, 0), nodes: 0, tablesMs: 0.0})
+          Found({moves: "", rotation: rotationWord(goal, s0, 0), nodes: 0.0, tablesMs: 0.0})
         } else {
           let plan = FrontTables.planGroups(goal, 9)
           let t0 = now()
           switch try Ok(FrontTables.build(goal, plan, gate)) catch {
           | FrontTables.TableBudget(p) => Error(TableBudgetOut({permille: p}))
+          | FrontTables.TableCancelled(p) => Error(TableCancelledOut({permille: p}))
           | FrontTables.Unsatisfiable =>
             Error(
               NoRoute(
@@ -410,6 +452,7 @@ let solve = (
             let result = ref(None)
             let depth = ref(from.contents)
             while result.contents == None && depth.contents <= maxMoves {
+              s.depth = depth.contents
               if dfs(s, 0, depth.contents, -1) {
                 result :=
                   Some(
@@ -421,7 +464,12 @@ let solve = (
                     }),
                   )
               } else if s.stopped {
-                result := Some(SearchBudget({nodes: s.nodes}))
+                result :=
+                  Some(
+                    s.cancelled
+                      ? SearchCancelled({nodes: s.nodes})
+                      : SearchBudget({nodes: s.nodes}),
+                  )
               } else {
                 depth := depth.contents + 1
               }
@@ -432,7 +480,7 @@ let solve = (
               NoRoute(
                 `no solution within ${Int.toString(
                     maxMoves,
-                  )} moves: searched out, so the shortest answer is longer (${Int.toString(
+                  )} moves: searched out, so the shortest answer is longer (${Float.toString(
                     s.nodes,
                   )} nodes; ${tableNote(tables.n, goal.hasTwist, tablesMs)}); raise --max-moves`,
               )

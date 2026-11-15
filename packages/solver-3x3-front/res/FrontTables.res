@@ -14,15 +14,20 @@ type gate = {
   mutable index: int,
   mutable count: int,
   mutable last: int, // -1 = none
+  observer: option<int => bool>, // progress in thousandths, strictly rising; false cancels
+  cancel: option<i32>, // a nonzero first element cancels
 }
 
 exception TableBudget(int)
+exception TableCancelled(int)
 
-let makeGate = (budgetMs: float) => {
+let makeGate = (budgetMs: float, observer, cancel) => {
   deadline: budgetMs == 0.0 ? infinity : now() +. budgetMs,
   index: 0,
   count: 1,
   last: -1,
+  observer,
+  cancel,
 }
 
 let gateStage = (g: gate, index, count) => {
@@ -33,14 +38,35 @@ let gateStage = (g: gate, index, count) => {
 let gateCheck = (g: gate, local: int) => {
   let overall = (g.index * 1000 + min(local, 1000)) / g.count
   let overall = max(overall, max(g.last, 0))
+  if cancelRequested(g.cancel) {
+    g.last = overall
+    throw(TableCancelled(overall))
+  }
   if now() >= g.deadline {
     g.last = overall
     throw(TableBudget(overall))
   }
   if g.last < 0 || overall > g.last {
     g.last = overall
+    switch g.observer {
+    | Some(f) =>
+      if !f(overall) {
+        throw(TableCancelled(overall))
+      }
+    | None => ()
+    }
   }
 }
+
+// Reports the end of the build (1000) unless it was reported.
+let gateFinish = (g: gate) =>
+  if g.last != 1000 {
+    g.last = 1000
+    switch g.observer {
+    | Some(f) => ignore(f(1000))
+    | None => ()
+    }
+  }
 
 // ---- the cubies each group tracks: (orbit, rank); orbit 0 = corner, 1 = edge
 let groups: array<array<(int, int)>> = [
@@ -400,6 +426,7 @@ let build = (goal: FrontGoal.t, plan: plan, gate: gate): t => {
     }
     gateCheck(gate, 1000)
   })
+  gateFinish(gate)
   {
     n,
     orbit,
