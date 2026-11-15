@@ -13,8 +13,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const pkgDir = process.env.FRONT_PKG ?? path.join(here, "../packages/solver-3x3-front");
 const Front = await import(pathToFileURL(path.join(pkgDir, "src/index.mjs")).href);
 const rd = (p) => fs.readFileSync(path.join(here, "fixtures/front-solver", p), "utf8");
-const cases = JSON.parse(rd("cases-183.json"));
-const oracle = new Map(rd("oracle-183.jsonl").trim().split("\n").map((l) => JSON.parse(l)).map((r) => [r.id, r]));
+const cases = JSON.parse(rd("cases-183.json")).cases;
+const oracle = new Map(rd("oracle-183.jsonl").trim().split("\n").slice(1).map((l) => JSON.parse(l)).map((r) => [r.id, r]));
 const CLASS = { 0: "ok", 1: "invalid", 2: "noroute", 3: "budget", 4: "tablebudget" };
 
 const line = (c, extra = [60000, 60000, 1e11, 0]) =>
@@ -209,13 +209,13 @@ test("the object API gives the same answer as the text API and is deterministic"
 test("reading all nine tables for every child (as Rust) gives the same nodes as the early exit", () => {
   const some = routeCases.filter((c, i) => i % 9 === 0);
   try {
-    Front.setLazyBound(false);
+    Front.unstable_setLazyBound(false);
     for (const c of some) {
       const [, text] = Front.solveFrontText(line(c));
       assert.equal(Number(text.split("\t")[3]), oracle.get(c.id).nodes, c.id);
     }
   } finally {
-    Front.setLazyBound(true);
+    Front.unstable_setLazyBound(true);
   }
 });
 
@@ -226,4 +226,64 @@ test("the search loop allocates nothing: no array, object, closure or call to a 
     assert.ok(m, `function ${name} not found`);
     assert.doesNotMatch(m[1], /\bnew\b|=>|\[\s*[^\]\s][^\]]*,|\{\s*[a-zA-Z]+:/, name);
   }
+});
+
+const heavy = cases.find((x) => x.id === "e-centre-twist2"); // 265,174 nodes
+const asRequest = (c, more = {}) => ({ facelets: c.facelets, centerTwists: c.twists, accepted: c.accepted, centerUp: c.centerUp, ...more });
+
+test("progress: the table build reports thousandths, strictly rising, ending at 1000; the search reports every 65,536 nodes", () => {
+  const events = [];
+  const r = Front.solveFront3x3(asRequest(heavy, { searchMs: 60000, maxNodes: 1e11, onProgress: (e) => { events.push(e); } }));
+  assert.equal(r.status, "ok");
+  assert.equal(r.nodes, oracle.get(heavy.id).nodes);
+  const tables = events.filter((e) => e.stage === "tables").map((e) => e.permille);
+  assert.ok(tables.length >= 9, `${tables.length} table reports`);
+  for (let i = 1; i < tables.length; i++) assert.ok(tables[i] > tables[i - 1]);
+  assert.equal(tables.at(-1), 1000);
+  const search = events.filter((e) => e.stage === "search");
+  assert.deepEqual(search.map((e) => e.nodes), [65536, 131072, 196608, 262144]);
+  assert.ok(search.every((e) => Number.isInteger(e.depth) && e.depth > 0));
+});
+
+test("progress: a start that already meets the goal reports nothing", () => {
+  const solvedCube = [...Model.FACE].map((ch) => ch.repeat(9)).join("");
+  const events = [];
+  const r = Front.solveFront3x3({ facelets: solvedCube, centerTwists: [0, 0, 0, 0, 0, 0], accepted: [...Array(9).keys()].map((i) => [18 + i]), onProgress: (e) => { events.push(e); } });
+  assert.equal(r.status, "ok");
+  assert.deepEqual(events, []);
+});
+
+test("cancel: an observer that returns false stops the table build or the search", () => {
+  const a = Front.solveFront3x3(asRequest(cases[0], { onProgress: () => false }));
+  assert.equal(a.status, "cancelled");
+  assert.equal(a.stage, "tables");
+  assert.ok(a.permille >= 0 && a.permille < 1000);
+  const b = Front.solveFront3x3(asRequest(heavy, { searchMs: 60000, maxNodes: 1e11, onProgress: (e) => e.stage !== "search" }));
+  assert.deepEqual({ status: b.status, stage: b.stage, nodes: b.nodes }, { status: "cancelled", stage: "search", nodes: 65536 });
+  const [st, text] = Front.solveFrontText(line(heavy), { onProgress: (e) => e.stage !== "search" });
+  assert.equal(st, 5);
+  assert.equal(text, "1\tnodes=65536");
+  const [st4, text4] = Front.solveFrontText(line(cases[0]), { onProgress: () => false });
+  assert.equal(st4, 4);
+  assert.match(text4, /^1\tpermille=\d+$/);
+});
+
+test("cancel: a flag set before the call, or from the progress callback, stops at the next check", () => {
+  const flag = new Int32Array(new SharedArrayBuffer(4));
+  flag[0] = 1;
+  const a = Front.solveFront3x3(asRequest(cases[0], { cancel: flag }));
+  assert.deepEqual({ status: a.status, stage: a.stage }, { status: "cancelled", stage: "tables" });
+  flag[0] = 0;
+  const b = Front.solveFront3x3(asRequest(heavy, { searchMs: 60000, maxNodes: 1e11, cancel: flag, onProgress: (e) => { if (e.stage === "search") Atomics.store(flag, 0, 1); } }));
+  assert.deepEqual({ status: b.status, stage: b.stage, nodes: b.nodes }, { status: "cancelled", stage: "search", nodes: 131072 });
+});
+
+test("nodes are counted beyond 2^31 without wrapping (a float counter, exact to 2^53); the cap is not clamped", () => {
+  const c = cases.find((x) => x.id === "fx-de-a-3");
+  const r = Front.solveFront3x3(asRequest(c, { maxNodes: 2 ** 40, searchMs: 60000 }));
+  assert.equal(r.status, "ok");
+  assert.equal(r.nodes, oracle.get(c.id).nodes);
+  const src = fs.readFileSync(path.join(pkgDir, "res/FrontSearch.res.mjs"), "utf8");
+  assert.match(src, /nodes = s\.nodes \+ 1(\.0)?[;\n]/);
+  assert.doesNotMatch(src, /s\.nodes \+ 1 \| 0/);
 });
