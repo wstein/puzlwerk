@@ -34,3 +34,37 @@ test('late resolver completion cannot commit after cancellation', async () => {
   resolve({ok:true,value:{}}); await Promise.resolve(); assert.equal(h.draws.length,0); assert.equal(h.frames.size,0);
   h.scene.dispose(); assert.equal((await h.scene.setProjection(projection)).error.code,'Disposed');
 });
+
+test('asset failure retains the last projection and allows a later request', async () => {
+  const h=harness(async()=>({ok:false,error:{code:'UnresolvedAsset',message:'missing'}}));
+  await h.scene.setProjection(projection); h.step(0);
+  const bad={pieces:[{...projection.pieces[0],stickers:[{...projection.pieces[0].stickers[0],imageId:'missing'}]}]};
+  assert.equal((await h.scene.setProjection(bad)).error.code,'UnresolvedAsset');
+  assert.equal((await h.scene.transition(turn(0,0))).ok,true);
+});
+test('context loss interrupts work and prevents further rendering', async () => {
+  const h=harness(); await h.scene.setProjection(projection); h.step(0);
+  const pending=h.scene.transition(turn(Math.PI)); h.scene.contextLost();
+  assert.equal((await pending).error.code,'ContextLost'); assert.equal(h.frames.size,0);
+  assert.equal((await h.scene.setProjection(projection)).error.code,'ContextLost');
+  h.scene.dispose(); assert.equal(h.frames.size,0);
+});
+test('invalidate coalesces and dispose stops queued rendering', async () => {
+  const h=harness(); await h.scene.setProjection(projection); h.scene.invalidate(); h.scene.invalidate();
+  assert.equal(h.frames.size,1); h.scene.dispose(); assert.equal(h.frames.size,0); h.step(100);
+  assert.equal(h.draws.length,0); assert.equal(h.scene.invalidate().error.code,'Disposed');
+});
+test('turn rotates around supplied nonzero pivot', async () => {
+  const h=harness(); await h.scene.setProjection(projection); h.step(0);
+  const angle=Math.PI; const changed=turn(angle); changed.pivot=[0.5,0,0];
+  changed.to.pieces[0].transform.position=[0,0,0];
+  const pending=h.scene.transition(changed); h.step(50);
+  assert.ok(Math.abs(h.draws.at(-1).x-.5)<1e-6); assert.ok(Math.abs(h.draws.at(-1).y-.5)<1e-6);
+  h.step(50); assert.equal((await pending).ok,true);
+});
+test('reduced motion completes visually without waiting for the animation clock', async () => {
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}},()=>true);
+  await scene.setProjection(projection);
+  assert.equal((await scene.transition(turn(Math.PI))).ok,true);
+  scene.dispose();
+});
