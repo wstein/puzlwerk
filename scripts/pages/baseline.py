@@ -39,3 +39,23 @@ def digest(source):
         result.update(len(data).to_bytes(8, 'big'))
         result.update(hashlib.sha256(data).digest())
     return result.hexdigest()
+
+def make_receipt(root, sha, run, attempt, nonce):
+    import re
+    if not isinstance(sha, str) or not re.fullmatch('[a-f0-9]{40}', sha):
+        raise ValueError('Invalid source SHA')
+    if type(run) is not int or run < 1 or type(attempt) is not int or attempt < 1:
+        raise ValueError('Invalid run identity')
+    if not isinstance(nonce, str) or not re.fullmatch('[a-f0-9]{32}', nonce):
+        raise ValueError('Invalid nonce')
+    return {'schema': 1, 'sha': sha, 'run': run, 'attempt': attempt,
+            'nonce': nonce, 'root': digest(root)}
+
+if __name__ == '__main__':
+    import json
+    import secrets
+    import sys
+    root = Path(sys.argv[1])
+    receipt = make_receipt(root, os.environ['GITHUB_SHA'], int(os.environ['GITHUB_RUN_ID']),
+                           int(os.environ['GITHUB_RUN_ATTEMPT']), secrets.token_hex(16))
+    (root/RECEIPT).write_text(json.dumps(receipt, separators=(',', ':')) + '\n')

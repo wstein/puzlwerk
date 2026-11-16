@@ -24,3 +24,15 @@ class BaselineTest(unittest.TestCase):
             (root/'link').symlink_to('index.html')
             with self.assertRaises(ValueError): baseline.digest(root)
 if __name__=='__main__': unittest.main()
+
+class ReceiptTest(unittest.TestCase):
+    def test_receipt_binds_tree_to_dispatch_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); (root/'index.html').write_text('production')
+            receipt=baseline.make_receipt(root, 'a'*40, 12, 2, 'b'*32)
+            self.assertEqual(receipt['root'],baseline.digest(root))
+            self.assertEqual(receipt['run'],12)
+            self.assertEqual(receipt['attempt'],2)
+            self.assertEqual(receipt['sha'],'a'*40)
+            for args in [('bad',12,2,'b'*32),('a'*40,0,2,'b'*32),('a'*40,12,0,'b'*32),('a'*40,12,2,'bad')]:
+                with self.assertRaises(ValueError): baseline.make_receipt(root,*args)
