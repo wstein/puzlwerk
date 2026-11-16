@@ -19,4 +19,6 @@ export async function compileReference(out) {
   }
   await visit(join(source,'packages'));
   await cp(join(source,'original.js'),join(out,'original.js'));
+  for (const name of ['LICENSE','source-manifest.json']) await cp(join(source,name),join(out,name));
+  await cp(join(source,'packages/cube-viewer/src/CUBE_ASSEMBLER_LICENSE.txt'),join(out,'CUBE_ASSEMBLER_LICENSE.txt'));
 }
