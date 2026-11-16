@@ -1,6 +1,6 @@
 # Acceptance suite inventory and decisions
 
-Status: source inventory and route proposal at PuzlWerk head `277bf5b89a4b139e3188b85cb7d8358b2a28d4bc`; implementation, functional and visual parity, hosted references and owner approvals are not established. The machine-readable `acceptance-routes.json` is the case-level authority for routes, source pins, native setup, actions, source tests, production interfaces, blockers and independent checklists. Source test references establish coverage intent, not a passing result. The 98 entries comprise registry modes, public entry aliases and distinct functional, renderer or source-library variants; entry aliases are not additional proof of functional coverage.
+Status: source inventory and route proposal, initially pinned at PuzlWerk head `277bf5b89a4b139e3188b85cb7d8358b2a28d4bc`; implementation, functional and visual parity, hosted references and owner approvals are not established. The machine-readable `acceptance-routes.json` is the case-level authority for routes, source pins, native setup, actions, source tests, production interfaces, blockers and independent checklists. Source test references establish coverage intent, not a passing result. The 101 entries (54 Cubistry, 25 CubeAssembler, 16 CubeLab and 6 Regrip) comprise registry modes, public entry aliases and distinct functional, renderer or source-library variants; entry aliases are not additional proof of functional coverage.
 
 ## Source pins and coverage boundaries
 
@@ -120,11 +120,15 @@ Each listed route is relative to one configured base and has its own checklist a
 
 | `cube-assembler-orientation-gizmo` | `acceptance/cube-assembler-orientation-gizmo/` | CubeAssembler: `/` |
 
+| `cubistry-playground-classic-2` | `acceptance/cubistry-playground-classic-2/` | Cubistry: native Playground classic 2×2 comparison |
+| `cube-assembler-solved-2` | `acceptance/cube-assembler-solved-2/` | CubeAssembler: native solved 2×2 viewer comparison |
+| `cube-assembler-capture-recovery` | `acceptance/cube-assembler-capture-recovery/` | CubeAssembler: proposed explicit recovery from capture/guide conflicts; not implemented |
+
 ## Contract and decision register
 
 | Item | Status | Required resolution |
 | --- | --- | --- |
-| Physical definition and state | Binding [wire-v1](../001-core-foundation/contracts/wire-v1.md); ReScript `core/res/PwCodec.resi`, `PwMove.resi` | Select identical real definition/state fixtures and legal action traces per case. `PwMove.applyToPose` does not enforce definition move policy; the policy-aware legality function is internal to `PwValidate`, and a public definition/state/move operation remains missing. Do not recreate policy in TypeScript. |
+| Physical definition and state | Binding [wire-v1](../001-core-foundation/contracts/wire-v1.md); ReScript `core/res/PwCodec.resi`, `PwMove.resi` | Select identical real definition/state fixtures and legal action traces per case. `PwMove.applyToPose` does not enforce definition move policy; the existing `PwValidate.applyMove` is the policy-aware public operation. `PwValidate.assess` separates structural, invariant and reachability evidence. Do not recreate policy in TypeScript. |
 | Sticker appearance | Binding [appearance-v1](../001-core-foundation/contracts/appearance-v1.md) | Map actual appearance IDs, orientation and assets through a production integration. `test/helpers/appearance-reference.mjs` is a reference helper; a production ReScript appearance decoder has not been established. |
 | Goal wire | **MISSING** | The typed in-memory `PwGoal` API exists; goal wire T013a is not implemented. Do not invent a wire format. |
 | Shared viewer | `packages/viewer/src/index.ts#createCubeScene`, `CubeScene` and stage interfaces exist | Case-level wire/appearance-to-projection mapping and production call evidence remain missing. Existing viewer tests do not establish consumer parity. |
@@ -135,6 +139,7 @@ Each listed route is relative to one configured base and has its own checklist a
 | Local review and production policy | Local comparisons | Run `npm run dev` and use the loopback routes in the manifest. Production documentation remains a separate explicit `deploy=true` dispatch. The [preview plan](acceptance-preview-plan.md) is historical. |
 | Acceptance record and approval | Owner decision open | Recommend versioned records with explicit attributable owner decision, exact case/head/fixture/scope and evidence. Local UI checks are observations, never owner approval; changed head or fixture invalidates the affected record. Architecture, functional and visual results stay separate. |
 | Publication | Separate owner decision | Local comparisons do not publish or approve production documentation. |
+| Capture recovery | [Proposed application envelope/port](spec.md#proposed-capture-recovery-application-contract); **not implemented** | Keep immutable observations, draft mappings and explicitly confirmed state separate; negotiate feasibility, reachability and search completeness independently. Existing wire/appearance contracts stay unchanged. Export compatibility and extraction/package placement remain open. |
 
 Each case names source app and screen, exact original and prospective route, cube and definition/state, appearance, camera, actions, assets, source component and tests, production core/viewer/play references, license eligibility, normal and nested-base links, checklist, trace, evidence and separate statuses. Check each case independently; a success for one case does not approve another. Renderer diagnostics establish only the exercised renderer behavior, not application parity.
 
@@ -183,3 +188,55 @@ and no candidate rendering or facelet comparison runs. CI asserts this block wit
 `cube-assembler-appearance-browser.mjs` are kept in the repository but are not run
 by CI; they are to be restored with a follow-up issue that adds source mesh
 support to the shared scene. No parity with CubeAssembler is claimed.
+
+### CubeAssembler capture-recovery proposal
+
+Case `cube-assembler-capture-recovery` reserves one informational inventory route
+for the [proposed envelope and application port](spec.md#proposed-capture-recovery-application-contract).
+Implementation: **not implemented**; architecture: **blocked**; functional,
+visual and owner acceptance: **not tested / UNKNOWN**. There is no recovery runtime
+or hosted original on this route. The following scenarios are proposed checks,
+not claims that existing source tests implement or pass them.
+
+Source evidence: [CubeAssembler PR #56](https://github.com/wstein/cube-assembler/pull/56),
+Draft/unmerged at `bab97177a0d4b860d47308f57df20963dfdc9946`, contains
+`CaptureRecovery`, `CaptureFaceMapping`, `SpatialOrientationWizard` and their
+browser bindings, plus `test/captureRecoveryPersistence.test.ts`,
+`test/captureFaceMapping.test.ts`, `test/spatialOrientationWizard.test.ts`,
+`test/guidedCaptureProtocol.test.ts`, `e2e/capture-recovery.spec.ts` and
+`e2e/spatial-orientation.spec.ts`. Those files were inspected as coverage intent,
+not executed here. The existing native 2×2 comparison above and its
+`acceptance/fixtures/cube-assembler-solved-2/provenance.json` are a different case;
+they establish neither captured physical identity nor capture recovery.
+
+| Scenario | Required observable result/evidence |
+| --- | --- |
+| CR1 Correct guide capture, mirrored and unmirrored | Preserve all six source observations and protocol/step/mirror provenance; use the checked guide seed without silent alternative ranking. Verify all five transitions with marked facelets and canonical versus capture-frame mapping. |
+| CR2 Wrong order or face rotation | Guide failure stays visible. Search starts only after Find a matching cube; retained choices permute whole faces and quarter turns without changing colors. Preview/selection never commits. |
+| CR3 Even-size whole-face mapping | On real 4×4 and a separately pinned 2×2/6×6 input, assign every selected source photo exactly once to all six logical faces; no center-color inference. Record the original-to-canonical transformation and source IDs. |
+| CR4 Odd fixed centers | On separately pinned 3×3/5×5/7×7 inputs, constrain by the actual fixed centers and profile; conflicting/duplicate centers are explicit. Do not infer full large-cube reachability from those constraints. |
+| CR5 Missing, retaken or mixed observations | Incomplete guide data, inconsistent mirror mode and retakes retain uncertain provenance and the existing incomplete-capture guard. No automatic legacy reinterpretation; explicit recovery cannot manufacture missing face data. Retakes invalidate affected candidate revisions. |
+| CR6 No, multiple, symmetric or truncated candidates | Keep feasibility, reachability and search coverage separate. Zero retained candidates under a cap is inconclusive; one retained candidate is not necessarily unique. Distinct source mappings remain identifiable through symmetry reduction; show limits and allow cancel. |
+| CR7 Immutable identity and raw roundtrip | Before/after hashes and exact grids match for original photos and recognized observations. Export/reimport preserves source IDs, guide history, absolute rotations and unknown provenance; raw export carries no approved cube when none exists. Unknown fields/revisions and unresolved assets yield explicit diagnostics without partial import. |
+| CR8 Explicit search, Use and cancel | Search requires the explicit action; progressive F/R/B/L/U/D questions skip resolved faces. Net/3D agree on the same draft. Use atomically commits the displayed checked revision; duplicate activation, stale/late candidate results and failed checks cannot commit. Cancel restores previous confirmed state and prior approval context without reranking. |
+| CR9 Photos and detected-color editor return | Hover/focus/tap opens the linked source photo for that displayed face. Editor return restores the recovery draft/context; corrections remain separate from raw detected data, invalidate affected evidence and are discarded with the unconfirmed transaction on cancel. No unrestricted mapping/color editor is added by recovery. |
+| CR10 Canonical frame and mirrored presentation | For all 24 proper canonical rotations, Back/cap orientations and mirror display modes, net, 3D and photo inspector agree on explicit source links. Orbit/display reset changes presentation only; no reflection enters canonical state and no historical mirror flag is rewritten. |
+
+Use the original owner 4×4 metadata at workspace-relative
+`projects/cube-assembler/test/fixtures/cube-4x4-2026-11-16T19-08-19/meta.json`
+(SHA-256 `f76e61a0aa8bafd12db3b378b033d910853267e3ddea5d7387d19482bfc5f65c`)
+and its byte-identical committed
+[assembly-only regression](https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/test/fixtures/cube-4x4-2026-11-16T19-08-19.assembly.json).
+The original directory is local untracked evidence, not a PuzlWerk-hosted asset;
+the committed metadata alone does not provide photographs. Its conflicting v2
+seed and owner-reported Up/Down interpretation exercise different explicit
+claims, not permission to relabel history. Pin actual photos, source revisions,
+asset rights and hashes before visual comparison; do not fabricate or relocate
+photos. Other sizes/scenarios need their own identified fixtures.
+
+Acceptance requires exact-head architecture, function and visual evidence,
+raw/draft/confirmed revision traces, available Core validation evidence and an
+explicit owner decision. Export backward compatibility, canonical identity
+mapping, package/license placement, real-device camera/touch and physical-cube
+acceptance remain **open / UNKNOWN**. No full NxN legality, production recovery
+port or consumer migration is established by this proposal.

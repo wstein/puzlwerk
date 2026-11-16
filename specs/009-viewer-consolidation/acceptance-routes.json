@@ -7525,6 +7525,96 @@
         "result": "not run"
       },
       "runtime": "cube-assembler"
+    },
+    {
+      "id": "cube-assembler-capture-recovery",
+      "route": "acceptance/cube-assembler-capture-recovery/",
+      "sourceApp": "CubeAssembler",
+      "screen": "proposed explicit capture recovery after guide conflict",
+      "sourceRoute": "/",
+      "sourceRevision": "bab97177a0d4b860d47308f57df20963dfdc9946",
+      "sourceComponent": "src/client/capture/useFaceRecovery.ts; src/core/capture/SpatialOrientationWizard.resi",
+      "sourceSymbol": "generateForProtocol; validateMapping; reviewProtocol; proposed findMatchingCube/use port is not implemented in PuzlWerk",
+      "sourceTests": [
+        "test/captureRecoveryPersistence.test.ts",
+        "test/captureFaceMapping.test.ts",
+        "test/spatialOrientationWizard.test.ts",
+        "test/guidedCaptureProtocol.test.ts",
+        "e2e/capture-recovery.spec.ts",
+        "e2e/spatial-orientation.spec.ts"
+      ],
+      "sourceReference": "https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/docs/orientation-recovery.md",
+      "sourceFixture": "test/fixtures/cube-4x4-2026-11-16T19-08-19.assembly.json; original local meta.json SHA-256 f76e61a0aa8bafd12db3b378b033d910853267e3ddea5d7387d19482bfc5f65c; photographs and other-size fixtures require separate provenance/rights pins.",
+      "sourceDefault": "PR #56 is Draft/unmerged. Preserve guide-conflict and incomplete-current-protocol guards. Proposed explicit Find a matching cube is not an automatic fallback or an existing PuzlWerk runtime.",
+      "cube": "Captured 2x2-7x7 inputs with independently declared size/profile/check/search capabilities; current 4x4 metadata is assembly-only evidence, not a complete photo or reachability fixture.",
+      "camera": "Application camera capture and mirror provenance remain with CubeAssembler; canonical transform, capture frame and viewer orbit are distinct.",
+      "actions": "Proposed CR1-CR10 in acceptance-matrix.md: inspect guide conflict; explicit Find a matching cube; constrained whole-face mapping/quarter turns; progressive Front/Right/Back/Left/Up/Down choices; synchronized net/3D; source-photo inspection and color-editor return; explicit Use or cancel.",
+      "assets": "Original photos and recognized source grids remain immutable and identified by source ID/hash; no photos copied or invented. Photo hosting rights, missing assets and real-device evidence remain UNKNOWN.",
+      "wireFixture": "BLOCKED: proposed application recovery envelope is separate from wire-v1. Partial/invalid captures are not valid wire cubes; confirmed projection needs an established physical-identity mapping and existing Core checks.",
+      "appearanceFixture": "BLOCKED: appearance-v1 remains unchanged; source-photo provenance and crop/mirror transforms are application envelope/asset data, not a new canonical appearance schema.",
+      "coreContract": [
+        "specs/009-viewer-consolidation/spec.md#proposed-capture-recovery-application-contract",
+        "specs/009-viewer-consolidation/acceptance-matrix.md#cubeassembler-capture-recovery-proposal",
+        "specs/001-core-foundation/contracts/wire-v1.md",
+        "specs/001-core-foundation/contracts/appearance-v1.md",
+        "core/res/PwCodec.resi",
+        "core/res/PwValidate.resi"
+      ],
+      "productionViewer": [
+        "packages/viewer/src/contract.ts#CubeScene",
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/core-viewer-bridge/src/index.mjs#open"
+      ],
+      "productionPlay": "Not required for capture-only review. Existing bridge createPlayer is not a recovery port or consumer migration.",
+      "referenceEligibility": "BLOCKED: PR #56 source is pinned but not merged; original local metadata hash matches committed assembly regression. Photographs, rights, other scenario fixtures and executable paired recovery integration remain unestablished.",
+      "originalReference": "https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/test/fixtures/cube-4x4-2026-11-16T19-08-19.assembly.json",
+      "normalBase": "/puzlwerk/acceptance/cube-assembler-capture-recovery/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-81/acceptance/cube-assembler-capture-recovery/",
+      "checklist": [
+        "Proposal only: follow CR1-CR10 in acceptance-matrix.md; no PuzlWerk recovery runtime, original hosting or owner acceptance is established.",
+        "Correct guide capture in both mirror modes retains source IDs, all guide steps and explicit capture-to-canonical transform; wrong order/rotation never causes silent replacement.",
+        "Explicit search constrains whole-face permutations/quarter turns, odd fixed centers and even face bijection; source colors/photos remain unchanged.",
+        "Missing/retaken/mixed observations preserve uncertain provenance and the incomplete-capture guard; invalidate stale candidates by observation/draft/search revisions.",
+        "Keep feasibility checks, full reachability and complete/truncated/cancelled search coverage distinct for zero, multiple, symmetric and singleton candidates; no full NxN legality claim.",
+        "Net/3D share the draft; source photos appear on demand by explicit ID; detected-color editor returns to the same transaction with separate draft corrections.",
+        "Use rechecks the exact displayed revision and available legality checks before one atomic commit; preview, duplicate activation or late results cannot commit; cancel restores prior confirmed/approval context.",
+        "Raw export/reimport preserves bytes/grids, source IDs and historical guide/mirror metadata; unknown fields/revisions and unresolved assets produce diagnostics. Export backward compatibility remains open.",
+        "Verify all 24 proper canonical transforms, Back/cap rotations and mirror presentation independently of camera orbit. Partial/invalid capture never becomes a valid wire-v1 state.",
+        "Record exact head, fixture hashes, architecture/function/visual evidence and explicit owner decision; real-camera/touch and physical-cube acceptance remain UNKNOWN."
+      ],
+      "trace": null,
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      },
+      "kind": "application",
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      },
+      "nativeScenario": {
+        "setup": "Proposed explicit recovery from the pinned 4x4 owner metadata; obtain original photos/rights and separately pinned other-size cases before visual comparison.",
+        "actionExpected": "Guide conflict stays visible until explicit search. Review constrained retained choices without editing raw data; explicit Use commits one checked revision, cancel restores previous state.",
+        "sourceEvidence": [
+          "src/core/capture/CaptureRecovery.res",
+          "src/core/capture/CaptureFaceMapping.resi",
+          "src/core/capture/SpatialOrientationWizard.resi",
+          "docs/orientation-recovery.md"
+        ],
+        "result": "not run"
+      }
     }
   ],
   "manifestContract": {
