@@ -356,24 +356,28 @@ let synchronizeObservations = (capture: capture, expectedRevision, photos: array
         observations->Array.some(photo =>
           !(capture.data.observations->Array.some(old => old.photoId == photo.photoId))
         )
-    switch createCapture({
-      ...capture.data,
-      observations,
-      revision: capture.data.revision + (changed ? 1 : 0),
-    }) {
-    | Rejected(error) => Rejected(error)
-    | Accepted({value}) =>
-      Accepted({
-        value: {
-          ...value,
-          history: [
-            ...capture.history,
-            ...observations->Array.filter(photo =>
-              !(capture.history->Array.some(old => old.photoId == photo.photoId))
-            ),
-          ],
-        },
-      })
+    if !changed {
+      Accepted({value: capture})
+    } else {
+      switch createCapture({
+        ...capture.data,
+        observations,
+        revision: capture.data.revision + 1,
+      }) {
+      | Rejected(error) => Rejected(error)
+      | Accepted({value}) =>
+        Accepted({
+          value: {
+            ...value,
+            history: [
+              ...capture.history,
+              ...observations->Array.filter(photo =>
+                !(capture.history->Array.some(old => old.photoId == photo.photoId))
+              ),
+            ],
+          },
+        })
+      }
     }
   }
 }

@@ -77,6 +77,7 @@ test('retakes and invalidation increment core-owned revisions, retaining immutab
 test('atomic synchronization rejects immutable rewrites, owns revisions and verifies actual source hashes',()=>{
  const [capture,candidate]=open(),same=structuredClone(fixture.capture.observations);
  const unchanged=success(Capture.synchronizeObservations(capture,0,same));assert.equal(Capture.snapshot(unchanged).revision,0);
+ const reordered=success(Capture.synchronizeObservations(capture,0,[...same].reverse()));assert.equal(Capture.snapshot(reordered).revision,0);assert.equal(Capture.photoForFace(reordered,candidate,'U')?.slot,'L');
  for(const key of ['sourceHash','sourceGrid','guideProtocol','mirrored']){const changed=structuredClone(same);changed[0][key]=key==='sourceGrid'?[['changed']]:key==='mirrored'?false:'changed';assert.equal(Capture.synchronizeObservations(capture,0,changed).ok,false);}
  const retake=structuredClone(same);retake[0].photoId='new-at-slot';retake[0].revision=999;
  const next=success(Capture.synchronizeObservations(capture,0,retake));assert.equal(Capture.snapshot(next).revision,1);assert.equal(Capture.snapshot(next).observations[0].revision,1);assert.equal(Capture.observationHistory(next).length,7);
