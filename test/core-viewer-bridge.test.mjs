@@ -172,3 +172,10 @@ test('renderer configuration maps explicit source face colors without changing a
  const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d)),doc={schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]},palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
  const result=open(definition,state,JSON.stringify(doc),{palette,defaultColor:'#ffffff',sourceFaceColors:{'DBR.R':'#fffdf6'}});assert.equal(result.ok,true);const sticker=result.value.projection.pieces.flatMap(piece=>piece.stickers).find(item=>item.id==='sticker:DBR.R');assert.equal(sticker.sourceFace.color,'#fffdf6');assert.deepEqual(result.value.appearance,doc);const invalid=open(definition,state,JSON.stringify(doc),{palette,defaultColor:'#ffffff',sourceFaceColors:{'DBR.R':'bad'}});assert.equal(invalid.ok,false);assert.equal(invalid.error.code,'InvalidPresentation');
 });
+
+test('presentation preserves explicit body bevel segments and rejects invalid counts',()=>{
+ const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d)),appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]}),palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const presentation={cellSize:1,bodyGap:.01,bodyRadius:.055,bodyBevelSegments:1,stickerWidth:.87,stickerRadius:.055,stickerOffset:.502};const options={palette,defaultColor:'#ffffff',presentation};
+ assert.equal(open(definition,state,appearance,options).value.projection.geometryProfile.body.bevelSegments,1);
+ for(const n of [0,-1,1.5,Infinity])assert.equal(open(definition,state,appearance,{...options,presentation:{...presentation,bodyBevelSegments:n}}).error.code,'InvalidPresentation');
+});
