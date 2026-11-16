@@ -7,7 +7,8 @@ test('writer requires opt-in and verified baseline before preview',async()=>{
  await assert.rejects(begin('preview','true',context,{read:async()=>null}),/baseline/);
  assert.deepEqual(await begin('production','false',context,{read:async()=>null,legacyAllowed:async()=>true}),{legacy:true});
  await assert.rejects(begin('production','false',context,{read:async()=>null,legacyAllowed:async()=>false}),/ledger/);
- assert.deepEqual(await begin('preview','true',context,{read:async()=>receipt}),{legacy:false,previous:receipt,start:{schema:1,...context,previous:receipt.nonce}});
+ await assert.rejects(begin('preview','true',context,{read:async()=>receipt}),/bootstrap/i);
+ assert.deepEqual(await begin('preview','true',context,{read:async()=>receipt,bootstrapConfigured:true}),{legacy:false,previous:receipt,start:{schema:1,...context,previous:receipt.nonce}});
 });
 test('writer commits only after exact live receipt verified',async()=>{
  const next={...receipt,sha:context.sha,run:context.run,attempt:context.attempt,previous:receipt.nonce,nonce:'f'.repeat(32)};
@@ -27,4 +28,14 @@ test('missing public receipt cannot use legacy deploy after ledger state or an u
  const denied={pages:async()=>{throw Error('403')}};
  await assert.rejects(legacyAllowed(denied,null),/403/);
  await assert.rejects(begin('production','true',context,{read:async()=>{throw Error('403')},legacyAllowed:async()=>true}),/403/);
+});
+
+test('bootstrap requires explicit owner attestation and no preexisting ledger',async()=>{
+ const request={run:42,attempt:1,artifact:9,root:'a'.repeat(64),snapshot:'b'.repeat(64),attested:true};
+ const options={read:async()=>null,legacyAllowed:async()=>true,bootstrapRequest:request};
+ const result=await begin('production','false',context,options);
+ assert.equal(result.legacy,false); assert.equal(result.start.previous,null); assert.deepEqual(result.bootstrap,request);
+ await assert.rejects(begin('production','false',context,{...options,bootstrapRequest:{...request,attested:false}}),/bootstrap/i);
+ await assert.rejects(begin('production','false',context,{...options,legacyAllowed:async()=>false}),/ledger/);
+ await assert.rejects(begin('production','false',context,{...options,read:async()=>receipt}),/bootstrap/i);
 });

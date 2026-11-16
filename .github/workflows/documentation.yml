@@ -9,6 +9,29 @@ on:
         description: 'Deploy accepted main to production Pages (maintainer approval)'
         type: boolean
         default: false
+      bootstrap:
+        description: 'Initialize from an independently verified published Pages artifact'
+        type: boolean
+        default: false
+      bootstrap_attested:
+        description: 'I verified current publication, full namespace inventory, and drained writer queue'
+        type: boolean
+        default: false
+      bootstrap_source_run:
+        description: 'Verified production run ID (first attempt only)'
+        type: string
+      bootstrap_source_attempt:
+        description: 'Verified production run attempt (must be 1)'
+        type: string
+      bootstrap_source_artifact:
+        description: 'Verified github-pages artifact ID'
+        type: string
+      bootstrap_expected_root:
+        description: 'Verified production root SHA-256'
+        type: string
+      bootstrap_expected_snapshot:
+        description: 'Verified full published snapshot SHA-256'
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -73,6 +96,13 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       WRITER_MODE: production
+      BOOTSTRAP_REQUESTED: ${{ inputs.bootstrap }}
+      BOOTSTRAP_ATTESTED: ${{ inputs.bootstrap_attested }}
+      BOOTSTRAP_SOURCE_RUN: ${{ inputs.bootstrap_source_run }}
+      BOOTSTRAP_SOURCE_ATTEMPT: ${{ inputs.bootstrap_source_attempt }}
+      BOOTSTRAP_SOURCE_ARTIFACT: ${{ inputs.bootstrap_source_artifact }}
+      BOOTSTRAP_EXPECTED_ROOT: ${{ inputs.bootstrap_expected_root }}
+      BOOTSTRAP_EXPECTED_SNAPSHOT: ${{ inputs.bootstrap_expected_snapshot }}
       PAGES_PREVIEWS_ENABLED: ${{ vars.PAGES_PREVIEWS_ENABLED }}
       PAGES_BOOTSTRAP_RUN: ${{ vars.PAGES_BOOTSTRAP_RUN }}
       PAGES_BOOTSTRAP_ATTEMPT: ${{ vars.PAGES_BOOTSTRAP_ATTEMPT }}
