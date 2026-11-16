@@ -150,6 +150,7 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
   return {
     controller,
     refresh() { if (!disposed) refresh(); },
+    cancelContacts() { if (!disposed) clearContacts(); },
     registerInteractionSurface,
     step() { if (!disposed) { controller.step(env.now()); apply(); } },
     interact() { if (!disposed) { controller.interact(env.now()); apply(); options.changed?.(); } },

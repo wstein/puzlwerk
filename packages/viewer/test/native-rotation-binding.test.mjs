@@ -172,3 +172,11 @@ test("accepted media request refreshes HUD from the committed controller",()=>{
  h.media.matches=true;h.media.dispatchEvent(new Event("change"));assert.equal(h.binding.controller.reducedMotion,true);
  assert.equal(requests,1);assert.match(h.note.textContent,/Reduced motion/);h.binding.dispose();
 });
+
+test("cancelContacts releases held pointers and ignores later motion",()=>{
+ const h=rotationHarness();const before=h.root.quaternion.clone();
+ h.element.pointer("pointerdown",100,100,1,"touch");assert.equal(h.element.captures.size,1);
+ h.binding.cancelContacts();assert.equal(h.element.captures.size,0);
+ h.element.pointer("pointermove",200,170,1,"touch");same(h.root.quaternion,before);
+ assert.notEqual(h.binding.controller.phase,"dragging");h.binding.dispose();
+});
