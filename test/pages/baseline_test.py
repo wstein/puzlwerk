@@ -15,6 +15,9 @@ class BaselineTest(unittest.TestCase):
             (root/'pr-preview/pr-1').mkdir(parents=True); (root/'pr-preview/pr-1/index.html').write_text('preview')
             (root/'.puzlwerk-publication.json').write_text('receipt')
             self.assertEqual(first,baseline.digest(root))
+            combined=baseline.digest(root, include_previews=True)
+            (root/'pr-preview/pr-1/index.html').write_text('changed')
+            self.assertNotEqual(combined,baseline.digest(root, include_previews=True))
             (root/'asset.js').write_text('v2'); self.assertNotEqual(first,baseline.digest(root))
     def test_incomplete_or_unsafe_snapshot_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -50,6 +53,7 @@ class StageTest(unittest.TestCase):
             import json
             receipt=json.loads((dest/baseline.RECEIPT).read_text())
             self.assertEqual(receipt['root'],baseline.digest(dest))
+            self.assertEqual(receipt['snapshot'],baseline.digest(dest, include_previews=True))
     def test_stage_rejects_existing_destination_and_links(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)/'source'; root.mkdir(); (root/'index.html').write_text('published')
