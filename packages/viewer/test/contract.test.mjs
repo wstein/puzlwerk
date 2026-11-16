@@ -32,3 +32,10 @@ test('equivalent sticker field and array order does not change transition identi
   const reordered={pieces:to.pieces.map(p=>({stickers:p.stickers.map(s=>({color:s.color,size:s.size,transform:s.transform,id:s.id})).reverse(),transform:p.transform,id:p.id})).reverse()};
   assert.equal(validateTransition({...turn,to:reordered}).ok,true);
 });
+
+test('sparse geometry arrays are rejected before rendering', () => {
+  const base={pieces:[{id:'p',transform:{position:[0,0,0],rotation:[0,0,0,1]},stickers:[],geometry:{cellSize:[1,1,1],outerSides:[[true,false],[true,false],[true,false]]}}]};
+  for(const geometry of [{cellSize:[1,,1],outerSides:base.pieces[0].geometry.outerSides},{cellSize:[1,1,1],outerSides:new Array(3)},{cellSize:[1,1,1],outerSides:[[true,,],[true,false],[true,false]]}]) {
+    assert.equal(validateProjection({pieces:[{...base.pieces[0],geometry}]}).error.code,'InvalidProjection');
+  }
+});

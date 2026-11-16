@@ -224,7 +224,7 @@ test('explicit source cell geometry is validated, snapshotted and invariant in a
   }
   const invalidFlags={pieces:[{...source.pieces[0],stickers:[],geometry:{...geometry,outerSides:[[true,false],[true,false],[true,1]]}}]};
   assert.equal((await scene.setProjection(invalidFlags)).error.code,'InvalidProjection');
-  const setting=scene.setProjection(source); geometry.cellSize[0]=2; resolve({ok:true,value:{}});
+  const setting=scene.setProjection(source); geometry.cellSize[0]=2; geometry.outerSides[0][0]=false; resolve({ok:true,value:{}});
   assert.equal((await setting).ok,true); frames.shift()(0);
   const body=rendered.getObjectByName('a').children.find(c=>c.isMesh && !c.name);
   body.geometry.computeBoundingBox(); assert.ok(Math.abs(body.geometry.boundingBox.max.x-body.geometry.boundingBox.min.x-1.002)<1e-6);
@@ -232,8 +232,40 @@ test('explicit source cell geometry is validated, snapshotted and invariant in a
   const fixture=JSON.parse(await readFile(new URL('./fixtures/cubistry-2x2-profile.json',import.meta.url)));
   const a=body.geometry.getAttribute('position').array;
   assert.equal(createHash('sha256').update(Buffer.from(a.buffer,a.byteOffset,a.byteLength)).digest('hex'),fixture.position);
-  const original={pieces:[{...source.pieces[0],geometry:{...geometry,cellSize:[1.012,1.012,1.012]}}]};
+  const original={pieces:[{...source.pieces[0],geometry:{...geometry,cellSize:[1.012,1.012,1.012],outerSides:[[true,false],[true,false],[true,false]]}}]};
   const changed={...turn(0,0),from:original,to:{pieces:[{...original.pieces[0],geometry:{...geometry,cellSize:[1.1,1.012,1.012]}}]}};
   assert.equal((await scene.transition(changed)).error.code,'InvalidTransition');
+  const changedSides={...turn(0,0),from:original,to:{pieces:[{...original.pieces[0],geometry:{...original.pieces[0].geometry,outerSides:[[false,true],[true,false],[true,false]]}}]}};
+  assert.equal((await scene.transition(changedSides)).error.code,'InvalidTransition');
+  scene.dispose();
+});
+
+test('source 2x2 profile preserves body and sticker poses and sticker up', async () => {
+  const THREE=await import('three'); const {readFile}=await import('node:fs/promises');
+  const expected=JSON.parse(await readFile(new URL('./fixtures/cubistry-2x2-poses.json',import.meta.url)));
+  const faces=[[[1,0,0],[0,1,0]],[[-1,0,0],[0,1,0]],[[0,1,0],[0,0,-1]],[[0,-1,0],[0,0,1]],[[0,0,1],[0,1,0]],[[0,0,-1],[0,1,0]]];
+  const pieces=[]; let id=0;
+  for(const x of [-1,1]) for(const y of [-1,1]) for(const z of [-1,1]) {
+    const v=[x,y,z], stickers=[];
+    for(const [n,up] of faces) if(n.reduce((sum,a,i)=>sum+a*v[i],0)===1) {
+      const normal=new THREE.Vector3(...n), u=new THREE.Vector3(...up), right=u.clone().cross(normal);
+      const q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right,u,normal));
+      stickers.push({id:`s${id++}`,transform:t(n.map(a=>a*.508),q.toArray()),size:[.87,.87],color:'#fff'});
+    }
+    pieces.push({id:`p${pieces.length}`,transform:t(v.map(a=>a*.506)),geometry:{cellSize:[1.012,1.012,1.012],outerSides:v.map(a=>[a<0,a>0])},stickers});
+  }
+  let rendered; const frames=[]; const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  await scene.setProjection({pieces}); frames.shift()(0);
+  for(const [i,piece] of pieces.entries()) {
+    const body=rendered.getObjectByName(piece.id), ref=expected[i];
+    body.position.toArray().forEach((v,j)=>assert.ok(Math.abs(v-ref.position[j])<1e-9));
+    for(const [j,sticker] of piece.stickers.entries()) {
+      const actual=rendered.getObjectByName(sticker.id), e=ref.stickers[j];
+      actual.position.toArray().forEach((v,k)=>assert.ok(Math.abs(v-e.position[k])<1e-9));
+      const q=new THREE.Quaternion(...e.quaternion); assert.ok(1-Math.abs(actual.quaternion.dot(q))<1e-9);
+      const up=new THREE.Vector3(0,1,0).applyQuaternion(actual.quaternion), sourceUp=new THREE.Vector3(0,1,0).applyQuaternion(q);
+      assert.ok(up.distanceTo(sourceUp)<1e-9);
+    }
+  }
   scene.dispose();
 });

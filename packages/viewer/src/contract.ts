@@ -29,7 +29,7 @@ export function validateProjection(p: CubeProjection): Result<void> {
     ids.add(piece.id);
     if (piece.geometry !== undefined) {
       const g = piece.geometry;
-      if (!g || !array(g.cellSize,3) || g.cellSize.some((x: number) => x <= 1 - .99) || !Array.isArray(g.outerSides) || g.outerSides.length !== 3 || !g.outerSides.every((side: unknown) => Array.isArray(side) && side.length === 2 && side.every((v: unknown) => typeof v === 'boolean'))) return fail('InvalidProjection','Invalid piece geometry',`pieces[${i}].geometry`);
+      if (!g || !array(g.cellSize,3) || Array.from(g.cellSize).some((x: unknown) => typeof x !== 'number' || !Number.isFinite(x)) || g.cellSize.some((x: number) => x <= 1 - .99) || !Array.isArray(g.outerSides) || g.outerSides.length !== 3 || !Array.from(g.outerSides).every((side: unknown) => Array.isArray(side) && side.length === 2 && Array.from(side).every((v: unknown) => typeof v === 'boolean'))) return fail('InvalidProjection','Invalid piece geometry',`pieces[${i}].geometry`);
     }
     for (const [j, s] of piece.stickers.entries()) {
       if (!s || !id(s.id) || ids.has(s.id) || !transform(s.transform) || !array(s.size, 2) || s.size.some((x: number) => x <= 0) || !id(s.color) || (s.imageId !== undefined && !id(s.imageId))) return fail('InvalidProjection', 'Invalid sticker', `pieces[${i}].stickers[${j}]`);
