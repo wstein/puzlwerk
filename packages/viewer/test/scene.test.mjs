@@ -633,3 +633,13 @@ test('projected planar UV uses source cell-share extent for unequal layers',asyn
  const base=createTwoRadiusBody({size:[1.39,.99,.69],outer:[[false,true],[false,true],[false,true]],big:.055,small:.033,segments:3}),expected=planarBodyUv(base,[1.4*.99,.99,.7*.99],new Set([4]));
  assert.deepEqual([...actual.attributes.uv.array],[...expected.attributes.uv.array]);expected.dispose();base.dispose();scene.dispose();
 });
+
+test('live source face color changes cut faces without changing image tint or turn pose',async()=>{
+ const THREE=await import('three');let now=0,rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>now,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const sf={normal:[0,0,1],up:[0,1,0],color:'#ff0000'},front={id:'s',transform:t([0,0,.5]),size:[.8,.8],color:'#ffffff',imageId:'tile',sourceFace:sf};
+ const from={pieces:[{id:'p',transform:t([1,0,0]),stickers:[front]}],appearance:{construction:'stickerless'}},to={...from,pieces:[{...from.pieces[0],transform:t([-1,0,0],[0,0,1,0])}]};
+ await scene.setProjection(from);frames.shift()(0);const turning=scene.transition({from,to,pieceIds:['p'],axis:[0,0,1],signedAngleRadians:Math.PI,pivot:[0,0,0],durationMs:100});now=50;frames.shift()(now);
+ const before=rendered.getObjectByName('p').getWorldPosition(new THREE.Vector3());assert.equal((await scene.setArtwork({appearance:from.appearance,stickers:[{id:'s',color:'#ffffff',imageId:'tile',sourceFace:{...sf,color:'#0000ff'}}]})).ok,true);frames.shift()(now);
+ const body=rendered.getObjectByName('p');assert.ok(body.getWorldPosition(new THREE.Vector3()).distanceTo(before)<1e-9);assert.equal(body.children[0].material[0].color.getHexString(),'0000ff');assert.equal(body.children[0].material[4].color.getHexString(),'ffffff');
+ scene.cancel();assert.equal((await turning).error.code,'Cancelled');scene.dispose();
+});
