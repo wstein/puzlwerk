@@ -32,12 +32,13 @@ default zero metallic factor is implicit.
 
 src/studio.ts: Git blob 3f378124c5788214bf7016882c9ff7129b4d0598;
 source SHA-256 dd263bb73056cfab830c4afb1dd40cced28960638a9d99b0296c5a71044197c1.
-The import extension and SPDX header were adapted. These files retain the
+The import extension and SPDX header were adapted; caster directions can be
+updated before fitting. These files retain the
 Cubistry package's AGPL-3.0-or-later terms.
 
 Adapted target SHA-256 values at this revision:
 src/presentation-preset.ts bb791c66c95a02931d7b05cffa182c9b64e13cfacd27454615edab20b9beb7de
-src/studio.ts 00ffac466351db90b5754de1da4c0d90eb4aea127835ab34fc77cfd49a1435fd
+src/studio.ts 4ea2a8735e2b5b9fde87b3e3e64bcd0a79d68f9a121f23e5135a5fb4f3ec060c
 src/scene.ts 15879198268c8062535fadad68c609d3be943127688459c3e8b096722a2c471b
 
 src/layer-widths.ts: Git blob c0239c3830f4177f8ef30f616c39e6e93977c48b;

@@ -82,3 +82,10 @@ Regenerate with:
 ```sh
 node packages/viewer/test/fixtures/generate-cubistry-tone.mjs /path/to/cubistry
 ```
+
+`cubistry-casters.json` records the pinned source studio's default caster
+frusta and the actual Names-light key position. Regenerate with:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-casters.mjs /path/to/cubistry
+```
