@@ -57,3 +57,28 @@ test('universal turn supports an arbitrary axis and pivot without changing opaqu
  const mesh=[];parent.traverse(o=>{if(o.isMesh)mesh.push(o)});const pos=mesh[0].getWorldPosition(new THREE.Vector3());
  assert.ok(pos.distanceTo(new THREE.Vector3(1,1,0))<1e-8);turn.dispose();scene.dispose();material.dispose();
 });
+
+test('numeric native axis turns match the original Euler rotations',()=>{
+ for(let axis=0;axis<3;axis++)for(const angle of [-Math.PI/2,Math.PI/2,Math.PI]){
+  const parent=new THREE.Group(),material=new THREE.MeshStandardMaterial();
+  const geometry={body:new THREE.BoxGeometry(.9,.9,.9),sticker:new THREE.PlaneGeometry(.8,.8),stickerOffset:.46};
+  const body={id:'piece',position:[1,0,0],rotation:[0,0,0,1]};
+  const scene=new PhysicalCubeScene(parent,[],new Map(),material,1,geometry,new Map(),{bodies:[body]});
+  const turn=scene.beginTurn([body.id],axis,angle);turn.update(.37);parent.updateMatrixWorld(true);
+  const pivot=parent.children.find(c=>c.children.length && c.rotation.toArray().slice(0,3).some(v=>Math.abs(v)>1e-8));
+  const expected=new THREE.Euler();expected[['x','y','z'][axis]]=angle*.37;
+  assert.ok(1-Math.abs(pivot.quaternion.dot(new THREE.Quaternion().setFromEuler(expected)))<1e-12);
+  turn.dispose();scene.dispose();material.dispose();
+ }
+});
+
+test('direct Core body poses orient stickered native bodies without quantization',()=>{
+ const parent=new THREE.Group(),material=new THREE.MeshStandardMaterial();
+ const geometry={body:new THREE.BoxGeometry(.9,.9,.9),sticker:new THREE.PlaneGeometry(.8,.8),stickerOffset:.46};
+ const frame={id:'face',cubie:'piece',p:[1,0,0],n:[0,0,1],up:[0,1,0]},rotation=[0,Math.sin(.2),0,Math.cos(.2)];
+ const scene=new PhysicalCubeScene(parent,[frame],new Map([['face',material]]),material,1,geometry);
+ scene.syncBodyPoses([{id:'piece',position:[1,0,0],rotation}]);
+ assert.ok(1-Math.abs(parent.children[0].quaternion.dot(new THREE.Quaternion(...rotation)))<1e-12);
+ const previous=parent.children[0].position.clone();assert.throws(()=>scene.syncBodyPoses([]),/Missing or duplicate/);assert.ok(parent.children[0].position.equals(previous));
+ scene.dispose();material.dispose();
+});

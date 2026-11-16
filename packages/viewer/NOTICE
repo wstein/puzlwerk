@@ -156,3 +156,5 @@ without sticker frames, rejects overlapping identities, and validates required p
 before synchronization. These extensions do not define or mutate puzzle state.
 The source turn method also accepts a unit axis vector and an explicit pivot; the
 original numeric axis form remains available. This is a renderer-only extension.
+The scene exposes validated direct Core-owned presentation poses for all bodies;
+this preserves arbitrary body quaternions without turning them into puzzle state.

@@ -527,6 +527,20 @@ export class PhysicalCubeScene {
       );
     }
   }
+  /** Apply validated Core-owned presentation poses; this never changes puzzle state. */
+  syncBodyPoses(poses: readonly PhysicalBodyPose[]): void {
+    const byId = new Map(poses.map(pose => [pose.id, pose]));
+    demand(byId.size === poses.length && byId.size === this.bodies.size, "Missing or duplicate physical body pose");
+    for (const id of this.bodies.keys()) {
+      const pose = byId.get(id);
+      demand(pose && pose.position.length === 3 && pose.position.every(Number.isFinite) && pose.rotation.length === 4 && pose.rotation.every(Number.isFinite) && Math.abs(Math.hypot(...pose.rotation) - 1) < 1e-6, "Invalid physical body pose");
+    }
+    for (const [id, body] of this.bodies) {
+      const pose = byId.get(id)!;
+      body.position.set(...this.worldAt(pose.position)).multiplyScalar(this.spacing);
+      body.quaternion.set(...pose.rotation);
+    }
+  }
   /** Legal layer selection and angle come from the caller's existing mechanics. */
   beginTurn(cubies: readonly string[], axis: number | Vec3, angle: number, center: Vec3 = [0, 0, 0]) {
     const vector = typeof axis === "number" ? ([0, 1, 2].map(i => i === axis ? 1 : 0) as unknown as Vec3) : axis;
