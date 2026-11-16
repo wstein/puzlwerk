@@ -1,0 +1,42 @@
+{
+  "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+  "sourceHash": "ed21d7b72c1301c48dec7c75fdaf6a6a50dbf406c9ebf47063893163b81a79b1",
+  "cases": [
+    {
+      "p": 0,
+      "parts": {
+        "specular": 0,
+        "faceShadows": false,
+        "shadowStrength": 0.3
+      },
+      "gain": 1.0005002501250624,
+      "floorFactor": 3.3333333333333335,
+      "roughness": 0.65,
+      "clearcoat": 0.01
+    },
+    {
+      "p": 0.6,
+      "parts": {
+        "specular": 0.03,
+        "faceShadows": true,
+        "shadowStrength": 0.6
+      },
+      "gain": 1.0453047627848089,
+      "floorFactor": 1.6666666666666667,
+      "roughness": 0.65,
+      "clearcoat": 0.01
+    },
+    {
+      "p": 1,
+      "parts": {
+        "specular": 0.05,
+        "faceShadows": true,
+        "shadowStrength": 0.8
+      },
+      "gain": 1.0614449237457966,
+      "floorFactor": 1.25,
+      "roughness": 0.65,
+      "clearcoat": 0.01
+    }
+  ]
+}

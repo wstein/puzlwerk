@@ -156,3 +156,9 @@ test('nonfinite derived caster bounds reject a view before backend commit',async
  const h=harness(),child=h.stage.addCube({position:[100,0,0]}).value;await child.setProjection(projection);h.step(0);const previous=h.view;
  const invalid=h.stage.setViewPolicy(()=>({distance:10,far:100,groupScale:1e308}));assert.equal(invalid.error.code,'InvalidView');assert.deepEqual(h.view,previous);h.step(0);assert.equal(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).x,100);h.stage.dispose();
 });
+test('source plasticity render values 0, .6 and 1 reach material, lights and floor',async()=>{
+ const {readFile}=await import('node:fs/promises'),fixture=JSON.parse(await readFile(new URL('./fixtures/cubistry-names-plasticity.json',import.meta.url)));const h=harness(),child=h.stage.addCube({position:[0,0,0]}).value;
+ const p={pieces:[{id:'p',transform:t(),stickers:[{id:'tile',transform:t(),size:[.8,.8],color:'#fff'}]}]};await child.setProjection(p);h.step(0);
+ for(const c of fixture.cases){const base=namesLighting(),cfg={...base,keyShadowStrength:c.parts.shadowStrength,shadowFillStrength:.55*c.parts.shadowStrength,floorOpacity:.3*c.floorFactor,exposure:()=>c.gain};assert.equal(h.stage.setLighting(cfg).ok,true);assert.equal(child.setMaterial({specularIntensity:c.parts.specular,roughness:c.roughness,clearcoat:c.clearcoat,receiveShadow:c.parts.faceShadows}).ok,true);h.step(0);const mesh=h.scene.getObjectByName('tile'),key=h.scene.children.find(o=>o.isDirectionalLight&&o.castShadow),floor=h.scene.getObjectByName('studio-shadow-receiver');assert.equal(mesh.material.specularIntensity,c.parts.specular);assert.equal(mesh.material.roughness,c.roughness);assert.equal(mesh.material.clearcoat,c.clearcoat);assert.equal(mesh.receiveShadow,c.parts.faceShadows);assert.equal(key.shadow.intensity,c.parts.shadowStrength);assert.equal(floor.material.opacity,.3*c.floorFactor);assert.equal(h.view.exposure,c.gain);}
+ h.stage.dispose();
+});

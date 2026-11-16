@@ -80,7 +80,7 @@ assets, appearance policy and state. Registered interaction surfaces remain
 caller-owned. Disposal removes the canvas and releases its WebGL context.
 
 The demo uses two and three source-framed cubes and a 7×7 source Names geometry
-and lighting setup with synthetic solid face colors, not calendar print data.
+and lighting setup with a synthetic asymmetric Canvas glyph and miter, not calendar print data.
 Its browser test uses `PLAYWRIGHT_MODULE` as above and
 `node packages/viewer/test/stage-browser-smoke.mjs` with the demo server running.
 It checks desktop/mobile viewport sizes, source-derived sample colors, input,
