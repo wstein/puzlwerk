@@ -579,3 +579,126 @@ established source feature. The current shared stage exposes `onViewChanged`,
 binding to physical/virtual frames have not been established and remain BLOCKED.
 No rendered diagnostic, replay or single source case alone proves app parity,
 live hardware behavior or owner visual acceptance.
+
+## Proposed capture-recovery application contract
+
+Status: **proposal; not implemented in PuzlWerk**. The owner requested this
+contract and an acceptance case on 2026-11-16. The workflow below remains a UX
+proposal, not approval of a shared recovery engine, consumer migration or runtime
+implementation. CubeAssembler owns camera acquisition, recognition, guide
+provenance, photo inspection and the review/commit workflow. Pure mapping,
+candidate constraints and legality belong in ReScript domain functions; the
+viewer presents application-supplied projections and owns no authoritative
+recovery or puzzle state. Package placement, license compatibility and any
+extraction require a separate decision.
+
+### Inspected interfaces and limits
+
+The source baseline is [CubeAssembler PR #56](https://github.com/wstein/cube-assembler/pull/56),
+Draft and unmerged when inspected, at `bab97177a0d4b860d47308f57df20963dfdc9946`.
+Its [CaptureFaceMapping.resi](https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/src/core/capture/CaptureFaceMapping.resi)
+exposes source-slot placements, quarter turns, `validateMapping` and
+`captureFrame`; [SpatialOrientationWizard.resi](https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/src/core/capture/SpatialOrientationWizard.resi)
+exposes retained candidates, `truncated`, `fullCubeValidityKnown`,
+`generateForProtocol` and canonical-target choices. These are CubeAssembler APIs,
+not existing PuzlWerk recovery exports. Its [CaptureRecovery.res](https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/src/core/capture/CaptureRecovery.res)
+keeps persisted mapping/capture-frame data separate and marks inconsistent or
+missing current-guide evidence as incomplete. That guard is intentional; this
+proposal does not remove it or turn a conflict into automatic fallback search.
+
+PuzlWerk's [PwCodec.resi](https://github.com/wstein/puzlwerk/blob/f6140a9899456df797e9cc136d0ddd68872793af/core/res/PwCodec.resi) decodes opaque structurally
+validated definition/state values. [PwValidate.resi](https://github.com/wstein/puzlwerk/blob/f6140a9899456df797e9cc136d0ddd68872793af/core/res/PwValidate.resi)
+separates structural checks, named necessary invariants and reachability evidence;
+`assess`, `assessAssuming` and policy-aware `applyMove` have explicit assumptions.
+Complete face-turn methods are scoped to N=2 and N=3; larger sizes need a verified
+replay certificate for a positive reachability verdict. A valid mapping or
+structural pass supplies no complete NxN legality claim. The existing
+[core/viewer bridge](https://github.com/wstein/puzlwerk/blob/f6140a9899456df797e9cc136d0ddd68872793af/packages/core-viewer-bridge/src/index.mjs) `open` and
+`createPlayer`, [viewer contract](https://github.com/wstein/puzlwerk/blob/f6140a9899456df797e9cc136d0ddd68872793af/packages/viewer/src/contract.ts)
+`CubeScene.setProjection`/`transition`/`cancel`, and
+[consumer fixture manifests](acceptance-matrix.md#cubeassembler-native-22-comparison)
+are integration evidence, not a capture-recovery implementation. In particular,
+the native color-only 2×2 fixture does not supply physical piece/sticker identity.
+
+### Proposed envelope and port semantics
+
+The working name `CaptureRecoveryEnvelope`, revision `proposal-1`, denotes a
+versioned **application-facing** exchange separate from
+[wire-v1](../001-core-foundation/contracts/wire-v1.md) and
+[appearance-v1](../001-core-foundation/contracts/appearance-v1.md). These proposed
+records and operations are descriptive shapes, not exported, typechecked or
+runtime-tested declarations. They do not introduce another canonical puzzle
+model or change either binding contract.
+
+| Proposed record | Required meaning |
+| --- | --- |
+| `RawObservation` | Stable `photoId`, source slot, observation revision, immutable recognized `sourceGrid`, original photo asset reference/hash, and recorded photo transform/mirror convention. Record guide protocol/version, step, displayed arrow and mirror mode per observation, plus producer revision and source provenance. Absent/unknown provenance stays absent/unknown. Photo identity is never inferred from equal colors. |
+| `RecoveryDraft` | Capture ID/revision, draft revision, selected observation IDs/revisions, a separate existing-editor color-correction overlay/revision if present, photo-to-logical-face mapping and absolute quarter turns (0..3), selected candidate ID and search revision, canonical transform and its convention/version. Six selected observations form a bijection onto F/R/B/L/U/D when complete; a partial mapping remains a draft. Retakes append new observation identities and supersession links; they do not overwrite historical observations. |
+| `CandidateEvidence` | Candidate feasibility (`passesAvailableChecks`, `failsAvailableChecks`, `unknown`) with named checks, profile, method/revision and issues; independent reachability evidence (`verified`, `disproved`, `unknown`) with certificate/method and assumptions; independent search coverage (`completeForDeclaredDomain`, `truncated`, `cancelled`, `unknown`) with domain, limits and retained count. A retained singleton is not proof of uniqueness; an empty truncated search is not proof of impossibility. |
+| `ConfirmedState` | Application-owned checked assembly, source mapping and canonical transform, referenced draft/observation revisions and validation evidence, created only by explicit Use. A canonical definition/state projection requires an established identity mapping and successful existing Core checks; retain `unknown` reachability when no complete method or certificate applies. Do not fabricate IDs from color equality. |
+| `CaptureRecoveryEnvelope` | Schema name/revision, capture identity/revision, puzzle size, color-profile identity/revision and definition/profile references when known, immutable observations and asset/provenance manifest, optional draft, candidate evidence and optional confirmed reference/projection. Confirmed and unconfirmed material have distinct fields; an envelope is not a valid wire cube. |
+
+The photo transform maps recorded image coordinates to the immutable sampled
+grid; the mapping's quarter turns map that grid onto a logical face. The canonical
+transform maps the assembled capture frame into the canonical puzzle frame and
+must name one of the 24 proper cube rotations using a pinned convention; it
+cannot contain a reflection. Camera orbit and display transforms are separate
+presentation data. A mirrored live view or photo inspector never mirrors grid
+values to produce a puzzle state or changes recorded historical mirror mode.
+
+The proposed application port has five operations: `inspect` reports guide
+consistency and supported size/profile/check/search capabilities; explicit
+`findMatchingCube` requests constrained whole-face permutations and quarter
+turns using the existing search where applicable; `select` updates only a draft;
+`cancel` invalidates pending work and discards the unconfirmed transaction;
+`use` atomically commits the exact displayed draft after rechecking revisions,
+source identity, the complete mapping and available legality checks. Every
+request/result names capture, observation, draft and search revisions as
+applicable. A retake, changed draft, new search or changed definition/profile
+invalidates affected candidates. A stale candidate returns a conflict and cannot
+commit. Failed validation, cancellation or a late result leaves the previously
+confirmed state unchanged. Cancel restores the prior approval candidate, page
+and notices without reranking; an initial recovery dialog simply closes.
+
+Capability negotiation states supported sizes, odd-center constraints,
+even-face assignment, named feasibility checks, reachability methods/profiles and
+search domain/limits independently. An unsupported size or method is explicit;
+calling a candidate "matching" never upgrades its validation evidence.
+The proposed envelope uses closed records: unknown fields or unsupported schema,
+transform or method revisions block interpretation/commit with a diagnostic;
+original imported bytes may be retained for raw reexport without treating them
+as understood. Asset references resolve to pinned original bytes and rights
+metadata; missing assets block photo/visual acceptance and are not replaced by
+invented photos. Import validates references and revisions before changing any
+current draft or confirmed state.
+
+Backward compatibility for CubeAssembler `capture.faceRecovery` v1, fixture
+metadata, raw export/reimport and any future envelope export is **open**: specify
+lossless mappings and version negotiation before implementation. Do not silently
+upgrade v1/v2 guide history to v3, reuse the current Mirror setting as historical
+evidence, or promise that an older importer understands the envelope. A partial
+or invalid capture must remain an application envelope/raw export; it cannot be
+emitted as a valid `puzlwerk.state` or substituted for the last confirmed wire
+projection. Existing wire-v1 and appearance-v1 remain unchanged authorities for
+that projection.
+
+### Proposed conflict workflow and acceptance gate
+
+On a guide conflict, keep the recorded guide claim and show an explicit
+**Find a matching cube** action. Only that action may search beyond the failed
+guide-derived seed. Search considers whole captured faces and quarter turns,
+with fixed-center constraints for odd sizes and a face bijection for even sizes;
+it does not offer a free face/sticker editor or change recognized colors. Review
+feasible retained choices progressively in Front → Right → Back → Left → Up →
+Down order, skipping resolved faces; symmetric choices must not invent ambiguity
+or erase distinct source identities. Net and 3D preview use the same draft.
+Photos appear on demand through explicit source links. Returning from the
+existing detected-color editor restores recovery context; any corrections are
+separate draft edits, never changes to raw images or recognized source grids,
+and invalidate affected search evidence. **Use this cube** is a separate explicit
+commit; previewing or answering a face cannot commit automatically.
+
+The [capture-recovery acceptance case](acceptance-matrix.md#cubeassembler-capture-recovery-proposal)
+keeps all runtime, parity and owner results unestablished until exercised. This
+specification authorizes neither implementation nor activation, deployment or
+consumer replacement.
