@@ -70,6 +70,14 @@ export class SmartRotation {
     if (mode !== "free") this.quaternion.copy(this.initial);
     this.residual.identity(); this.modeValue = mode; this.reduced = reducedMotion;
   }
+  /** Copy every controller field before a synchronous presentation transaction. */
+  clone(): SmartRotation {
+    const copy = Object.create(SmartRotation.prototype) as SmartRotation;
+    for (const [key, value] of Object.entries(this)) {
+      (copy as unknown as Record<string, unknown>)[key] = value instanceof Quaternion || value instanceof Vector3 ? value.clone() : value;
+    }
+    return copy;
+  }
   /** The exact frontal view: the observer sits on +Z, so identity shows the front head-on. The tolerance is measured from here, never from the (slightly rotated) default view. */
   get front(): Quaternion { return this.frontView; }
   get phase(): RotationPhase { return this.phaseValue; }
