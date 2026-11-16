@@ -9,8 +9,8 @@
     "node": ">=24"
   },
   "scripts": {
-    "build": "rescript build && npm run build --workspace @puzlwerk/solver-3x3-picture",
-    "test": "npm run build && npm run build --workspace @puzlwerk/viewer && node --test test/*.test.mjs",
+    "build": "rescript build && npm run build --workspace @puzlwerk/solver-3x3-picture && npm run build --workspace @puzlwerk/viewer",
+    "test": "npm run build && node --test test/*.test.mjs",
     "format:check": "rescript format --check",
     "check": "npm run format:check && npm run typecheck && npm test && npm run test --workspace @puzlwerk/viewer",
     "typecheck": "tsc -p test/types/tsconfig.json",
