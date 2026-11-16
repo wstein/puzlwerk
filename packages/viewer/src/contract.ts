@@ -7,7 +7,8 @@ export type ViewerError = { readonly code: 'InvalidProjection' | 'InvalidTransit
 export type Result<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: ViewerError };
 export type Transform = { readonly position: Vec3; readonly rotation: Quaternion };
 export type Sticker = { readonly id: string; readonly transform: Transform; readonly size: readonly [number, number]; readonly color: string; readonly imageId?: string };
-export type Piece = { readonly id: string; readonly transform: Transform; readonly stickers: readonly Sticker[] };
+export type PieceGeometry = { readonly cellSize: Vec3; readonly outerSides: readonly [readonly [boolean, boolean], readonly [boolean, boolean], readonly [boolean, boolean]] };
+export type Piece = { readonly id: string; readonly transform: Transform; readonly stickers: readonly Sticker[]; readonly geometry?: PieceGeometry };
 export type CubeProjection = { readonly pieces: readonly Piece[] };
 export type Transition = { readonly from: CubeProjection; readonly to: CubeProjection; readonly pieceIds: readonly string[]; readonly axis: Vec3; readonly signedAngleRadians: number; readonly pivot: Vec3; readonly durationMs: number };
 export type AssetResolver = (imageId: string, signal: AbortSignal) => Promise<Result<CanvasImageSource>>;
@@ -26,6 +27,10 @@ export function validateProjection(p: CubeProjection): Result<void> {
   for (const [i, piece] of p.pieces.entries()) {
     if (!piece || !id(piece.id) || ids.has(piece.id) || !transform(piece.transform) || !Array.isArray(piece.stickers)) return fail('InvalidProjection', 'Invalid piece', `pieces[${i}]`);
     ids.add(piece.id);
+    if (piece.geometry !== undefined) {
+      const g = piece.geometry;
+      if (!g || !array(g.cellSize,3) || g.cellSize.some((x: number) => x <= 1 - .99) || !Array.isArray(g.outerSides) || g.outerSides.length !== 3 || !g.outerSides.every((side: unknown) => Array.isArray(side) && side.length === 2 && side.every((v: unknown) => typeof v === 'boolean'))) return fail('InvalidProjection','Invalid piece geometry',`pieces[${i}].geometry`);
+    }
     for (const [j, s] of piece.stickers.entries()) {
       if (!s || !id(s.id) || ids.has(s.id) || !transform(s.transform) || !array(s.size, 2) || s.size.some((x: number) => x <= 0) || !id(s.color) || (s.imageId !== undefined && !id(s.imageId))) return fail('InvalidProjection', 'Invalid sticker', `pieces[${i}].stickers[${j}]`);
       ids.add(s.id);
@@ -51,7 +56,7 @@ export function validateTransition(t: Transition): Result<void> {
   const rotation = new Q().setFromAxisAngle(new Vector3(...t.axis), t.signedAngleRadians);
   for (const source of t.from.pieces) {
     const target = targets.get(source.id);
-    if (!target || !sameValues([...source.stickers].sort((a,b) => a.id.localeCompare(b.id)), [...target.stickers].sort((a,b) => a.id.localeCompare(b.id)))) return fail('InvalidTransition', 'Sticker definitions differ');
+    if (!target || !sameValues(source.geometry, target.geometry) || !sameValues([...source.stickers].sort((a,b) => a.id.localeCompare(b.id)), [...target.stickers].sort((a,b) => a.id.localeCompare(b.id)))) return fail('InvalidTransition', 'Sticker definitions differ');
     if (!selected.has(source.id)) { if (!sameValues(source.transform, target.transform)) return fail('InvalidTransition', 'Unselected piece changed'); continue; }
     const position = new Vector3(...source.transform.position).sub(pivot).applyQuaternion(rotation).add(pivot);
     const actual = new Vector3(...target.transform.position);

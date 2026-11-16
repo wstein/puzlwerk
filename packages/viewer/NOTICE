@@ -38,7 +38,7 @@ Cubistry package's AGPL-3.0-or-later terms.
 Adapted target SHA-256 values at this revision:
 src/presentation-preset.ts bb791c66c95a02931d7b05cffa182c9b64e13cfacd27454615edab20b9beb7de
 src/studio.ts 00ffac466351db90b5754de1da4c0d90eb4aea127835ab34fc77cfd49a1435fd
-src/scene.ts 3c744092feb5f595fd955fd0c8486039a4e788ef8df57d1672acb824b1ce9710
+src/scene.ts 8d8f9bc4556e38885de25bde8b7aa4b8e5504de8508be0c9923c7d0a0bbc7b7a
 
 src/layer-widths.ts: Git blob c0239c3830f4177f8ef30f616c39e6e93977c48b;
 source SHA-256 0977d80f09a4e939d471b74c867c6e7a76a19dbdfc8cc1243cafed4ba7ff7416.

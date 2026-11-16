@@ -59,7 +59,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       }
       const offsets = piece.stickers.map(s => Math.hypot(...s.transform.position)).filter(n => n > .1);
       const width = offsets.length ? Math.max(.94, Math.min(.99, Math.min(...offsets) * 2 - .002)) : .94;
-      const geometry = profile.body([width+.01,width+.01,width+.01],sides as OuterSides);
+      const geometry = profile.body(piece.geometry?.cellSize ?? [width+.01,width+.01,width+.01],piece.geometry?.outerSides ?? sides as OuterSides);
       const material = createPlasticMaterial('#1b2431'); resources.push(geometry, material);
       const mesh = new THREE.Mesh(geometry, material); mesh.castShadow = true; body.add(mesh);
       for (const sticker of piece.stickers) {
