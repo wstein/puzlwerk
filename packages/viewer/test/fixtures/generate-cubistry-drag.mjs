@@ -1,0 +1,11 @@
+import {createHash} from 'node:crypto';
+import {readFile,writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {exerciseDrag} from './drag-harness.mjs';
+const root=process.argv[2];if(!root)throw Error('Pass the pinned Cubistry checkout');
+const file=resolve(root,'packages/cube-viewer/src/presentation-input.ts');
+const hash=createHash('sha256').update(await readFile(file)).digest('hex');
+if(hash!=='576916c1b54bcdc19a522f8f5a44ad6477be257edefaaccd71c129fe8bc9f222')throw Error('Source hash mismatch');
+const {installPresentationDrag}=await import(pathToFileURL(file));
+await writeFile('packages/viewer/test/fixtures/cubistry-presentation-drag.json',JSON.stringify({revision:'efafcc1d97687eccea0cde87a230f447ce1b6c66',sourceHash:hash,result:exerciseDrag(installPresentationDrag)},null,2)+'\n');
