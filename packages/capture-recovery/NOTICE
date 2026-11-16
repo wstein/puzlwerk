@@ -1,0 +1,15 @@
+PuzlWerk capture recovery, Copyright (c) 2026 Werner Stein.
+Core and generated bindings: EUPL-1.2, following the owner decision SM11 in
+specs/006-shared-model/plan.md (2026-11-12). This private package does not change
+any solver or viewer package license and does not authorize publication.
+
+Wizard decision filtering and canonical target order adapt the pure ReScript
+SpatialOrientationWizard.res from wstein/cube-assembler, revision
+91fc2144cbcf2734f84ee3a93c70b8ed503a5151 (MIT, Copyright (c) 2026 Werner Stein).
+The complete upstream MIT grant is in CUBE_ASSEMBLER_LICENSE.txt.
+No CubeState, CubeAssembly, Parity, solver or viewer implementation is copied.
+
+EUPL-1.2 text source: SPDX license-list-data v3.27.0, text/EUPL-1.2.txt.
+The source revision and compiled import closure are in provenance.json.
+Compatibility and production distribution with MIT CubeAssembler remain an
+owner gate; this package makes no claim that EUPL code becomes MIT licensed.

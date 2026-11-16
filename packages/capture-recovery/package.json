@@ -1,0 +1,11 @@
+{
+  "name": "@puzlwerk/capture-recovery",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "EUPL-1.2",
+  "exports": {".": {"types": "./lib/index.d.ts", "import": "./lib/index.js"}},
+  "files": ["lib/", "source/", "LICENSE", "NOTICE", "CUBE_ASSEMBLER_LICENSE.txt", "provenance.json"],
+  "scripts": {"build": "node build.mjs"},
+  "dependencies": {"@rescript/runtime": "12.3.1"}
+}

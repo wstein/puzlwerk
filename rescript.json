@@ -19,5 +19,10 @@
     "in-source": true
   },
   "suffix": ".res.mjs",
-  "dependencies": []
+  "dependencies": [],
+  "gentypeconfig": {
+    "module": "esmodule",
+    "moduleResolution": "bundler",
+    "generatedFileExtension": ".gen.ts"
+  }
 }
