@@ -369,7 +369,7 @@ test('picture resolves six faces atomically and maps a source window',async()=>{
  const pic={widths:[1,1],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
  const p={pieces:[{id:'piece',transform:t(),stickers:[sticker]}],picture:pic};
  assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0);
- const map=rendered.getObjectByName('face').material.map;assert.equal(map.flipY,false);assert.ok(Math.abs(map.repeat.x-.435)<1e-9);assert.ok(Math.abs(map.offset.x-.0325)<1e-9);
+ const pictureMaterial=rendered.getObjectByName('face').material;assert.equal(pictureMaterial.transparent,false);const map=pictureMaterial.map;assert.equal(map.flipY,false);assert.ok(Math.abs(map.repeat.x-.435)<1e-9);assert.ok(Math.abs(map.offset.x-.0325)<1e-9);
  fail=true;const bad={...p,picture:{...pic,faces:{...pic.faces,B:'missing'}}};assert.equal((await scene.setProjection(bad)).error.code,'UnresolvedAsset');
  assert.equal(rendered.getObjectByName('face').material.map,map);scene.dispose();assert.deepEqual(closed,[]);
 });
@@ -531,4 +531,54 @@ test('live artwork applied before turn end is included in the completed endpoint
  now=100;frames.shift()(now);assert.equal((await turning).ok,true);
  const endpoint={...t0.to,appearance:artwork.appearance,pieces:[{...t0.to.pieces[0],stickers:[{...t0.to.pieces[0].stickers[0],color:'#ffffff',imageId:'live'}]}]};
  assert.equal((await scene.transition({from:endpoint,to:endpoint,pieceIds:[],axis:[0,0,1],signedAngleRadians:0,pivot:[0,0,0],durationMs:0})).ok,true);scene.dispose();
+});
+
+test('identical source miter cut patterns share one material and texture per scene',async()=>{
+ let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const stickers=prefix=>[{id:`${prefix}f`,transform:t([0,0,.502]),size:[.87,.87],color:'#ff0000',sourceFace:{normal:[0,0,1],up:[0,1,0],edgeColors:{left:[{to:.3,color:'#ffffff'},{to:1,color:'#ff0000'}]}}},{id:`${prefix}u`,transform:t([0,.502,0],[-Math.SQRT1_2,0,0,Math.SQRT1_2]),size:[.87,.87],color:'#ffffff',sourceFace:{normal:[0,1,0],up:[0,0,-1]}}];
+ const p={pieces:[{id:'a',transform:t(),stickers:stickers('a')},{id:'b',transform:t([1,0,0]),stickers:stickers('b')}],appearance:{construction:'stickerless',miterCutFaces:true}};
+ await scene.setProjection(p);frames.shift()(0);const a=rendered.getObjectByName('a').children[0].material,b=rendered.getObjectByName('b').children[0].material;
+ assert.equal(a[0],b[0]);assert.ok(a[0].map);assert.equal(a[0].map,b[0].map);scene.dispose();
+});
+
+test('identical source profile bodies and stickers share geometry and dispose once',async()=>{
+ let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const make=id=>({id,transform:t(),geometry:{cellSize:[1,1,1],outerSides:[[false,false],[false,true],[false,true]]},stickers:[{id:`${id}s`,transform:t([0,0,.502]),size:[.87,.87],color:'#ff0000',sourceFace:{normal:[0,0,1],up:[0,1,0]}}]});
+ await scene.setProjection({pieces:[make('a'),make('b')]});frames.shift()(0);const a=rendered.getObjectByName('a'),b=rendered.getObjectByName('b');
+ assert.equal(a.children[0].geometry,b.children[0].geometry);assert.equal(a.children[1].geometry,b.children[1].geometry);
+ let bodies=0,stickers=0;a.children[0].geometry.addEventListener('dispose',()=>bodies++);a.children[1].geometry.addEventListener('dispose',()=>stickers++);scene.dispose();assert.equal(bodies,1);assert.equal(stickers,1);
+});
+
+test('live artwork while hidden waits to render and turn resumes without time jump',async()=>{
+ let now=0,hidden=false,listener,rendered;const frames=[];const clock={now:()=>now,request:cb=>{frames.push(cb);return frames.length},cancel:()=>{frames.length=0},isHidden:()=>hidden,onVisibility:cb=>{listener=cb;return()=>{}}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render:s=>{rendered=s},dispose(){}});await scene.setProjection(projection);frames.shift()(0);const pending=scene.transition(turn(Math.PI));now=25;frames.shift()(now);
+ const before=rendered.getObjectByName('a').getWorldPosition(new (await import('three')).Vector3());hidden=true;listener();assert.equal((await scene.setArtwork({appearance:{construction:'stickered',frameColor:'#00aabb'},stickers:[{id:'s',color:'#fff'}]})).ok,true);assert.equal(frames.length,0);
+ now=525;hidden=false;listener();frames.shift()(now);const after=rendered.getObjectByName('a').getWorldPosition(new (await import('three')).Vector3());assert.ok(after.distanceTo(before)<1e-9);assert.equal(rendered.getObjectByName('a').children[0].material.color.getHexString(),'00aabb');
+ now=600;frames.shift()(now);assert.equal((await pending).ok,true);scene.dispose();
+});
+
+test('live artwork preserves established source frames and picture reference across picture off and on',async()=>{
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}});
+ const frame={normal:[0,0,1],up:[0,1,0]},mapping={face:'F',layerIndex:[0,1,1]},picture={widths:[1,1],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
+ const s={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:frame,picture:mapping};await scene.setProjection({pieces:[{id:'p',transform:t(),stickers:[s]}],picture});
+ assert.equal((await scene.setArtwork({stickers:[{id:'s',color:'#fff',sourceFace:frame}]})).ok,true);
+ for(const invalid of [{stickers:[{id:'s',color:'#fff'}]},{stickers:[{id:'s',color:'#fff',sourceFace:{normal:[0,0,1],up:[1,0,0]}}]},{picture,stickers:[{id:'s',color:'#fff',sourceFace:frame,picture:{face:'F',layerIndex:[1,1,1]}}]},{picture:{...picture,widths:[1,2]},stickers:[{id:'s',color:'#fff',sourceFace:frame,picture:mapping}]}])assert.equal((await scene.setArtwork(invalid)).error.code,'InvalidProjection');
+ assert.equal((await scene.setArtwork({picture,stickers:[{id:'s',color:'#fff',sourceFace:{...frame,edgeColors:{left:'#ffffff'}},picture:mapping}]})).ok,true);scene.dispose();
+});
+
+test('failed or canceled picture updates do not reserve construction references',async()=>{
+ let release,mode='fail';const scene=createSceneForTest({resolveAsset:()=>mode==='fail'?Promise.resolve({ok:false}):mode==='pending'?new Promise(r=>{release=r}):Promise.resolve({ok:true,value:{}})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}});
+ const sticker={id:'s',transform:t(),size:[.8,.8],color:'#fff'};await scene.setProjection({pieces:[{id:'p',transform:t(),stickers:[sticker]}]});
+ const frame={normal:[0,0,1],up:[0,1,0]},faces={U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'},entry={id:'s',color:'#fff',sourceFace:frame,picture:{face:'F',layerIndex:[0,0,0]}};
+ assert.equal((await scene.setArtwork({picture:{widths:[1],faces},stickers:[entry]})).error.code,'UnresolvedAsset');
+ mode='pending';const pending=scene.setArtwork({picture:{widths:[2],faces},stickers:[entry]});scene.cancel();assert.equal((await pending).error.code,'Cancelled');release({ok:true,value:{}});await new Promise(r=>setImmediate(r));
+ mode='ok';assert.equal((await scene.setArtwork({picture:{widths:[3],faces},stickers:[entry]})).ok,true);scene.dispose();
+});
+
+test('successful setProjection starts new artwork construction references',async()=>{
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}});
+ const frame={normal:[0,0,1],up:[0,1,0]},faces={U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'},sticker={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:frame};
+ const make=width=>({pieces:[{id:'p',transform:t(),stickers:[{...sticker,picture:{face:'F',layerIndex:[0,0,0]}}]}],picture:{widths:[width],faces}});
+ assert.equal((await scene.setProjection(make(1))).ok,true);assert.equal((await scene.setProjection(make(2))).ok,true);
+ assert.equal((await scene.setArtwork({picture:{widths:[2],faces},stickers:[{id:'s',color:'#fff',sourceFace:frame,picture:{face:'F',layerIndex:[0,0,0]}}]})).ok,true);scene.dispose();
 });

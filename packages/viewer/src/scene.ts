@@ -25,6 +25,16 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
   const studio = createPresentationStudio(scene);
 
   let projection: CubeProjection | undefined, pending: Pending | undefined, livePending: Pending | undefined, disposed = false, lost = false;
+  let referenceWidths: readonly number[] | undefined;
+  const referenceFaces=new Map<string,{normal:readonly number[];up:readonly number[]}>(), referencePictures=new Map<string,unknown>();
+  function recordReferences(p: CubeProjection, reset = false) {
+    if(reset){referenceWidths=undefined;referenceFaces.clear();referencePictures.clear();}
+    if(p.picture && !referenceWidths)referenceWidths=copy(p.picture.widths);
+    for(const sticker of p.pieces.flatMap(piece=>piece.stickers)) {
+      if(sticker.sourceFace && !referenceFaces.has(sticker.id))referenceFaces.set(sticker.id,{normal:copy(sticker.sourceFace.normal),up:copy(sticker.sourceFace.up)});
+      if(sticker.picture && !referencePictures.has(sticker.id))referencePictures.set(sticker.id,copy(sticker.picture));
+    }
+  }
   let frame: number | undefined, animation: ((now: number) => boolean) | undefined;
   let pausedAt: number | undefined, pausedDuration = 0, dirty = false;
   const hidden = () => clock.isHidden?.() ?? false;
@@ -53,6 +63,8 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     const staging = new THREE.Group(), cores: THREE.Object3D[] = [];
     const candidateResources: {dispose():void}[] = [];
     const pictureTextures = new Map<string,THREE.Texture>();
+    const artworkCache={cuts:new Map<string,THREE.MeshPhysicalMaterial>(),miters:new Map<string,THREE.MeshPhysicalMaterial>(),artwork:new Map<string,THREE.BufferGeometry>(),planar:new Map<string,THREE.BufferGeometry>()};
+    const bodyGeometries=new Map<string,THREE.BufferGeometry>(),stickerGeometries=new Map<string,THREE.BufferGeometry>();
     try {
     if (p.picture) for (const [face,id] of Object.entries(p.picture.faces)) {
       const texture=new THREE.Texture(assets.get(id) as TexImageSource); texture.colorSpace=THREE.SRGBColorSpace; texture.flipY=false; texture.needsUpdate=true;
@@ -80,20 +92,24 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       }
       const offsets = piece.stickers.map(s => Math.hypot(...s.transform.position)).filter(n => n > .1);
       const width = offsets.length ? Math.max(.94, Math.min(.99, Math.min(...offsets) * 2 - .002)) : .94;
-      const geometry = profile.body(piece.geometry?.cellSize ?? [width+.01,width+.01,width+.01],piece.geometry?.outerSides ?? sides as OuterSides);
-      const material = createPlasticMaterial(p.appearance?.frameColor ?? '#1b2431'); candidateResources.push(geometry, material);
+      const cell=piece.geometry?.cellSize ?? [width+.01,width+.01,width+.01], outer=piece.geometry?.outerSides ?? sides as OuterSides;
+      const geometryKey=JSON.stringify([cell,outer]);let geometry=bodyGeometries.get(geometryKey);
+      if(!geometry){geometry=profile.body(cell as [number,number,number],outer);bodyGeometries.set(geometryKey,geometry);candidateResources.push(geometry);}
+      const material = createPlasticMaterial(p.appearance?.frameColor ?? '#1b2431'); candidateResources.push(material);
       const tileTextures=new Map<string,THREE.Texture>();
       for (const sticker of piece.stickers) if (sticker.imageId) {
         const texture=new THREE.Texture(assets.get(sticker.imageId) as TexImageSource); texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;
         candidateResources.push(texture); tileTextures.set(sticker.id,texture);
       }
-      const surface=sourceBody(piece,p,geometry,material,pictureTextures,tileTextures,candidateResources);
+      const surface=sourceBody(piece,p,geometry,material,pictureTextures,tileTextures,candidateResources,artworkCache);
       const mesh = new THREE.Mesh(surface.geometry, surface.material); mesh.castShadow = true; mesh.receiveShadow = true; body.add(mesh);
       for (const sticker of piece.stickers) {
-        const geo = createStickerGeometry(...sticker.size, Math.min(p.presentation ? stickerRadiusFor(p.presentation.size,p.presentation.nominalEdge) : .055, ...sticker.size.map(x => x / 2)));
+        const radius=Math.min(p.presentation ? stickerRadiusFor(p.presentation.size,p.presentation.nominalEdge) : .055, ...sticker.size.map(x => x / 2));
+        const stickerKey=JSON.stringify([...sticker.size,radius]);let geo=stickerGeometries.get(stickerKey);
+        if(!geo){geo=createStickerGeometry(...sticker.size,radius);stickerGeometries.set(stickerKey,geo);candidateResources.push(geo);}
         let texture=tileTextures.get(sticker.id); let color=sticker.color;
         if (sticker.picture && p.picture) { const win=stickerWindow(p.picture.widths,.87,sticker.picture.face,sticker.picture.layerIndex,sticker.size); texture=pictureTexture(pictureTextures.get(sticker.picture.face)!,win,candidateResources); color='#ffffff'; }
-        const mat = createStickerMaterial(texture ?? null, color); if (texture) mat.transparent = true; candidateResources.push(geo, mat);
+        const mat = createStickerMaterial(texture ?? null, color); if (texture && !sticker.picture) mat.transparent = true; candidateResources.push(mat);
         const mesh = new THREE.Mesh(geo, mat); mesh.name = sticker.id;
         mesh.castShadow = true; mesh.receiveShadow = true; mesh.visible = p.appearance?.construction !== 'stickerless' || !sticker.sourceFace;
         mesh.position.set(...sticker.transform.position); mesh.quaternion.set(...sticker.transform.rotation); body.add(mesh);
@@ -169,6 +185,12 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
         return {id:sticker.id,transform:sticker.transform,size:sticker.size,color:entry.color,...(entry.imageId!==undefined?{imageId:entry.imageId}:{}),...(entry.sourceFace!==undefined?{sourceFace:entry.sourceFace}:{}),...(entry.picture!==undefined?{picture:entry.picture}:{})};
       })}))});
       const candidate=decorate(projection), validation=validateProjection(candidate); if (!validation.ok) return Promise.resolve(validation);
+      if(candidate.picture && referenceWidths && !sameValues(candidate.picture.widths,referenceWidths)) return Promise.resolve(fail('InvalidProjection','Picture reference widths differ'));
+      for (const sticker of candidate.pieces.flatMap(piece=>piece.stickers)) {
+        const face=referenceFaces.get(sticker.id), picture=referencePictures.get(sticker.id);
+        if(face && (!sticker.sourceFace || !sameValues(sticker.sourceFace.normal,face.normal) || !sameValues(sticker.sourceFace.up,face.up))) return Promise.resolve(fail('InvalidProjection','Source face reference differs'));
+        if(picture && sticker.picture && !sameValues(sticker.picture,picture)) return Promise.resolve(fail('InvalidProjection','Picture reference differs'));
+      }
       let finishLive!: (result:Result<void>)=>void; const promise=new Promise<Result<void>>(resolve=>{finishLive=resolve;});
       const op:Pending={controller:new AbortController(),finish:finishLive}; livePending=op;
       const finishArtwork=(result:Result<void>)=>{if(livePending!==op)return;livePending=undefined;op.finish(result);};
@@ -182,7 +204,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
             if(!r.ok){finishArtwork(fail('UnresolvedAsset',`Unable to resolve ${imageId}`));return;} assets.set(imageId,r.value);
           }
           if(livePending!==op || !projection)return;
-          const current=decorate(projection); present(current,assets,true);
+          const current=decorate(projection); present(current,assets,true); recordReferences(current);
           if(pending?.from) {pending.from=decorate(pending.from);if(pending.to)pending.to=decorate(pending.to);}
           finishArtwork(ok(undefined));
         } catch {finishArtwork(fail('Unavailable','Unable to build artwork'));}
@@ -193,7 +215,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const s = status(); if (!s.ok) return Promise.resolve(s);
       const validation = validateProjection(input); if (!validation.ok) return Promise.resolve(validation);
       const p = copy(input); const {op,promise} = begin();
-      void assetsFor(p,op).then(assets => { if (assets && pending === op) { try { present(p,assets); finish(op,ok(undefined)); } catch { finish(op,fail('Unavailable','Unable to build projection')); } } });
+      void assetsFor(p,op).then(assets => { if (assets && pending === op) { try { present(p,assets); recordReferences(p,true); finish(op,ok(undefined)); } catch { finish(op,fail('Unavailable','Unable to build projection')); } } });
       return promise;
     },
     transition(input: Transition) {

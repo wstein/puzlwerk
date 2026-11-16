@@ -172,9 +172,10 @@ been extracted. No application state, legality or notation is inferred.
 
 Opt-in snapshot fields, with names fixed for this slice:
 
-- `appearance?: { construction: 'stickered' | 'stickerless'; bodyColor?: string;
+- `appearance?: { construction: 'stickered' | 'stickerless'; bodyColor?: string | null;
   coreColor?: string; frameColor?: string | null; miterCutFaces?: boolean; planarFaceUv?: boolean }`. Colors
-  are six-digit hexadecimal; a null or omitted frameColor selects the original
+  are six-digit hexadecimal; a null or omitted bodyColor selects source fallback.
+  A null or omitted frameColor selects the original
   plastic color, distinct from cut-face bodyColor and stickerless coreColor.
   Source defaults apply to omitted optional fields.
   Without any new opt-in fields, legacy rendering is unchanged. If appearance
@@ -278,3 +279,14 @@ replacement/resource counts, projected override restoration and next
 transition.from equality. Each new behavior requires a targeted mutation for
 its intended failure. This proposal needs independent review before live-code
 implementation; the existing no-live API remains unchanged until then.
+
+Live construction references: once a sourceFace normal/up has been committed for
+a sticker, setArtwork cannot remove or alter it; edge colors and ordinary colors
+may change. A legacy sticker may opt in to a sourceFace for the first time.
+The first successfully committed picture widths and per-sticker face/layerIndex
+are retained as validation-only construction references, including while picture
+is off. Re-enabling picture must reuse established widths and bindings; it may
+establish references not yet present. A failed, canceled or pending update does
+not reserve references. A successful setProjection starts a new construction and
+its references. The registry does not supply hidden render state: visible data
+and transition equality still come solely from the explicit snapshots.

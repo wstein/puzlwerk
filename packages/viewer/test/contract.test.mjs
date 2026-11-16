@@ -91,3 +91,13 @@ test('picture faces must be six explicit own IDs',()=>{
  const s={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[0,0,0]}};
  assert.equal(validateProjection({pieces:[{id:'p',transform:t(),stickers:[s]}],picture:{widths:[1],faces}}).error.code,'InvalidProjection');
 });
+
+test('source null body color requests the default while malformed color is rejected',()=>{
+ assert.equal(validateProjection({pieces:[],appearance:{construction:'stickerless',bodyColor:null}}).ok,true);
+ assert.equal(validateProjection({pieces:[],appearance:{construction:'stickerless',bodyColor:'red'}}).error.code,'InvalidProjection');
+});
+
+test('source edge colors must be a record of source edge values',()=>{
+ const s={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:{normal:[0,0,1],up:[0,1,0],edgeColors:7}};
+ assert.equal(validateProjection({pieces:[{id:'p',transform:t(),stickers:[s]}]}).error.code,'InvalidProjection');
+});
