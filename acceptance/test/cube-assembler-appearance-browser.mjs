@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {pathToFileURL} from 'node:url';
+const {chromium}=await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));const [url,appearanceFile]=process.argv.slice(2);if(!url||!appearanceFile)throw Error('Usage: <case-url> <preview-appearance.json>');
+const doc=JSON.parse(await readFile(appearanceFile,'utf8')),sticker=doc.stickers.find(s=>s.id==='p7.U');assert.ok(sticker);assert.notEqual(sticker.color,'R');sticker.color='R';
+const options={headless:true,args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']};if(process.env.CHROMIUM_PATH)options.executablePath=process.env.CHROMIUM_PATH;const browser=await chromium.launch(options);
+try{const page=await browser.newPage({viewport:{width:1440,height:900}});let mutated=false;await page.route('**/cube-assembler-solved-2/appearance.json',route=>mutated?route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(doc)}):route.continue());
+ await page.goto(url);await page.waitForFunction(()=>document.querySelector('#cube-assembler-case output')?.textContent==='Visible facelets match at start');await page.waitForTimeout(300);const canvas=page.locator('#cube-assembler-case canvas');const before=await canvas.screenshot();
+ mutated=true;await page.reload();await page.waitForFunction(()=>document.querySelector('#cube-assembler-case output')?.textContent==='Visible facelets differ at start');await page.waitForTimeout(300);assert.ok(!before.equals(await canvas.screenshot()),'candidate pixels must reflect changed appearance');console.log('PASS: appearance mutation changes candidate pixels and fails native facelet comparison');
+}finally{await browser.close();}
