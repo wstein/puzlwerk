@@ -15,11 +15,14 @@
     "raw-mesh.json": "be630a51cdba2ea55c1427ec7e26aa030d2771ce332d18f8c2012580a0f102bf",
     "turn-oracle.json": "86ba78ca47ba6b7a243ebc8d6c54d38424654467e2097494da8f8e803e754008",
     "shadow-oracle.json": "07bf3df559ce6e29cbfa899c752aeb25c22e53553138c6c07850979babc216b5",
-    "shadow-gpu-samples.json": "95a44b85a72221c7f256036d6db5bd09f24cb282dc448e2278c6da7609d6259e"
+    "shadow-gpu-samples.json": "95a44b85a72221c7f256036d6db5bd09f24cb282dc448e2278c6da7609d6259e",
+    "surface-shader-oracle.json": "c3f3b4c0e2453e187be463e1058870ef4223e4caa994fafc2321f836f84eaf08",
+    "surface-gpu-samples.json": "ec98cf69c0e32ca3fcfafcd3d47556bc694dfcb177f68b463e4cdb3a82cd7192"
   },
   "instrumentation": "generate-raw-mesh.mjs transforms a verified generated module copy only: adds ranges around native body/sticker/cap emission calls in original x/y/z loop. Every typed array is tested byte-for-byte against the uninstrumented function. Node JSON import hook is transport only; the native JSON bytes and source modules are untouched.",
   "rangeContract": "Indices are global and contiguous; owner is native x/y/z in 0..1, candidate pID=4*x+2*y+z. Face is native lowercase. Positions are global native coordinates, localize by subtracting owner-[0.5,0.5,0.5]; normals/colors/occlusion are unchanged. Source loops own every primitive; there is no separate global range for this case.",
   "turnOracle": "Original source invoked with R depth=1 width=1 at angles 0, pi/4, pi/2; per-attribute SHA-256 covers native typed-array bytes.",
   "shadowSamples": "Chromium WebGL, RGBA8 pixels; native fragment source with compile-time loop constants substituted. Renderer reports WebKit WebGL; sample values can vary by GPU precision.",
-  "scope": "Render data only; no production mechanics, physical identity inference, visual parity or owner acceptance is asserted."
+  "scope": "Render data only; no production mechanics, physical identity inference, visual parity or owner acceptance is asserted.",
+  "surfaceSamples": "Original VS and FS compiled together in Chromium WebGL RGBA8; identity model/MVP, fragment at origin, native camera and key/fill, four normal/color/occlusion inputs. Results can vary by GPU precision."
 }
