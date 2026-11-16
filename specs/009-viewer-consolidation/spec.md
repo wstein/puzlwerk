@@ -129,3 +129,8 @@ validated (including the gap boundary) and invariant between transition endpoint
 body geometry builder; it does not alter body or sticker poses, sticker sizes,
 state, legality, or identity. When absent the same builder uses the existing
 generic dimensions; no separate renderer or options-level ID map is introduced.
+
+The source reference includes a static core sphere and stickers casting and
+receiving shadows. Their fidelity is not established by this geometry-profile
+slice and remains open in Stage 1 alongside artwork, multi-cube and picture
+paths; do not infer full source parity from the 2×2 body comparison.
