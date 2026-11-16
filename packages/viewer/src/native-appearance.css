@@ -1,0 +1,386 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later
+   Source: Cubistry efafcc1d97687eccea0cde87a230f447ce1b6c66 src/style.css, Appearance and HUD rules. */
+.cube-appearance {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 30;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.cube-appearance summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-navy, #153b61);
+  background: rgba(255, 253, 246, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(21, 59, 97, 0.22);
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px rgba(21, 59, 97, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cube-appearance summary::-webkit-details-marker {
+  display: none;
+}
+
+.cube-appearance summary::before {
+  content: "⚙";
+  font-size: 14px;
+  line-height: 1;
+  color: var(--color-plastic-berry, #9e0b5c);
+  transition: transform 0.2s ease;
+}
+
+.cube-appearance summary::after {
+  content: "▾";
+  font-size: 12px;
+  margin-left: 2px;
+  opacity: 0.65;
+  transition: transform 0.2s ease;
+}
+
+.cube-appearance summary:hover {
+  background: #ffffff;
+  border-color: var(--color-plastic-berry, #9e0b5c);
+  color: var(--color-plastic-berry, #9e0b5c);
+  box-shadow: 0 6px 20px rgba(158, 11, 92, 0.16);
+  transform: translateY(-1px);
+}
+
+.cube-appearance[open] summary {
+  background: var(--color-plastic-berry, #9e0b5c);
+  color: #ffffff;
+  border-color: var(--color-plastic-berry, #9e0b5c);
+  box-shadow: 0 6px 20px rgba(158, 11, 92, 0.25);
+}
+
+.cube-appearance[open] summary::before {
+  color: #ffffff;
+  transform: rotate(45deg);
+}
+
+.cube-appearance[open] summary::after {
+  transform: rotate(180deg);
+  opacity: 0.9;
+}
+
+/* Glassmorphism Flyout Card */
+.cube-appearance-popover {
+  margin-top: 10px;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(255, 253, 246, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(21, 59, 97, 0.18);
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(21, 59, 97, 0.16), 0 4px 12px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  animation: appearancePopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes appearancePopIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Content Sections */
+.cube-appearance-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cube-appearance label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink-navy, #153b61);
+  margin-top: 4px;
+}
+
+/* Checkboxes keep their natural size and sit on the line of their label; pages that load playground.css set input { width: 100% }. */
+.cube-appearance .cube-appearance-check input[type="checkbox"] {
+  width: auto;
+  padding: 0;
+}
+
+.cube-appearance select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 7px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(21, 59, 97, 0.2);
+  background: #ffffff;
+  color: var(--color-ink-navy, #153b61);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.cube-appearance select:focus {
+  outline: none;
+  border-color: var(--color-plastic-berry, #9e0b5c);
+  box-shadow: 0 0 0 2px rgba(158, 11, 92, 0.2);
+}
+
+.cube-appearance input[type="color"] {
+  width: 36px;
+  height: 26px;
+  padding: 1px;
+  border-radius: 6px;
+  vertical-align: middle;
+  border: 1px solid rgba(21, 59, 97, 0.2);
+  cursor: pointer;
+}
+
+.cube-appearance button {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid rgba(21, 59, 97, 0.2);
+  background: #ffffff;
+  color: var(--color-ink-navy, #153b61);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cube-appearance button:hover:not(:disabled) {
+  border-color: var(--color-plastic-berry, #9e0b5c);
+  color: var(--color-plastic-berry, #9e0b5c);
+}
+
+.cube-appearance button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cube-appearance p {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #556677;
+  margin: 4px 0 0;
+}
+
+
+/* Floating Glass Appearance Card (Top-Left) */
+.floating-hud-appearance,
+aside.cube-appearance.floating-hud {
+  position: fixed !important;
+  top: 16px;
+  left: 16px;
+  right: auto;
+  z-index: 25;
+  width: clamp(280px, 28vw, 360px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  background: rgba(255, 253, 246, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(21, 59, 97, 0.16);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(21, 59, 97, 0.14), 0 2px 8px rgba(21, 59, 97, 0.06);
+  padding: 16px 18px;
+  transition: transform 0.35s ease,
+              opacity 0.35s ease,
+              width 0.25s ease,
+              padding 0.25s ease,
+              backdrop-filter 0.35s ease,
+              -webkit-backdrop-filter 0.35s ease,
+              box-shadow 0.35s ease;
+}
+
+/* Seamless single-surface integration: flatten inner popover inside floating HUD */
+.floating-hud-appearance .cube-appearance-popover,
+aside.cube-appearance.floating-hud .cube-appearance-popover,
+aside.cube-appearance .cube-appearance-popover {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: none;
+  overflow: visible;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  animation: none;
+}
+
+.floating-hud-appearance.is-minimized,
+aside.cube-appearance.floating-hud.is-minimized {
+  width: auto;
+  max-width: fit-content;
+  padding: 8px 14px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.floating-hud-appearance.is-minimized .hud-content {
+  display: none !important;
+}
+
+.floating-hud-appearance.is-minimized .hud-header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* Floating Glass Control HUD Card (Top-Right) */
+
+.hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(21, 59, 97, 0.1);
+}
+
+.hud-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink-navy, #153b61);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 14px;
+  border: 1px solid rgba(21, 59, 97, 0.2);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--color-ink-navy, #153b61);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hud-btn:hover {
+  background: #ffffff;
+  border-color: var(--color-plastic-berry, #9e0b5c);
+  color: var(--color-plastic-berry, #9e0b5c);
+}
+
+.hud-btn.icon-only {
+  width: 28px;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+
+/* Appearance panel grouping: primary controls, short hints with an "i" button, and the "More" disclosure. */
+.cube-appearance-viewport {
+  flex-direction: column;
+}
+.cube-appearance .cube-appearance-hint {
+  margin: 0;
+}
+.cube-appearance .cube-appearance-hint-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  order: 1;
+}
+.cube-appearance .cube-appearance-viewport > p[id^="cube-rotation-note-"] {
+  order: 2;
+}
+.cube-appearance .cube-appearance-more {
+  order: 3;
+  border-top: 1px solid rgba(21, 59, 97, 0.14);
+  padding-top: 8px;
+}
+.cube-appearance .cube-appearance-more > summary {
+  padding: 4px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink-navy, #153b61);
+  cursor: pointer;
+  list-style: none;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+}
+.cube-appearance .cube-appearance-more > summary::-webkit-details-marker {
+  display: none;
+}
+.cube-appearance .cube-appearance-more > summary::before {
+  content: none;
+}
+/* Open/closed indicator; no transition, so reduced-motion needs no rule. */
+.cube-appearance .cube-appearance-more > summary::after {
+  content: "▾";
+  margin-left: 8px;
+}
+.cube-appearance .cube-appearance-more[open] > summary::after {
+  transform: rotate(180deg);
+}
+.cube-appearance .cube-appearance-more-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+/* 44 px target around a 24 px glyph circle (the transparent border is part of the button). */
+.cube-appearance .cube-appearance-info {
+  flex: none;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 10px solid transparent;
+  border-radius: 50%;
+  background: rgba(21, 59, 97, 0.12) padding-box;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1;
+}
+.cube-appearance :focus-visible {
+  outline: 2px solid var(--focus, #c8257e);
+  outline-offset: 2px;
+}
