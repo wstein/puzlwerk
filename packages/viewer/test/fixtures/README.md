@@ -98,3 +98,9 @@ scale. Regenerate with:
 ```sh
 node packages/viewer/test/fixtures/generate-cubistry-names-geometry.mjs /path/to/cubistry
 ```
+
+`cubistry-stage-names-pixels.json` records five source browser samples from
+Cubistry at the pinned revision using synthetic solid face colors, Names light,
+plasticity 0.6, Chromium SwiftShader, DPR 1 and a 1440×900 viewport. The stage
+browser test checks each channel within six values; this is a bounded sample,
+not a claim of whole-image equality or printed-calendar parity.
