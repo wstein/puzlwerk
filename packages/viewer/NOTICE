@@ -80,3 +80,10 @@ Copied with an SPDX header; target SHA-256
 7f092498cecec25a64dd8f3626f1df99b7b782484119458b870249cb400f9d3b.
 The source attributes inertia to the CubeAssembler MIT port; its terms are
 retained in CUBE_ASSEMBLER_LICENSE.txt.
+
+src/presentation-rotation.ts: Cubistry packages/cube-viewer/src/presentation-rotation.ts
+at revision efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
+937b6cf632bf23110f39351e97b71c703ab7a873, source SHA-256
+7fd3eae7d16897b6d8ff2632a861ddfa051e7688994dc30bad7fc1af009f6992.
+Copied with an SPDX header; target SHA-256
+31b918f6df425da2a4a8f709923f2e0fbdc5195980119b92264453770d5a37f3.
