@@ -60,3 +60,14 @@ test('uniform source sticker geometry retains its exact corner radius',()=>{
  const result=nativeFrames({pieces:[{id:'a',transform:{position:[0,0,0],rotation:identity},stickers:[sticker]}]});
  assert.equal(result.ok,true);assert.equal(result.value.stickerRadius,.045);
 });
+
+test('explicit layer widths map a complete source grid without a picture asset',()=>{
+ const centers=[-1.3,0,1.3],pieces=[];for(const x of centers)for(const y of centers)for(const z of centers)pieces.push({id:`${x}/${y}/${z}`,transform:{position:[x,y,z],rotation:identity},stickers:[]});
+ const result=nativeFrames({pieces,presentation:{size:3,nominalEdge:4.2,layerWidths:[1.6,1,1.6]}});assert.equal(result.ok,true);assert.deepEqual(result.value.layerWidths,[1.6,1,1.6]);assert.deepEqual(result.value.bodies[0].position,[-1,-1,-1]);assert.deepEqual(result.value.bodies.at(-1).position,[1,1,1]);
+});
+
+test('conflicting independent layer and picture widths are rejected',async()=>{
+ const {validateProjection}=await import('../dist/contract.js'),faces={U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'};
+ const p={pieces:[],presentation:{size:3,nominalEdge:4.2,layerWidths:[1.6,1,1.6]},picture:{widths:[1,1,1],faces}};
+ assert.equal(validateProjection(p).error.code,'InvalidProjection');
+});

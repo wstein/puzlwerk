@@ -8,7 +8,7 @@ import {layerCenters} from './layer-widths.js';
 /** Translate canonical presentation data into native render frames, never puzzle state. */
 export function nativeFrames(projection:CubeProjection):Result<{frames:PhysicalStickerFrame[];bodies:PhysicalBodyPose[];stickerSize:readonly [number,number]|undefined;stickerOffset:number|undefined;stickerRadius:number|undefined;bodyGeometry:ReadonlyMap<string,PieceGeometry>;layerWidths:readonly number[]|undefined}> {
  if(projection.renderProfile) return fail('Unavailable','Independent mesh profiles require a shared native capability');
- const widths=projection.picture?.widths;
+ const widths=projection.presentation?.layerWidths ?? projection.picture?.widths;
  const centers=widths ? layerCenters(widths) : undefined;
  if(centers){
   const occupied=new Set<string>();

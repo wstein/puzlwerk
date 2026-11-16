@@ -179,3 +179,11 @@ test('presentation preserves explicit body bevel segments and rejects invalid co
  assert.equal(open(definition,state,appearance,options).value.projection.geometryProfile.body.bevelSegments,1);
  for(const n of [0,-1,1.5,Infinity])assert.equal(open(definition,state,appearance,{...options,presentation:{...presentation,bodyBevelSegments:n}}).error.code,'InvalidPresentation');
 });
+
+test('layer profile presents Core slots at native nonuniform layer centers',()=>{
+ const definition=definitionText(3),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d)),appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube3',stickers:[]}),palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const presentation={cellSize:1,bodyGap:.01,bodyRadius:.08,bodyKind:'twoRadius',bodyInnerRadius:.04,bodyBevelSegments:2,size:3,nominalEdge:4.2,layerWidths:[1.6,1,1.6],stickerWidth:.87,stickerRadius:.055,stickerOffset:.502};const result=open(definition,state,appearance,{palette,defaultColor:'#ffffff',presentation});
+ assert.equal(result.ok,true,JSON.stringify(result.error));assert.deepEqual(result.value.projection.presentation.layerWidths,[1.6,1,1.6]);
+ const centers=[...new Set(result.value.projection.pieces.map(p=>p.transform.position[0]))].sort((a,b)=>a-b);assert.equal(centers.length,3);for(let i=0;i<3;i++)assert.ok(Math.abs(centers[i]-[-1.3,0,1.3][i])<1e-12);
+ for(const bad of [[1,1],[1,-1,1],[1,1,2]])assert.equal(open(definition,state,appearance,{palette,defaultColor:'#ffffff',presentation:{...presentation,layerWidths:bad}}).error.code,'InvalidPresentation');
+});
