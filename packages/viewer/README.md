@@ -50,8 +50,9 @@ are render-only snapshot data, invariant across a transition. No core is inferre
 The source-versus-adapter captures use Chromium with SwiftShader at DPR 1,
 300×300 drawing buffers, camera (4,3,5) scaled by max(1, edge/2), and the
 pinned studio. Desktop and mobile viewport captures are local test artifacts,
-not physical-device or full HQ acceptance. Artwork, picture projection and
-multiple cubes remain outside this slice.
+not physical-device or full HQ acceptance. The model-profile slice did not
+include artwork or picture projection; the subsequent artwork slice is described
+below. Multiple cubes remain open.
 
 
 Optional appearance, source-face and picture metadata select the source
@@ -59,7 +60,8 @@ stickerless, miter and projected-picture builders. Picture faces use opaque
 asset IDs whose returned pixels are already in Cubistry's bottom-left
 orientation; legacy per-sticker imageId behavior is unchanged. Source-face
 frames and picture indices are immutable construction references, not current
-world positions. `setArtwork` applies a complete decoration replacement
+world positions. Optional source-face color is independent of sticker image tint;
+omitting it uses the normalized sticker color. `setArtwork` applies a complete decoration replacement
 during a turn without changing physical poses; successful updates survive
 cancellation. Asset failure and late completion leave the committed scene
 unchanged. See spec 009 for validation, ownership and concurrency rules.

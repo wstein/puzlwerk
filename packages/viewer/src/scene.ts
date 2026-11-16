@@ -109,7 +109,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
         if(!geo){geo=createStickerGeometry(...sticker.size,radius);stickerGeometries.set(stickerKey,geo);candidateResources.push(geo);}
         let texture=tileTextures.get(sticker.id); let color=sticker.color;
         if (sticker.picture && p.picture) { const win=stickerWindow(p.picture.widths,.87,sticker.picture.face,sticker.picture.layerIndex,sticker.size); texture=pictureTexture(pictureTextures.get(sticker.picture.face)!,win,candidateResources); color='#ffffff'; }
-        const mat = createStickerMaterial(texture ?? null, color); if (texture && !sticker.picture) mat.transparent = true; candidateResources.push(mat);
+        const mat = createStickerMaterial(texture ?? null, color); if (texture && !sticker.picture && !sticker.sourceFace) mat.transparent = true; candidateResources.push(mat);
         const mesh = new THREE.Mesh(geo, mat); mesh.name = sticker.id;
         mesh.castShadow = true; mesh.receiveShadow = true; mesh.visible = p.appearance?.construction !== 'stickerless' || !sticker.sourceFace;
         mesh.position.set(...sticker.transform.position); mesh.quaternion.set(...sticker.transform.rotation); body.add(mesh);
@@ -127,7 +127,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
         const oldStickers=new Map(projection.pieces.flatMap(piece=>piece.stickers).map(sticker=>[sticker.id,sticker]));
         for (const piece of p.pieces) for (const sticker of piece.stickers) {
           const old=oldStickers.get(sticker.id);
-          if (!sticker.picture || !old || !sameValues(sticker.picture,old.picture) || !sameValues(sticker.sourceFace,old.sourceFace)) continue;
+          if (!sticker.picture || !old || !sameValues(sticker.picture,old.picture) || !sticker.sourceFace || !old.sourceFace || !sameValues(sticker.sourceFace.normal,old.sourceFace.normal) || !sameValues(sticker.sourceFace.up,old.sourceFace.up)) continue;
           const previous=root.getObjectByName(sticker.id) as THREE.Mesh, next=staging.getObjectByName(sticker.id) as THREE.Mesh;
           if (previous && next) next.material=reuse(previous.material as THREE.MeshStandardMaterial,next.material as THREE.MeshStandardMaterial);
           const previousBody=root.getObjectByName(piece.id), nextBody=staging.getObjectByName(piece.id);
@@ -222,7 +222,9 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const s = status(); if (!s.ok) return Promise.resolve(s);
       const validation = validateTransition(input); if (!validation.ok) return Promise.resolve(validation);
       if (!projection || !sameProjection(projection,input.from)) return Promise.resolve(fail('InvalidTransition','Source does not match current projection'));
-      const t = copy(input), from = projection; const {op,promise} = begin(from); op.to=t.to;
+      const t = copy(input), from = projection; const {op,promise} = begin(from);
+      const sourceOrder=new Map(from.pieces.map(piece=>[piece.id,piece.stickers.map(sticker=>sticker.id)]));
+      op.to={...t.to,pieces:t.to.pieces.map(piece=>{const byId=new Map(piece.stickers.map(sticker=>[sticker.id,sticker]));return {...piece,stickers:sourceOrder.get(piece.id)!.map(id=>byId.get(id)!)};})};
       // Stickers are invariant in a transition; reuse the currently rendered materials.
       const pivot = new THREE.Group(); pivot.position.set(...t.pivot); root.add(pivot); root.updateMatrixWorld(true);
       for (const id of t.pieceIds) { const body = root.getObjectByName(id); if (body) pivot.attach(body); }

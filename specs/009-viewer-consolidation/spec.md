@@ -181,9 +181,14 @@ Opt-in snapshot fields, with names fixed for this slice:
   Without any new opt-in fields, legacy rendering is unchanged. If appearance
   is omitted while other opt-ins are present, construction defaults to
   stickered; explicit picture remains active.
-- `Sticker.sourceFace?: { normal: Vec3; up: Vec3; edgeColors?: FaceEdgeColors }`.
+- `Sticker.sourceFace?: { normal: Vec3; up: Vec3; color?: string; edgeColors?: FaceEdgeColors }`.
   Normal and up are perpendicular signed Cartesian unit axes in the piece-local
-  construction frame. Within one piece, annotated normals are unique. Edge
+  construction frame. Their caller-supplied construction order is retained
+  internally across reorder-equivalent transitions and live updates for the
+  source cut-face fallback rule. Optional six-digit hexadecimal color is the source face
+  color, independent of sticker image tint; absent uses the normalized sticker
+  material color. Face color may change through setArtwork while the source
+  normal/up stay fixed. Within one piece, annotated normals are unique. Edge
   names are `left`, `right`, `top`, `bottom`; a value is a six-digit hexadecimal
   color or a dense, nonempty array of `{to: number; color: string}` with finite
   `to`. Preserve source order and last-stop fallback; do not impose a fabricated
