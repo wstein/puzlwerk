@@ -25,3 +25,30 @@ test('fixture bytes match recorded provenance', async () => {
   assert.equal(provenance.revision, 'efafcc1d97687eccea0cde87a230f447ce1b6c66');
   assert.ok(provenance.sources.length >= 4);
 });
+
+test('wire export preserves native piece and sticker identity', async () => {
+  const native = await read('native.json');
+  const definition = await read('definition.json');
+  const state = await read('state.json');
+  const appearance = await read('appearance.json');
+  assert.equal(definition.pieces.length, 8);
+  for (const piece of definition.pieces) {
+    const id = Number(piece.id.slice(1));
+    assert.deepEqual(piece.home, native.print.cubies.find(c => c.id === id).position);
+    for (const sticker of piece.stickers) {
+      const original = native.print.stickers.find(s => s.id === Number(sticker.id.slice(1)));
+      assert.equal(original.cubie, id);
+      assert.deepEqual(sticker.normal, original.normal);
+      assert.deepEqual(sticker.up, original.up);
+      assert.equal(appearance.stickers.find(s => s.id === sticker.id).color, original.assetId);
+    }
+  }
+  assert.deepEqual(state.poses.find(p => p.pieceId === 'c7').orientation, native.target.cubies.find(p => p.id === 7).orientation.flat());
+});
+
+test('native orientation columns convert to row-major wire matrices after R', async () => {
+  const {toWireState} = await import('../fixtures/cubistry-playground-classic-2/convert.mjs');
+  const native = await read('native.json');
+  const result = toWireState(native.trace[0].state);
+  assert.deepEqual(result.poses.find(p => p.pieceId === 'c7').orientation, [1,0,0,0,0,1,0,-1,0]);
+});

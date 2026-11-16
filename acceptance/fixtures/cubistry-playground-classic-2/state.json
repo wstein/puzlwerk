@@ -1,0 +1,159 @@
+{
+  "schema": "puzlwerk.state",
+  "revision": 1,
+  "definitionId": "playground_classic_v1",
+  "poses": [
+    {
+      "pieceId": "c0",
+      "position": [
+        -1,
+        -1,
+        -1
+      ],
+      "orientation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "pieceId": "c1",
+      "position": [
+        -1,
+        -1,
+        1
+      ],
+      "orientation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "pieceId": "c2",
+      "position": [
+        -1,
+        1,
+        -1
+      ],
+      "orientation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "pieceId": "c3",
+      "position": [
+        -1,
+        1,
+        1
+      ],
+      "orientation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "pieceId": "c4",
+      "position": [
+        1,
+        -1,
+        -1
+      ],
+      "orientation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "pieceId": "c5",
+      "position": [
+        1,
+        -1,
+        1
+      ],
+      "orientation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "pieceId": "c6",
+      "position": [
+        1,
+        1,
+        -1
+      ],
+      "orientation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "pieceId": "c7",
+      "position": [
+        1,
+        1,
+        1
+      ],
+      "orientation": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    }
+  ]
+}
