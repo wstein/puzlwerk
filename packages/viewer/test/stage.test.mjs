@@ -249,3 +249,14 @@ test('native input still drives the committed controller after stage mode transa
  const select=panel.children[0].children[0];select.value='classic';select.dispatchEvent(new Event('change'));assert.equal(select.value,'classic');
  media.matches=false;media.dispatchEvent(new Event('change'));h.stage.dispose();
 });
+
+test('native stage preserves source inertia and settling at deterministic times',async()=>{
+ const {SmartRotation:SourceRotation}=await import('../../../acceptance/references/cubistry/packages/cube-viewer/src/smart-rotation.ts');
+ let now=0,id=0,view;const frames=new Map(),timers=new Map(),clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key),setTimer:(cb,delay)=>{timers.set(++id,{cb,at:now+delay});return id},clearTimer:key=>timers.delete(key)};
+ const stage=createStageForTest({resolveAsset:async()=>({ok:false}),initialOrientation:[0,0,0,1],mode:'free',onViewChanged:value=>{view=value}},clock,{render(){},dispose(){}});
+ const document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
+ assert.equal(stage.attachInput(canvas,panel,undefined,{now:()=>now/1000,document,media,window}).ok,true);assert.equal(stage.resize(1).ok,true);
+ const source=new SourceRotation(new THREE.Quaternion(),'free',false);canvas.pointer('pointerdown',0,0);source.down(0);now=16;canvas.pointer('pointermove',100,0);source.drag(0,.8,.016);canvas.pointer('pointerup',100,0);source.up(.016,false);
+ for(const time of [32,80,160,320,640,1200,2400]){now=time;source.step(time/1000);const pending=[...frames.values()];frames.clear();for(const cb of pending)cb(time);assert.ok(1-Math.abs(source.quaternion.dot(new THREE.Quaternion(...view.orientation)))<1e-10,`pose at ${time}ms`);}
+ stage.dispose();source.dispose();
+});
