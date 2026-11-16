@@ -144,3 +144,10 @@ Source: https://github.com/wstein/cube-assembler/tree/1b7387b3acd40d817ebff820ae
 CubeAssembler is MIT licensed; see CUBE_ASSEMBLER_LICENSE.txt. The adapter
 uses caller-supplied per-piece render buffers and does not include puzzle
 state, move rules, or application controls.
+
+src/physical-scene.ts is copied from Cubistry packages/cube-viewer/src/physical-scene.ts,
+revision efafcc1d97687eccea0cde87a230f447ce1b6c66, source SHA-256
+73c9882b48c107b43513600e3dafbf1c2f9be1b1b44b30fcc1c2ebaf29c7c79f.
+Imports use existing local render-only helpers; piece and sticker identifiers use
+opaque strings instead of numbers, and Construction is a local type. The source
+scene is staged for integration; the existing production entry point is unchanged.
