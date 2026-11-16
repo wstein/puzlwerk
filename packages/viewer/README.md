@@ -35,8 +35,7 @@ and license provenance. When the document is hidden, rendering and animation tim
 The pilot uses Cubistry's 2×2 presentation values: a maximum body width of
 0.99, outer bevel radius 0.03, inner radius 0.018 (60%), three bevel
 segments, and rounded sticker corners with radius 0.055 and four curve segments.
-Body width is limited to preserve the pilot's earlier 0.471 sticker offset;
-the demo uses Cubistry's 0.502 offset and 0.87 sticker width. The plastic
+The adapter keeps caller-supplied piece positions and bounds body width to 0.94–0.99, preserving the pilot's earlier 0.471 sticker offset. Cubistry's native 2×2 profile instead uses 1.012 outer layers, 1.002 bodies, and shifted stickers. The demo uses Cubistry's 0.502 offset and 0.87 sticker width. The plastic
 uses the Classic palette's #1b2431, roughness 0.45 and clearcoat 0.18;
 stickers use roughness 0.65 and clearcoat 0.12. The studio uses Cubistry's
 ambient, hemisphere, key, fill, rim and shadow-fill lights, two 1024-pixel
