@@ -11,10 +11,56 @@
     "stickerlessDefaultRequested": false,
     "cookiePreferences": "CubeView3D reads preferences from document.cookie; fixture runtime must set or clear preferences deterministically.",
     "paletteSource": "src/core/view/CubeViewState.res#defaultStickerHex",
-    "initialCamera": {
-      "pitch": 0.52,
-      "yaw": -0.74
-    }
+    "coordinateScale": "Candidate wire shell coordinates divided by 2 yield native cube units; cubie centers are \u00b10.5 for size 2.",
+    "camera": {
+      "fieldOfViewDegrees": 45,
+      "near": 0.1,
+      "far": 100,
+      "pitchRadians": 0.52,
+      "yawRadians": -0.74,
+      "distance": 6.6,
+      "modelOrder": "Rx(pitch) * Ry(yaw)"
+    },
+    "stickeredGeometry": {
+      "cubieHalfExtent": 0.495,
+      "bodyRadius": 0.058,
+      "stickerHalfExtent": 0.43,
+      "stickerRadius": 0.045,
+      "stickerOffsetEpsilon": 0.005,
+      "bodyColorRgb": [
+        0.11,
+        0.11,
+        0.12
+      ]
+    },
+    "lighting": {
+      "keyDirection": [
+        1.5,
+        2.5,
+        2.0
+      ],
+      "fillDirection": [
+        -2.0,
+        -1.0,
+        -2.0
+      ],
+      "ambient": 0.42,
+      "keyDiffuse": 0.65,
+      "fillDiffuse": 0.35,
+      "specularExponent": 24,
+      "specularMultiplier": 0.28,
+      "fresnelExponent": 4,
+      "fresnelMultiplier": 0.1,
+      "shadowAlphaFallback": 0.3,
+      "occlusion": "per vertex"
+    },
+    "sourceSha256": {
+      "src/core/view/CubeViewState.res": "589129355b41888c8a4d1b944752e7972e49903e0adaba39caef648ecea8c7d9",
+      "src/core/view/CubeMesh.res": "ac0a6b6969fefdc97263bf4a5111694f941d4e0bef672142737fcf47b6307ec2",
+      "src/client/view3d/useCubeRenderer.ts": "906f1042f88e3e9d880e50b0de07d2c527c0dd6376f8c95315bc648e3a3d8d98",
+      "src/client/view3d/cubeView3DGraphics.ts": "0ab9d6f6f787b5e879db4a72620a846e1779fb39b54de5039e2789bb8b22bb29"
+    },
+    "parity": "Native values only; candidate camera, material, light and visual equivalence remain to be established."
   },
   "status": "Native fixture and original source bundle are packaged; candidate visible facelet trace matches Core in a local integration test. Browser rendering and owner visual acceptance remain unverified.",
   "candidateMapping": "Candidate IDs p0..p7 are assigned to known solved shell slots, sticker IDs pN.FACE to exposed faces; they are not CubeAssembler identities. The CA native facelet order is derived from CubeViewState.res#getFaceletColor.",
