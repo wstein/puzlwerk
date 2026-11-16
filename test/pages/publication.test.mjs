@@ -75,6 +75,10 @@ test('ledger rejects replay, forks, missing starts and unknown writers', async()
  const bootstrap={run:a.run,attempt:a.attempt,nonce:a.nonce};
  const chain=[make(a),make(b)];
  assert.equal(verifyWriterLedger(chain,b,{bootstrap}),true);
+ const recovered=make(b); recovered.recovered=true;
+ assert.equal(verifyWriterLedger([make(a),recovered],b,{bootstrap}),true);
+ const altered={...b,root:'f'.repeat(64)}; const wrongRoot=make(altered); wrongRoot.recovered=true;
+ assert.throws(()=>verifyWriterLedger([make(a),wrongRoot],altered,{bootstrap}),/production root/);
  for(const [field,value] of [['run',99],['attempt',2],['sha','f'.repeat(40)],['previous','f'.repeat(32)]]) {
   const broken={...chain[1],commit:{...chain[1].commit,[field]:value}};
   assert.throws(()=>verifyWriterLedger([chain[0],broken],b,{bootstrap}),/Invalid writer commit/);
@@ -155,7 +159,7 @@ test('deployed failed writer recovery binds the verified snapshot to the actual 
  const start={schema:1,run:run.id,attempt:1,sha:run.head_sha,previous:r.previous};
  const api={request:async()=>({sha:'757cc0f56c8edb67cf62306da379c018b5902c65'})};
  const result=await recoverFailedWriter(api,run,job,start,1,{snapshotReader:async()=>r});
- assert.deepEqual(result,{start,commit:{...start,receipt:r}});
+ assert.deepEqual(result,{start,commit:{...start,receipt:r},recovered:true});
  assert.equal(await recoverFailedWriter(api,run,before,start,1,{snapshotReader:async()=>{throw Error('must not read')}}),null);
  for(const altered of [{...r,run:99},{...r,attempt:2},{...r,previous:'f'.repeat(32)},{...r,sha:'f'.repeat(40)}]) await assert.rejects(recoverFailedWriter(api,run,job,start,1,{snapshotReader:async()=>altered}));
  await assert.rejects(recoverFailedWriter({...api,request:async()=>({sha:'f'.repeat(40)})},run,job,start,1,{snapshotReader:async()=>r}));
