@@ -1,0 +1,12 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {comparePoses} from '../acceptance/runtime/compare.mjs';
+test('pose comparison checks identity, position, and full orientation',()=>{
+ const n={cubies:[{id:7,position:[1,1,-1],orientation:[[1,0,0],[0,0,-1],[0,1,0]]}]};
+ const p={pieceId:'c7',position:[1,1,-1],orientation:[1,0,0,0,0,1,0,-1,0]};
+ assert.equal(comparePoses(n,{poses:[p]}),true);
+ assert.equal(comparePoses(n,{poses:[{...p,pieceId:'c6'}]}),false);
+ assert.equal(comparePoses(n,{poses:[{...p,position:[1,-1,-1]}]}),false);
+ assert.equal(comparePoses(n,{poses:[{...p,orientation:[1,0,0,0,1,0,0,0,1]}]}),false);
+ assert.equal(comparePoses(n,{poses:[]}),false);
+});
