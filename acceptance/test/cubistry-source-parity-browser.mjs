@@ -64,13 +64,13 @@ try {
     },[a.toString('base64'),b.toString('base64')]);
   }
   async function shot(i){return canvases[i].screenshot();}
-  async function drag(i){const b=await canvases[i].boundingBox();await page.mouse.move(b.x+180,b.y+240);await page.mouse.down();await page.mouse.move(b.x+270,b.y+290,{steps:8});await page.mouse.up();}
   const result=[];
   const pose=()=>page.evaluate(()=>({t:performance.now(),source:{q:window.parity.source.presentation.quaternion.toArray(),fov:window.parity.source.camera.fov,distance:window.parity.source.camera.position.length()},target:window.targetView}));
+  async function drag(i){const b=await canvases[i].boundingBox();await page.mouse.move(b.x+180,b.y+240);await page.mouse.down();await page.mouse.move(b.x+270,b.y+290,{steps:8});const held=await pose();await page.mouse.up();return held;}
   for(let i=0;i<2;i++){
-    const initial=await shot(i);const initialPose=await pose();await drag(i);await page.waitForTimeout(40);const movedPose=await pose();const moved=await shot(i);await page.waitForTimeout(180);const coastPose=await pose();const coast=await shot(i);
+    const initial=await shot(i);const initialPose=await pose();const heldPose=await drag(i);await page.waitForTimeout(40);const movedPose=await pose();const moved=await shot(i);await page.waitForTimeout(180);const coastPose=await pose();const coast=await shot(i);
     const box=await canvases[i].boundingBox();await page.mouse.move(box.x+250,box.y+250);await page.mouse.wheel(0,150);await page.waitForTimeout(100);const zoomPose=await pose();const zoom=await shot(i);
-    result.push({drag:await delta(initial,moved),coast:await delta(moved,coast),zoom:await delta(coast,zoom),initialPose,movedPose,coastPose,zoomPose});
+    result.push({drag:await delta(initial,moved),coast:await delta(moved,coast),zoom:await delta(coast,zoom),initialPose,heldPose,movedPose,coastPose,zoomPose});
   }
   console.log('source and target frame deltas',JSON.stringify(result));
   assert.deepEqual(errors,[]);
@@ -78,8 +78,8 @@ try {
   for(const name of ['drag','coast','zoom']) if(result[0][name]<=.05 || result[1][name]<=.05) failures.push(`${name}: source or target did not visibly change`);
   const src=result[0], dst=result[1];
   const angle=(a,b)=>2*Math.acos(Math.min(1,Math.abs(a.reduce((sum,v,i)=>sum+v*b[i],0))));
-  const sourceDrag=angle(src.initialPose.source.q,src.movedPose.source.q);
-  const targetDrag=angle(dst.initialPose.target.orientation,dst.movedPose.target.orientation);
+  const sourceDrag=angle(src.initialPose.source.q,src.heldPose.source.q);
+  const targetDrag=angle(dst.initialPose.target.orientation,dst.heldPose.target.orientation);
   if(Math.abs(sourceDrag-targetDrag)>.08) failures.push(`drag radians source=${sourceDrag} target=${targetDrag}`);
   const sourceZoom=src.zoomPose.source.distance/src.coastPose.source.distance;
   const targetZoom=dst.zoomPose.target.zoom/dst.coastPose.target.zoom;
