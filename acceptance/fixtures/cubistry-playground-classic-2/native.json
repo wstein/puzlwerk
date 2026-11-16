@@ -1,0 +1,1726 @@
+{
+  "print": {
+    "schema": "cubistry.print",
+    "version": 1,
+    "id": "playground_classic_v1",
+    "topology": {
+      "kind": "cube",
+      "size": 2
+    },
+    "cubies": [
+      {
+        "id": 0,
+        "position": [
+          -1,
+          -1,
+          -1
+        ]
+      },
+      {
+        "id": 1,
+        "position": [
+          -1,
+          -1,
+          1
+        ]
+      },
+      {
+        "id": 2,
+        "position": [
+          -1,
+          1,
+          -1
+        ]
+      },
+      {
+        "id": 3,
+        "position": [
+          -1,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 4,
+        "position": [
+          1,
+          -1,
+          -1
+        ]
+      },
+      {
+        "id": 5,
+        "position": [
+          1,
+          -1,
+          1
+        ]
+      },
+      {
+        "id": 6,
+        "position": [
+          1,
+          1,
+          -1
+        ]
+      },
+      {
+        "id": 7,
+        "position": [
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "stickers": [
+      {
+        "id": 3,
+        "cubie": 4,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "R",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 2,
+        "cubie": 5,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "R",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 1,
+        "cubie": 6,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "R",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 0,
+        "cubie": 7,
+        "normal": [
+          1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "R",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 6,
+        "cubie": 0,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "L",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 7,
+        "cubie": 1,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "L",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 4,
+        "cubie": 2,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "L",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 5,
+        "cubie": 3,
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "L",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 8,
+        "cubie": 2,
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          -1
+        ],
+        "assetId": "U",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 10,
+        "cubie": 3,
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          -1
+        ],
+        "assetId": "U",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 9,
+        "cubie": 6,
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          -1
+        ],
+        "assetId": "U",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 11,
+        "cubie": 7,
+        "normal": [
+          0,
+          1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          -1
+        ],
+        "assetId": "U",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 14,
+        "cubie": 0,
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
+        "assetId": "D",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 12,
+        "cubie": 1,
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
+        "assetId": "D",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 15,
+        "cubie": 4,
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
+        "assetId": "D",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 13,
+        "cubie": 5,
+        "normal": [
+          0,
+          -1,
+          0
+        ],
+        "up": [
+          0,
+          0,
+          1
+        ],
+        "assetId": "D",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 18,
+        "cubie": 1,
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "F",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 16,
+        "cubie": 3,
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "F",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 19,
+        "cubie": 5,
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "F",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 17,
+        "cubie": 7,
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "F",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 23,
+        "cubie": 0,
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "B",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 21,
+        "cubie": 2,
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "B",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 22,
+        "cubie": 4,
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "B",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 20,
+        "cubie": 6,
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "assetId": "B",
+        "materialId": "sticker",
+        "equivalentQuarterTurns": [
+          0,
+          1,
+          2,
+          3
+        ]
+      }
+    ]
+  },
+  "assets": {
+    "schema": "cubistry.assets",
+    "version": 1,
+    "fonts": [],
+    "documents": [],
+    "materials": [
+      {
+        "id": "plastic",
+        "color": "#1b2431",
+        "roughness": 0.45
+      },
+      {
+        "id": "sticker",
+        "color": "#ffffff",
+        "roughness": 0.65
+      }
+    ],
+    "images": [
+      {
+        "id": "R",
+        "kind": "color",
+        "color": "#e94538"
+      },
+      {
+        "id": "L",
+        "kind": "color",
+        "color": "#ff922e"
+      },
+      {
+        "id": "U",
+        "kind": "color",
+        "color": "#f7f6e9"
+      },
+      {
+        "id": "D",
+        "kind": "color",
+        "color": "#ffd635"
+      },
+      {
+        "id": "F",
+        "kind": "color",
+        "color": "#24ab72"
+      },
+      {
+        "id": "B",
+        "kind": "color",
+        "color": "#3384e5"
+      }
+    ]
+  },
+  "target": {
+    "schema": "cubistry.state",
+    "version": 1,
+    "printId": "playground_classic_v1",
+    "topology": {
+      "kind": "cube",
+      "size": 2
+    },
+    "cubies": [
+      {
+        "id": 0,
+        "position": [
+          -1,
+          -1,
+          -1
+        ],
+        "orientation": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "id": 1,
+        "position": [
+          -1,
+          -1,
+          1
+        ],
+        "orientation": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "id": 2,
+        "position": [
+          -1,
+          1,
+          -1
+        ],
+        "orientation": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "id": 3,
+        "position": [
+          -1,
+          1,
+          1
+        ],
+        "orientation": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "id": 4,
+        "position": [
+          1,
+          -1,
+          -1
+        ],
+        "orientation": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "id": 5,
+        "position": [
+          1,
+          -1,
+          1
+        ],
+        "orientation": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "id": 6,
+        "position": [
+          1,
+          1,
+          -1
+        ],
+        "orientation": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      },
+      {
+        "id": 7,
+        "position": [
+          1,
+          1,
+          1
+        ],
+        "orientation": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ]
+        ]
+      }
+    ]
+  },
+  "trace": [
+    {
+      "action": "R",
+      "state": {
+        "schema": "cubistry.state",
+        "version": 1,
+        "printId": "playground_classic_v1",
+        "topology": {
+          "kind": "cube",
+          "size": 2
+        },
+        "cubies": [
+          {
+            "id": 0,
+            "position": [
+              -1,
+              -1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 1,
+            "position": [
+              -1,
+              -1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 2,
+            "position": [
+              -1,
+              1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 3,
+            "position": [
+              -1,
+              1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 4,
+            "position": [
+              1,
+              -1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 5,
+            "position": [
+              1,
+              1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 6,
+            "position": [
+              1,
+              -1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 7,
+            "position": [
+              1,
+              1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "action": "U",
+      "state": {
+        "schema": "cubistry.state",
+        "version": 1,
+        "printId": "playground_classic_v1",
+        "topology": {
+          "kind": "cube",
+          "size": 2
+        },
+        "cubies": [
+          {
+            "id": 0,
+            "position": [
+              -1,
+              -1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 1,
+            "position": [
+              -1,
+              -1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 2,
+            "position": [
+              1,
+              1,
+              -1
+            ],
+            "orientation": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 3,
+            "position": [
+              -1,
+              1,
+              -1
+            ],
+            "orientation": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 4,
+            "position": [
+              1,
+              -1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 5,
+            "position": [
+              -1,
+              1,
+              1
+            ],
+            "orientation": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 6,
+            "position": [
+              1,
+              -1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 7,
+            "position": [
+              1,
+              1,
+              1
+            ],
+            "orientation": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "action": "R'",
+      "state": {
+        "schema": "cubistry.state",
+        "version": 1,
+        "printId": "playground_classic_v1",
+        "topology": {
+          "kind": "cube",
+          "size": 2
+        },
+        "cubies": [
+          {
+            "id": 0,
+            "position": [
+              -1,
+              -1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 1,
+            "position": [
+              -1,
+              -1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 2,
+            "position": [
+              1,
+              1,
+              1
+            ],
+            "orientation": [
+              [
+                0,
+                -1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                -1,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 3,
+            "position": [
+              -1,
+              1,
+              -1
+            ],
+            "orientation": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                -1,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 4,
+            "position": [
+              1,
+              -1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 5,
+            "position": [
+              -1,
+              1,
+              1
+            ],
+            "orientation": [
+              [
+                0,
+                0,
+                1
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 6,
+            "position": [
+              1,
+              1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 7,
+            "position": [
+              1,
+              -1,
+              1
+            ],
+            "orientation": [
+              [
+                0,
+                -1,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "action": "U'",
+      "state": {
+        "schema": "cubistry.state",
+        "version": 1,
+        "printId": "playground_classic_v1",
+        "topology": {
+          "kind": "cube",
+          "size": 2
+        },
+        "cubies": [
+          {
+            "id": 0,
+            "position": [
+              -1,
+              -1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 1,
+            "position": [
+              -1,
+              -1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 2,
+            "position": [
+              1,
+              1,
+              -1
+            ],
+            "orientation": [
+              [
+                0,
+                -1,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 3,
+            "position": [
+              -1,
+              1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 4,
+            "position": [
+              1,
+              -1,
+              -1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "id": 5,
+            "position": [
+              1,
+              1,
+              1
+            ],
+            "orientation": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 6,
+            "position": [
+              -1,
+              1,
+              -1
+            ],
+            "orientation": [
+              [
+                0,
+                0,
+                -1
+              ],
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ]
+            ]
+          },
+          {
+            "id": 7,
+            "position": [
+              1,
+              -1,
+              1
+            ],
+            "orientation": [
+              [
+                0,
+                -1,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                1
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
