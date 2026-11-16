@@ -20,6 +20,7 @@ for (const size of [2,3,4,5,6,7]) {
   const w=presentationWidths(size); cases.push({name:`native-${size}`,size,widths:w,nominalEdge:size});
 }
 cases.push({name:'unequal-3',size:3,widths:[.7,1,1.4],nominalEdge:3.1});
+cases.push({name:'unequal-7',size:7,widths:[.7,1,1,1,1,1,1.4],nominalEdge:7.1});
 for (const item of cases) {
   const profile=presentationLayerProfile(item.widths,item.nominalEdge);
   const cell=[item.widths[0],item.widths[1],item.widths.at(-1)];

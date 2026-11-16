@@ -334,3 +334,19 @@ test('empty and free projections do not infer a core or take caller image owners
   assert.equal(rendered.getObjectByName('s').material.transparent,true);
   scene.dispose(); assert.equal(closed,0);
 });
+
+test('replacing core projections removes and disposes each previous core once', async () => {
+  let rendered; const frames=[];
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  const show=async p=>{assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0)};
+  const cores=()=>rendered.children.filter(o=>o.isMesh && o.geometry.type==='SphereGeometry');
+  const watch=core=>{const calls={geometry:0,material:0};core.geometry.addEventListener('dispose',()=>calls.geometry++);core.material.addEventListener('dispose',()=>calls.material++);return calls};
+  await show({pieces:[],core:{center:[1,2,3],halfExtent:2}});
+  const first=cores()[0],firstCalls=watch(first);
+  await show({pieces:[],core:{center:[4,5,6],halfExtent:3}});
+  assert.equal(first.parent===null,true); assert.equal(cores().length,1); assert.notEqual(cores()[0],first); assert.deepEqual(firstCalls,{geometry:1,material:1});
+  const second=cores()[0],secondCalls=watch(second);
+  await show({pieces:[]});
+  assert.equal(second.parent===null,true); assert.equal(cores().length,0); assert.deepEqual(secondCalls,{geometry:1,material:1});
+  scene.dispose(); assert.deepEqual(firstCalls,{geometry:1,material:1}); assert.deepEqual(secondCalls,{geometry:1,material:1});
+});
