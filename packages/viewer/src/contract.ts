@@ -9,7 +9,7 @@ export type Transform = { readonly position: Vec3; readonly rotation: Quaternion
 export type Sticker = { readonly id: string; readonly transform: Transform; readonly size: readonly [number, number]; readonly color: string; readonly imageId?: string };
 export type PieceGeometry = { readonly cellSize: Vec3; readonly outerSides: readonly [readonly [boolean, boolean], readonly [boolean, boolean], readonly [boolean, boolean]] };
 export type Piece = { readonly id: string; readonly transform: Transform; readonly stickers: readonly Sticker[]; readonly geometry?: PieceGeometry };
-export type CubeProjection = { readonly pieces: readonly Piece[] };
+export type CubeProjection = { readonly pieces: readonly Piece[]; readonly presentation?: { readonly size: number; readonly nominalEdge: number }; readonly core?: { readonly center: Vec3; readonly halfExtent: number } };
 export type Transition = { readonly from: CubeProjection; readonly to: CubeProjection; readonly pieceIds: readonly string[]; readonly axis: Vec3; readonly signedAngleRadians: number; readonly pivot: Vec3; readonly durationMs: number };
 export type AssetResolver = (imageId: string, signal: AbortSignal) => Promise<Result<CanvasImageSource>>;
 export type ViewerOptions = { readonly resolveAsset: AssetResolver };
@@ -23,6 +23,8 @@ const id = (v: unknown): v is string => typeof v === 'string' && v.length > 0;
 const transform = (v: Transform) => v && array(v.position, 3) && array(v.rotation, 4) && unit(v.rotation);
 export function validateProjection(p: CubeProjection): Result<void> {
   if (!p || !Array.isArray(p.pieces)) return fail('InvalidProjection', 'Expected pieces', 'pieces');
+  if (p.presentation !== undefined && (!p.presentation || !Number.isInteger(p.presentation.size) || p.presentation.size < 2 || p.presentation.size > 7 || !Number.isFinite(p.presentation.nominalEdge) || p.presentation.nominalEdge <= 0)) return fail('InvalidProjection', 'Invalid presentation', 'presentation');
+  if (p.core !== undefined && (!p.core || !array(p.core.center, 3) || Array.from(p.core.center).some(x => !Number.isFinite(x)) || !Number.isFinite(p.core.halfExtent) || p.core.halfExtent <= 0)) return fail('InvalidProjection', 'Invalid core', 'core');
   const ids = new Set<string>();
   for (const [i, piece] of p.pieces.entries()) {
     if (!piece || !id(piece.id) || ids.has(piece.id) || !transform(piece.transform) || !Array.isArray(piece.stickers)) return fail('InvalidProjection', 'Invalid piece', `pieces[${i}]`);
@@ -49,6 +51,7 @@ export function validateTransition(t: Transition): Result<void> {
   const fromValidation = validateProjection(t.from); if (!fromValidation.ok) return fromValidation;
   const toValidation = validateProjection(t.to); if (!toValidation.ok) return toValidation;
   if (!array(t.axis, 3) || !unit(t.axis) || !array(t.pivot, 3) || !Number.isFinite(t.signedAngleRadians) || !Number.isFinite(t.durationMs) || t.durationMs < 0 || !Array.isArray(t.pieceIds) || new Set(t.pieceIds).size !== t.pieceIds.length) return fail('InvalidTransition', 'Invalid turn');
+  if (!sameValues(t.from.presentation, t.to.presentation) || !sameValues(t.from.core, t.to.core)) return fail('InvalidTransition', 'Scene metadata differs');
   const targets = new Map(t.to.pieces.map(p => [p.id, p]));
   const selected = new Set(t.pieceIds);
   if (targets.size !== t.from.pieces.length || [...selected].some(k => !targets.has(k) || !t.from.pieces.some(p => p.id === k))) return fail('InvalidTransition', 'Piece IDs differ');

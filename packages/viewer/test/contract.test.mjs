@@ -39,3 +39,19 @@ test('sparse geometry arrays are rejected before rendering', () => {
     assert.equal(validateProjection({pieces:[{...base.pieces[0],geometry}]}).error.code,'InvalidProjection');
   }
 });
+
+test('presentation and independent core metadata are validated and invariant', () => {
+  const metadata={presentation:{size:7,nominalEdge:7},core:{center:[1,2,3],halfExtent:3.5}};
+  const withMeta={...from,...metadata};
+  assert.equal(validateProjection(withMeta).ok,true);
+  for (const invalid of [
+    {presentation:{size:1,nominalEdge:2}}, {presentation:{size:7.1,nominalEdge:7}},
+    {presentation:{size:8,nominalEdge:7}}, {presentation:{size:3,nominalEdge:0}},
+    {presentation:{size:3,nominalEdge:Infinity}}, {core:{center:[1,,3],halfExtent:1}},
+    {core:{center:[1,2,NaN],halfExtent:1}}, {core:{center:[1,2,3],halfExtent:0}},
+  ]) assert.equal(validateProjection({...from,...invalid}).error.code,'InvalidProjection');
+  assert.equal(validateProjection({pieces:[],core:metadata.core}).ok,true);
+  assert.equal(validateTransition({...turn,from:withMeta,to:{...to,...metadata}}).ok,true);
+  assert.equal(validateTransition({...turn,from:withMeta,to:{...to,...metadata,core:{...metadata.core,halfExtent:4}}}).error.code,'InvalidTransition');
+  assert.equal(validateTransition({...turn,from:withMeta,to:{...to,...metadata,presentation:{size:7,nominalEdge:7.1}}}).error.code,'InvalidTransition');
+});
