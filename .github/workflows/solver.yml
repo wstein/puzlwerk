@@ -16,6 +16,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - run: node --test acceptance/test/native-ci-coverage.test.mjs
       - run: node --test acceptance/test/native-cube-assembler.test.mjs acceptance/test/cube-assembler-raw-mesh.test.mjs acceptance/test/cube-assembler-shadow.test.mjs
       - run: node acceptance/test/cube-assembler-source-profile.mjs
       - run: npm ci --prefix docs/site
