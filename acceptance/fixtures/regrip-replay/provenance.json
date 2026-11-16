@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/wstein/regrip",
+  "revision": "ebe7d32d0fd1f0b74c528cd38618afda3f5a991e",
+  "sourceDirectory": "packages/core/src/session/replay/fixtures",
+  "license": "MIT",
+  "status": "Native inputs only; replay execution and physical, virtual and presentation frame comparisons remain blocked. Replay panel is development-only.",
+  "files": {
+    "gocube-edge-ui.jsonl": "249f755c4acaa319eff02f7115706ade03ac76eea5d86805cc8b3400d7ccd80a",
+    "gan-ui12-ui.jsonl": "7fca31c79bd75f2f096d835a2a46c014eeed2de579e9b715b6753e6b6eab6f01",
+    "LICENSE": "bf0f5253e958599d3290de5ae04c0505aac93683c0e2ac9176f09d3f260609f9"
+  }
+}
