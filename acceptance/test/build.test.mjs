@@ -25,3 +25,4 @@ test('CubeAssembler native comparison is a distinct manifest route',()=>{
  assert.ok(html.includes('/puzlwerk/pr-preview/pr-77/assets/runtime/cube-assembler.mjs'));
  assert.ok(html.includes('/puzlwerk/pr-preview/pr-77/assets/reference-cube-assembler/original.css'));
 });
+test('acceptance routes support the local root base',()=>{assert.deepEqual(validate(manifest,'/').map(c=>c.id),manifest.cases.map(c=>c.id));assert.ok(renderCase(manifest.cases[0],'/').includes('href="/assets/style.css"'));});

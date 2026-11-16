@@ -8,7 +8,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 const fields=['sourceApp','screen','sourceRoute','sourceRevision','sourceComponent','sourceSymbol','sourceFixture','sourceDefault','cube','camera','actions','assets','wireFixture','appearanceFixture','productionPlay','referenceEligibility'];
 export function validate(m,base){
- if(!/^\/(?:[a-z0-9-]+\/)+$/.test(base))throw Error('invalid base');
+ if(!/^\/(?:[a-z0-9-]+\/)*$/.test(base))throw Error('invalid base');
  if(!Array.isArray(m.cases)||!Array.isArray(m.statusVocabulary))throw Error('invalid manifest');
  const ids=new Set(),routes=new Set();
  for(const c of m.cases){if(c.runtime!==undefined&&!['classic','cube-assembler'].includes(c.runtime))throw Error('invalid runtime');if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(c.id)||c.route!==`acceptance/${c.id}/`||ids.has(c.id)||routes.has(c.route))throw Error('invalid or duplicate route');ids.add(c.id);routes.add(c.route);

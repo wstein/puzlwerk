@@ -18,7 +18,8 @@
     "docs:check": "node scripts/check-knowledge.mjs",
     "test:docs": "node --test test/knowledge.test.mjs",
     "docs:build": "npm --prefix docs/site run build",
-    "docs:links": "node docs/site/check-built.mjs"
+    "docs:links": "node docs/site/check-built.mjs",
+    "dev": "npm run build && node acceptance/dev.mjs"
   },
   "devDependencies": {
     "rescript": "12.3.1",
