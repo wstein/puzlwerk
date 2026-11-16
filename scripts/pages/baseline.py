@@ -7,7 +7,7 @@ MAX_FILES = 10000
 MAX_BYTES = 512 * 1024 * 1024
 RECEIPT = '.puzlwerk-publication.json'
 
-def digest(source):
+def digest(source, include_previews=False):
     root = Path(source)
     if root.is_symlink() or not root.is_dir() or not (root/'index.html').is_file() or (root/'index.html').is_symlink():
         raise ValueError('Missing production root')
@@ -20,7 +20,7 @@ def digest(source):
             rel = path.relative_to(root)
             if path.is_symlink() or not (path.is_file() or path.is_dir()):
                 raise ValueError('Unsafe production entry')
-            if len(rel.parts) == 1 and name == 'pr-preview' and path.is_dir():
+            if not include_previews and len(rel.parts) == 1 and name == 'pr-preview' and path.is_dir():
                 dirs.remove(name)
                 continue
             if len(rel.parts) == 1 and name == RECEIPT and path.is_file():
@@ -49,7 +49,8 @@ def make_receipt(root, sha, run, attempt, nonce):
     if not isinstance(nonce, str) or not re.fullmatch('[a-f0-9]{32}', nonce):
         raise ValueError('Invalid nonce')
     return {'schema': 1, 'sha': sha, 'run': run, 'attempt': attempt,
-            'nonce': nonce, 'root': digest(root)}
+            'nonce': nonce, 'root': digest(root),
+            'snapshot': digest(root, include_previews=True)}
 
 def stage(source, destination, sha, run, attempt, nonce):
     import json
