@@ -1,10 +1,17 @@
-import {mkdtempSync,readFileSync,writeFileSync,copyFileSync} from 'node:fs';
+import {mkdtempSync,readFileSync,writeFileSync,copyFileSync,existsSync,unlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 const root=fileURLToPath(new URL('../',import.meta.url));
+// Regression: an incremental compiler cache must not hide a missing GenType artifact.
+const binding=join(root,'core/res/PwCapture.gen.ts');
+const runtimeBefore=readFileSync(join(root,'core/res/PwCapture.res.mjs'));
+assert.ok(existsSync(binding));unlinkSync(binding);
+execFileSync('npm',['run','build','--workspace','@puzlwerk/capture-recovery'],{cwd:root,stdio:'pipe'});
+assert.ok(existsSync(binding));assert.deepEqual(readFileSync(join(root,'core/res/PwCapture.res.mjs')),runtimeBefore);
+console.log('Incremental GenType regression: 2 assertions passed; missing binding regenerated, runtime bytes unchanged');
 const dir=mkdtempSync(join(tmpdir(),'puzlwerk-capture-consumer-'));
 const packed=JSON.parse(execFileSync('npm',['pack','--workspace','@puzlwerk/capture-recovery','--pack-destination',dir,'--json'],{cwd:root,encoding:'utf8'}))[0];
 for(const file of ['LICENSE','NOTICE','CUBE_ASSEMBLER_LICENSE.txt','provenance.json','lib/index.js','lib/index.d.ts','source/PwCapture.res','source/PwCapture.resi','source/PwShell.resi','rescript.json'])assert.ok(packed.files.some(x=>x.path===file),file);
