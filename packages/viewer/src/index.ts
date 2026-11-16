@@ -30,3 +30,6 @@ export {createCubeStage} from './stage-host.js';
 export type {CubeStage,StageOptions} from './stage-host.js';
 export type {StageChild,StageError,StageResult,StageView,ViewPolicy,ChildMaterial} from './stage.js';
 export type {StageLighting,DirectionalData,ExposurePolicy,ExposureSnapshot,LightSnapshot} from './stage-lighting.js';
+
+export {weightedFaceExposure} from './weighted-exposure.js';
+export type {ExposureLights} from './weighted-exposure.js';
