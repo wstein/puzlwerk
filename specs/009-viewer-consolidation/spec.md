@@ -539,12 +539,11 @@ geometry parity. Consumer migration and full owner HQ acceptance remain open.
 ## Proposed acceptance suite and inventory gate
 
 The [acceptance inventory](acceptance-matrix.md) and `acceptance-routes.json` route manifest
-are an incomplete planning draft. They do not establish parity, activate a
-preview, authorize implementation, or replace VC5. Before suite implementation,
-complete and review the source inventory, concrete reproducible fixtures,
-reference eligibility, per-case checklists, and decisions recorded there. In
-particular the current manifest covers only the Cubistry registry, not all public
-entries or the other consumers. Its reserved routes are not deployed URLs.
+are a planning inventory. They do not establish parity, activate a
+preview, authorize implementation, or replace VC5. Before suite implementation, review the inventory, source-native fixtures,
+reference eligibility, per-case checklists, and open decisions recorded there.
+Resolve missing production mappings and fixture exports before claiming parity.
+Reserved routes are not deployed URLs.
 
 Each case requires an independent owner decision, evidence and the exact tested
 head. Architecture, functional and visual results are distinct; a pass or owner
