@@ -26,3 +26,8 @@ test('CubeAssembler native comparison is a distinct manifest route',()=>{
  assert.ok(html.includes('/nested/review/assets/reference-cube-assembler/original.css'));
 });
 test('acceptance routes support the local root base',()=>{assert.deepEqual(validate(manifest,'/').map(c=>c.id),manifest.cases.map(c=>c.id));assert.ok(renderCase(manifest.cases[0],'/').includes('href="/assets/style.css"'));});
+
+test('source archives use the explicitly recorded commit instead of a parent checkout',async()=>{
+ const {mkdtemp,writeFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path'),{sourceRevision}=await import('../build.mjs');const dir=await mkdtemp(join(tmpdir(),'puzlwerk-revision-'));
+ try{const sha='0123456789abcdef0123456789abcdef01234567';await writeFile(join(dir,'SOURCE_REVISION'),sha+'\n');assert.equal(await sourceRevision(dir),sha);await writeFile(join(dir,'SOURCE_REVISION'),'invalid\n');await assert.rejects(sourceRevision(dir),/source revision/i);}finally{await rm(dir,{recursive:true,force:true})}
+});

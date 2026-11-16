@@ -5,6 +5,11 @@ import {resolve, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 const root=fileURLToPath(new URL('../',import.meta.url));
+export async function sourceRevision(directory){
+ try{const value=(await readFile(join(directory,'SOURCE_REVISION'),'utf8')).trim();if(!/^[0-9a-f]{40}$/.test(value))throw Error('invalid source revision');return value;}
+ catch(error){if(error.code!=='ENOENT')throw error;}
+ const value=execFileSync('git',['-C',directory,'rev-parse','HEAD'],{encoding:'utf8'}).trim();if(!/^[0-9a-f]{40}$/.test(value))throw Error('invalid source revision');return value;
+}
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 const fields=['sourceApp','screen','sourceRoute','sourceRevision','sourceComponent','sourceSymbol','sourceFixture','sourceDefault','cube','camera','actions','assets','wireFixture','appearanceFixture','productionPlay','referenceEligibility'];
 export function validate(m,base){
@@ -24,5 +29,5 @@ export async function build(base,out){const data=await readFile(join(root,'specs
  for(const c of cases){const dir=join(out,c.route);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),renderCase(c,base));}
  await writeFile(join(out,'index.html'),page('Acceptance inventory',`<h1>Acceptance inventory</h1><p>Source inventories, not completed comparisons. Status and owner decisions are unchanged.</p><ul>${cases.map(c=>`<li><a href="${esc(base+c.route)}">${esc(c.id)}</a> — ${esc(c.sourceApp)}</li>`).join('')}</ul>`,base));
  await mkdir(join(out,'diagnostic'),{recursive:true});await writeFile(join(out,'diagnostic/index.html'),page('Viewer diagnostic',`<h1>Renderer-only diagnostic</h1><p>Source-derived 2×2 display projection and signed visual turn. This is not a legal move, canonical state, source application comparison, shared play, or acceptance.</p><div class="scene" id="scene"></div><button id="turn">Visual turn</button> <button id="cancel">Cancel</button> <button id="reset">Reset display</button> <button id="dispose">Dispose</button><output id="result"></output><script type="importmap">{"imports":{"three":"${base}assets/three/build/three.module.js","three/examples/":"${base}assets/three/examples/"}}</script><script type="module" src="${base}assets/diagnostic.js"></script>`,base));
- const head=execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();await writeFile(join(out,'build-record.json'),JSON.stringify({manifestSha256:createHash('sha256').update(data).digest('hex'),viewerHead:head,base,routes:cases.map(c=>c.route)},null,2)+'\n');}
+ const head=await sourceRevision(root);await writeFile(join(out,'build-record.json'),JSON.stringify({manifestSha256:createHash('sha256').update(data).digest('hex'),viewerHead:head,base,routes:cases.map(c=>c.route)},null,2)+'\n');}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){const args=process.argv.slice(2);if(args.length!==4||args[0]!=='--base'||args[2]!=='--out'||!args[3].startsWith('/'))throw Error('Usage: node acceptance/build.mjs --base /puzlwerk/ --out /absolute/path');await build(args[1],args[3]);}
