@@ -1,0 +1,37 @@
+name: Acceptance preview build
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+permissions:
+  contents: read
+concurrency:
+  group: acceptance-preview-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  build:
+    if: >-
+      github.event.pull_request.state == 'open' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'preview') &&
+      (github.event.action != 'labeled' || github.event.label.name == 'preview')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace @puzlwerk/viewer
+      - run: node acceptance/build.mjs --base "/puzlwerk/pr-preview/pr-${PR_NUMBER}/" --out "$RUNNER_TEMP/acceptance-preview"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: acceptance-preview
+          path: ${{ runner.temp }}/acceptance-preview/
+          if-no-files-found: error
+          retention-days: 14
