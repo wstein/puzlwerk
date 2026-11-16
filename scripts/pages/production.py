@@ -27,3 +27,18 @@ def prepare(source, destination, sha, run, attempt, nonce, verified_snapshot, le
         (candidate/baseline.RECEIPT).write_text(json.dumps(receipt,separators=(',',':'))+'\n')
         candidate.rename(destination)
         return receipt
+
+if __name__=='__main__':
+    import argparse
+    import os
+    import secrets
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--source',required=True)
+    parser.add_argument('--destination',required=True)
+    parser.add_argument('--snapshot')
+    parser.add_argument('--previous')
+    parser.add_argument('--legacy',action='store_true')
+    args=parser.parse_args()
+    prepare(args.source,args.destination,os.environ['GITHUB_SHA'],int(os.environ['GITHUB_RUN_ID']),
+            int(os.environ['GITHUB_RUN_ATTEMPT']),secrets.token_hex(16),args.snapshot,
+            legacy=args.legacy,previous=args.previous)
