@@ -152,3 +152,7 @@ test('shared stage owns one visibility listener for multiple children',()=>{
  const listeners=new Set(),clock={now:()=>0,request:()=>1,cancel(){},onVisibility:cb=>{listeners.add(cb);return()=>listeners.delete(cb)}};const stage=createStageForTest({resolveAsset:async()=>({ok:false})},clock,{render(){},dispose(){}});
  stage.addCube({position:[0,0,0]});stage.addCube({position:[2,0,0]});assert.equal(listeners.size,1);stage.dispose();assert.equal(listeners.size,0);
 });
+test('nonfinite derived caster bounds reject a view before backend commit',async()=>{
+ const h=harness(),child=h.stage.addCube({position:[100,0,0]}).value;await child.setProjection(projection);h.step(0);const previous=h.view;
+ const invalid=h.stage.setViewPolicy(()=>({distance:10,far:100,groupScale:1e308}));assert.equal(invalid.error.code,'InvalidView');assert.deepEqual(h.view,previous);h.step(0);assert.equal(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).x,100);h.stage.dispose();
+});
