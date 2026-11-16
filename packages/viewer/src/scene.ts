@@ -19,10 +19,11 @@ const sameProjection = (a: CubeProjection, b: CubeProjection) => {
   return sameValues(normalize(a), normalize(b)) && sameValues(a.presentation,b.presentation) && sameValues(a.core,b.core) && sameValues(a.appearance,b.appearance) && sameValues(a.picture,b.picture);
 };
 
-export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend): CubeScene {
-  const scene = new THREE.Scene();
-  const root = new THREE.Group(); scene.add(root);
-  const studio = createPresentationStudio(scene);
+export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend, shared?: { scene: THREE.Scene; parent: THREE.Group }): CubeScene {
+  const scene = shared?.scene ?? new THREE.Scene();
+  const parent = shared?.parent ?? scene;
+  const root = new THREE.Group(); parent.add(root);
+  const studio = shared ? undefined : createPresentationStudio(scene);
 
   let projection: CubeProjection | undefined, pending: Pending | undefined, livePending: Pending | undefined, disposed = false, lost = false;
   let referenceWidths: readonly number[] | undefined;
@@ -142,7 +143,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       for (const {candidate,existing} of pairs) { existing!.clear(); while(candidate.children.length) existing!.add(candidate.children[0]); }
       const retained=resources.splice(0);for (const r of retained) {if(keep.has(r)) candidateResources.push(r);else r.dispose();}
     } else { clear(); while (staging.children.length) root.add(staging.children[0]); }
-    for (const core of cores) scene.add(core);
+    for (const core of cores) parent.add(core);
     resourcesForCommit(candidateResources);
     projection = p; draw();
     } catch (error) { for (const resource of candidateResources) resource.dispose(); throw error; }
@@ -263,7 +264,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       return ok(undefined);
     },
     invalidate() { const s = disposed ? fail('Disposed','Scene disposed') : lost ? fail('ContextLost','Context lost') : ok(undefined); if (s.ok) draw(); return s; },
-    dispose() { if (disposed) return; api.cancel(); disposed = true; unsubscribe?.(); if (frame !== undefined) clock.cancel(frame); frame = undefined; clear(); studio.dispose(); backend.dispose(); },
+    dispose() { if (disposed) return; api.cancel(); disposed = true; unsubscribe?.(); if (frame !== undefined) clock.cancel(frame); frame = undefined; clear(); root.removeFromParent(); studio?.dispose(); backend.dispose(); },
   };
   // Context loss is wired by the browser host; kept private to the implementation.
   Object.assign(api, {contextLost() { if (disposed || lost) return; const op = pending, live=livePending; if (op) { const finishOriginal = op.finish; op.finish = () => finishOriginal(fail('ContextLost','Context lost')); } if (live) { const finishOriginal=live.finish; live.finish=()=>finishOriginal(fail('ContextLost','Context lost')); } if (op || live) api.cancel(); lost = true; if (frame !== undefined) clock.cancel(frame); frame = undefined; }});
