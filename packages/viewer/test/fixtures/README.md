@@ -68,3 +68,10 @@ scale and world centers for two and three cubes. Regenerate with:
 ```sh
 node packages/viewer/test/fixtures/generate-cubistry-clock-framing.mjs /path/to/cubistry
 ```
+
+`cubistry-weighted-exposure.json` records source exposure from actual source
+scene lights, including a dark scene, across display orientations. Regenerate:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-exposure.mjs /path/to/cubistry
+```
