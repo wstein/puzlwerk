@@ -60,9 +60,16 @@ updates, cleanup and reopen before reporting a live preview.
 The ledger assumes GitHub and the maintainer retain its runs and artifacts for
 the stated 90-day retention window. It detects observed missing or ambiguous
 state and fails closed; manual deletion is not permitted within that window.
-Expiry or an interrupted writer requires owner-directed recovery from a verified
-published snapshot; do not reconstruct it from the latest `main`. A start
-artifact without a confirmed commit blocks subsequent combined publications.
+Expiry or ambiguous writer state requires owner-directed recovery from a verified
+published snapshot; do not reconstruct it from the latest `main`. Receipt
+confirmation waits for bounded propagation when the public endpoint still returns
+the exact previous receipt, 404, or a server error; a different receipt fails.
+For the pinned preview-publisher workflow, readers can reconstruct a missing
+commit in memory only when the completed job proves deployment succeeded and
+receipt confirmation failed, the start matches, and its retained snapshot and
+both digests verify. A failed job is ignored as a nonwriter only when its
+completed deployment step explicitly reports `skipped`. Unknown or ambiguous
+cases remain blocked; no remote ledger is rewritten by this recovery.
 
 ## Rollback
 
