@@ -32,3 +32,40 @@ is not proof that a universal Scene or Play API already satisfies these rows.
 Native facelet colors alone do not establish sticker identity or up. Mapping
 ambiguities and unverified asset rights remain explicit until resolved from
 source and contract evidence.
+
+## Shared play and orientation indicator: proposed contracts
+
+These contracts are preparation for the later shared Play/Gizmo stage. They do
+not authorize migration or replace the owner's live acceptance of the extracted
+Cubistry viewer. The APIs below describe the intended boundary, not an existing
+implementation.
+
+A shared `PlayController` owns one Core state and a scene, and exposes
+`preview(move)`, `commit()`, `cancel()` and `dispose()`. A move identifies an
+axis, legal layers and quarter turns using Core conventions. `preview` requests a
+policy-checked Core transition and renders its intermediate state without
+committing; `commit` accepts only the current preview and publishes the new Core
+state once. Results distinguish `ok`, `rejected`, `busy`, `cancelled` and
+`disposed`. Cancellation or a failed transition restores the prior committed
+state and scene. The view gesture binding drives the shared scene and never
+changes Core state; concurrent move input must not silently replace a pending
+move. The API must preserve separate app-owned deadlines where relevant.
+
+Acceptance traces cover legal and rejected turns, busy input, preview then
+commit, preview then cancel, interruption and disposal, state identity before and
+after each result, and mouse/touch camera gestures that leave physical state
+unchanged. Source input traces from CubeAssembler and CubeLab are comparison
+oracles; source behavior not established in this table remains UNKNOWN.
+
+A shared orientation indicator accepts separate `physicalOrientation`,
+`solverFrame` and `presentationOrientation` inputs and a viewport anchor. It
+exposes `update(inputs)`, `resize(viewport)`, `reset()` and `dispose()`. The
+indicator is informational: pointer and touch events pass through to the view,
+and it does not request a regrip or mutate a Core state. Its anchoring accounts
+for parent presentation rotation, following the cited Regrip source; scale is an
+explicit option rather than a puzzle rule.
+
+Acceptance traces cover independent changes to each orientation, orbit and
+reset, resize, anchor compensation, input pass-through and disposal. Tests must
+show that indicator updates do not mutate the puzzle or apply any orientation
+twice. Clickable regrips are not part of this source-backed contract.
