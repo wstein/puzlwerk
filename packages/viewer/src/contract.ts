@@ -9,12 +9,14 @@ export type Result<T> = { readonly ok: true; readonly value: T } | { readonly ok
 export type Transform = { readonly position: Vec3; readonly rotation: Quaternion };
 export type FaceEdgeColors = Partial<Record<'left'|'right'|'top'|'bottom', string | readonly {readonly to:number; readonly color:string}[]>>;
 export type SourceFace = { readonly normal: Vec3; readonly up: Vec3; readonly color?:string; readonly edgeColors?: FaceEdgeColors };
-export type Sticker = { readonly id: string; readonly transform: Transform; readonly size: readonly [number, number]; readonly color: string; readonly imageId?: string; readonly sourceFace?: SourceFace; readonly picture?: {readonly face:FaceKey; readonly layerIndex:Vec3} };
+export type StickerGeometry = { readonly referenceSize:readonly [number,number]; readonly cornerRadius:number };
+export type BodyProfile = { readonly kind:'twoRadius'; readonly gap:number; readonly bevelSegments:number } | { readonly kind:'roundedBox'; readonly gap:number; readonly radius:number; readonly bevelSegments:number };
+export type Sticker = { readonly geometry?:StickerGeometry; readonly id: string; readonly transform: Transform; readonly size: readonly [number, number]; readonly color: string; readonly imageId?: string; readonly sourceFace?: SourceFace; readonly picture?: {readonly face:FaceKey; readonly layerIndex:Vec3} };
 export type PieceGeometry = { readonly cellSize: Vec3; readonly outerSides: readonly [readonly [boolean, boolean], readonly [boolean, boolean], readonly [boolean, boolean]] };
 export type Piece = { readonly id: string; readonly transform: Transform; readonly stickers: readonly Sticker[]; readonly geometry?: PieceGeometry };
 export type Appearance = {readonly construction:'stickered'|'stickerless'; readonly bodyColor?:string|null; readonly coreColor?:string; readonly frameColor?:string|null; readonly miterCutFaces?:boolean; readonly planarFaceUv?:boolean};
 export type Picture = {readonly widths:readonly number[]; readonly faces:Readonly<Record<FaceKey,string>>};
-export type CubeProjection = { readonly appearance?:Appearance; readonly picture?:Picture; readonly pieces: readonly Piece[]; readonly presentation?: { readonly size: number; readonly nominalEdge: number }; readonly core?: { readonly center: Vec3; readonly halfExtent: number } };
+export type CubeProjection = { readonly geometryProfile?: { readonly body:BodyProfile }; readonly appearance?:Appearance; readonly picture?:Picture; readonly pieces: readonly Piece[]; readonly presentation?: { readonly size: number; readonly nominalEdge: number }; readonly core?: { readonly center: Vec3; readonly halfExtent: number } };
 export type Transition = { readonly from: CubeProjection; readonly to: CubeProjection; readonly pieceIds: readonly string[]; readonly axis: Vec3; readonly signedAngleRadians: number; readonly pivot: Vec3; readonly durationMs: number };
 export type AssetResolver = (imageId: string, signal: AbortSignal) => Promise<Result<CanvasImageSource>>;
 export type ViewerOptions = { readonly resolveAsset: AssetResolver };
@@ -34,20 +36,23 @@ export function validateProjection(p: CubeProjection): Result<void> {
   if (!p || !Array.isArray(p.pieces)) return fail('InvalidProjection', 'Expected pieces', 'pieces');
   if (p.presentation !== undefined && (!p.presentation || !Number.isInteger(p.presentation.size) || p.presentation.size < 2 || p.presentation.size > 7 || !Number.isFinite(p.presentation.nominalEdge) || p.presentation.nominalEdge <= 0)) return fail('InvalidProjection', 'Invalid presentation', 'presentation');
   if (p.core !== undefined && (!p.core || !array(p.core.center, 3) || Array.from(p.core.center).some(x => !Number.isFinite(x)) || !Number.isFinite(p.core.halfExtent) || p.core.halfExtent <= 0)) return fail('InvalidProjection', 'Invalid core', 'core');
+  const body=p.geometryProfile?.body; if(p.geometryProfile !== undefined && (!p.geometryProfile || !body || !['twoRadius','roundedBox'].includes(body.kind) || !Number.isFinite(body.gap) || body.gap<0 || !Number.isSafeInteger(body.bevelSegments) || body.bevelSegments<1 || (body.kind==='twoRadius' && !p.presentation) || (body.kind==='roundedBox' && (!Number.isFinite(body.radius)||body.radius<=0)))) return fail('InvalidProjection','Invalid body profile','geometryProfile');
   const a=p.appearance; if (a !== undefined && (!a || !['stickered','stickerless'].includes(a.construction) || (a.bodyColor != null && !hex(a.bodyColor)) || (a.coreColor !== undefined && !hex(a.coreColor)) || (a.frameColor != null && !hex(a.frameColor)) || (a.miterCutFaces !== undefined && typeof a.miterCutFaces !== 'boolean') || (a.planarFaceUv !== undefined && typeof a.planarFaceUv !== 'boolean'))) return fail('InvalidProjection','Invalid appearance','appearance');
   const picture=p.picture; if (picture !== undefined && (!picture || !dense(picture.widths) || picture.widths.length === 0 || !picture.widths.every(x => typeof x === 'number' && Number.isFinite(x) && x > 0) || (p.presentation && picture.widths.length !== p.presentation.size) || !picture.faces || Object.keys(picture.faces).length !== 6 || !FACE_KEYS.every(k => Object.hasOwn(picture.faces,k) && id(picture.faces[k])))) return fail('InvalidProjection','Invalid picture','picture');
   let participating=0; const ids = new Set<string>();
   for (const [i, piece] of p.pieces.entries()) {
     if (!piece || !id(piece.id) || ids.has(piece.id) || !transform(piece.transform) || !Array.isArray(piece.stickers)) return fail('InvalidProjection', 'Invalid piece', `pieces[${i}]`);
     ids.add(piece.id);
+    if (body && piece.geometry === undefined) return fail('InvalidProjection','Body profile requires piece geometry',`pieces[${i}].geometry`);
     if (piece.geometry !== undefined) {
       const g = piece.geometry;
-      if (!g || !array(g.cellSize,3) || Array.from(g.cellSize).some((x: unknown) => typeof x !== 'number' || !Number.isFinite(x)) || g.cellSize.some((x: number) => x <= 1 - .99) || !Array.isArray(g.outerSides) || g.outerSides.length !== 3 || !Array.from(g.outerSides).every((side: unknown) => Array.isArray(side) && side.length === 2 && Array.from(side).every((v: unknown) => typeof v === 'boolean'))) return fail('InvalidProjection','Invalid piece geometry',`pieces[${i}].geometry`);
+      if (!g || !array(g.cellSize,3) || Array.from(g.cellSize).some((x: unknown) => typeof x !== 'number' || !Number.isFinite(x)) || g.cellSize.some((x: number) => x <= (body?.gap ?? 1 - .99)) || !Array.isArray(g.outerSides) || g.outerSides.length !== 3 || !Array.from(g.outerSides).every((side: unknown) => Array.isArray(side) && side.length === 2 && Array.from(side).every((v: unknown) => typeof v === 'boolean'))) return fail('InvalidProjection','Invalid piece geometry',`pieces[${i}].geometry`);
     }
     const normals=new Set<string>();
     for (const [j, s] of piece.stickers.entries()) {
       if (!s || !id(s.id) || ids.has(s.id) || !transform(s.transform) || !array(s.size, 2) || s.size.some((x: number) => x <= 0) || !id(s.color) || (s.imageId !== undefined && !id(s.imageId))) return fail('InvalidProjection', 'Invalid sticker', `pieces[${i}].stickers[${j}]`);
       ids.add(s.id);
+      if(s.geometry !== undefined && (!s.geometry || !dense(s.geometry.referenceSize,2) || !s.geometry.referenceSize.every((n:unknown)=>typeof n==='number'&&Number.isFinite(n)&&n>0) || !Number.isFinite(s.geometry.cornerRadius) || s.geometry.cornerRadius<0 || s.geometry.cornerRadius>Math.min(...s.geometry.referenceSize)/2)) return fail('InvalidProjection','Invalid sticker geometry');
       if (s.sourceFace !== undefined) {
         const f=s.sourceFace; if (!f || !axis(f.normal) || !axis(f.up) || f.normal.reduce((sum:number,x:number,i:number)=>sum+x*f.up[i],0)!==0 || normals.has(f.normal.join(','))) return fail('InvalidProjection','Invalid source face',`pieces[${i}].stickers[${j}].sourceFace`);
         normals.add(f.normal.join(','));
@@ -74,7 +79,7 @@ export function validateTransition(t: Transition): Result<void> {
   const fromValidation = validateProjection(t.from); if (!fromValidation.ok) return fromValidation;
   const toValidation = validateProjection(t.to); if (!toValidation.ok) return toValidation;
   if (!array(t.axis, 3) || !unit(t.axis) || !array(t.pivot, 3) || !Number.isFinite(t.signedAngleRadians) || !Number.isFinite(t.durationMs) || t.durationMs < 0 || !Array.isArray(t.pieceIds) || new Set(t.pieceIds).size !== t.pieceIds.length) return fail('InvalidTransition', 'Invalid turn');
-  if (!sameValues(t.from.presentation, t.to.presentation) || !sameValues(t.from.core, t.to.core) || !sameValues(t.from.appearance,t.to.appearance) || !sameValues(t.from.picture,t.to.picture)) return fail('InvalidTransition', 'Scene metadata differs');
+  if (!sameValues(t.from.geometryProfile,t.to.geometryProfile) || !sameValues(t.from.presentation, t.to.presentation) || !sameValues(t.from.core, t.to.core) || !sameValues(t.from.appearance,t.to.appearance) || !sameValues(t.from.picture,t.to.picture)) return fail('InvalidTransition', 'Scene metadata differs');
   const targets = new Map(t.to.pieces.map(p => [p.id, p]));
   const selected = new Set(t.pieceIds);
   if (targets.size !== t.from.pieces.length || [...selected].some(k => !targets.has(k) || !t.from.pieces.some(p => p.id === k))) return fail('InvalidTransition', 'Piece IDs differ');
