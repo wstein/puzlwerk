@@ -1,0 +1,38 @@
+{
+  "repository": "https://github.com/wstein/cubistry",
+  "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+  "license": "AGPL-3.0-or-later",
+  "nativeSha256": "c780270e28c94bd502121775a77911112f9c12894a583e035ab58102b8a42034",
+  "sources": [
+    {
+      "path": "src/apps/playground/model.ts",
+      "sha256": "fd254343cfe8123a919703b9c15a9a4515fbed89f6880f3d28857ad762905f34"
+    },
+    {
+      "path": "src/apps/playground/controller.ts",
+      "sha256": "e717d8078baa999eeb01e1cba2f9e23c03419584a1665f7a0e5db71370e8692b"
+    },
+    {
+      "path": "src/apps/playground/mount.ts",
+      "sha256": "a526dec7c1302cd4e18873c1774cda3e2dfd08974e6af22cf23e0727f882a16c"
+    },
+    {
+      "path": "packages/cube-core/src/index.ts",
+      "sha256": "d8f980ec8566483f17e707dee8a098df57043a323a39d19e6fa40e644d840d5d"
+    },
+    {
+      "path": "packages/cube-core/res/PwCore.res.mjs",
+      "sha256": "59bbf5472c75dfe06e26de129c7dcf726f4d45c8333e7455c956e0822409f11b"
+    },
+    {
+      "path": "packages/cube-mechanics/src/index.ts",
+      "sha256": "be7ee4f1a7274422b83b531a0d791f2e1299492b7c19ad44976cc612f1d2e0e2"
+    },
+    {
+      "path": "packages/cube-mechanics/res/PwMechanics.res.mjs",
+      "sha256": "44a354a459a4f4a585873c8512c7efca510e706aeba4cb3681223aca0957f91d"
+    }
+  ],
+  "sourceClosure": "incomplete; the old component and its full dependency closure are not packaged",
+  "generation": "createDesign(\"classic\"); target then sequential parseAlg/applyMoves for R U R' U'"
+}
