@@ -19,7 +19,7 @@ test('cleanup requires an observed current ineligible PR; missing state is unkno
 test('reconciliation preserves siblings and aborts if removal was reopened',async()=>{
  const {mkdtemp,mkdir,writeFile,readFile,rm}=await import('node:fs/promises');
  const {tmpdir}=await import('node:os'); const {join}=await import('node:path');
- const {reconcile}=await import('../../scripts/pages/reconcile.mjs');
+ const {reconcile,validateChanges}=await import('../../scripts/pages/reconcile.mjs');
  const root=await mkdtemp(join(tmpdir(),'puzl-reconcile-'));
  try {
   for(const n of [1,2]){await mkdir(join(root,`pr-preview/pr-${n}`),{recursive:true});await writeFile(join(root,`pr-preview/pr-${n}/index.html`),`old${n}`);}
@@ -29,6 +29,8 @@ test('reconciliation preserves siblings and aborts if removal was reopened',asyn
   const check=await reconcile(api,root,{stage});
   assert.equal(await readFile(join(root,'pr-preview/pr-1/index.html'),'utf8'),'new1');
   await assert.rejects(readFile(join(root,'pr-preview/pr-2/index.html')),{code:'ENOENT'});
+  await validateChanges(api,check.changed);
   reopened=true; await assert.rejects(check(),/changed/);
+  await assert.rejects(validateChanges(api,check.changed),/changed/);
  } finally {await rm(root,{recursive:true,force:true});}
 });
