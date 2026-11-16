@@ -34,6 +34,9 @@ export function createStageForTest(options:ViewerOptions & {onError?:(error:Stag
    const view=Object.freeze({aspect:nextAspect,fovDegrees,zoom:nextZoom,orientation:Object.freeze([...orientation]) as readonly [number,number,number,number],placements:Object.freeze([...placements.values(),...(additional?[additional]:[])].map(p=>Object.freeze({position:Object.freeze(p===moved?.parent?[...moved.position]:p.position.toArray()) as unknown as Vec3})))});
    const fit=candidate(view);
    if(!fit || ![fit.distance,fit.far,fit.groupScale].every(v=>Number.isFinite(v)&&v>0) || fit.far<=.1)throw Error('Invalid view');
+   const candidateQuaternion=new THREE.Quaternion(...view.orientation),candidateRadius=nextEnvelope.radius*fit.groupScale,candidateClearance=nextEnvelope.clearance*fit.groupScale;
+   const candidateCenters=view.placements.map(p=>new THREE.Vector3(...p.position).multiplyScalar(fit.groupScale).applyQuaternion(candidateQuaternion));
+   if(candidateCenters.length&&(!Number.isFinite(candidateRadius)||candidateRadius<=0||!Number.isFinite(candidateClearance)||candidateCenters.some(c=>![c.x,c.y,c.z].every(Number.isFinite))))throw Error('Invalid caster bounds');
    const luminance=(c:THREE.Color)=>.2126*c.r+.7152*c.g+.0722*c.b;
    const hemi: {up:Vec3;sky:number;ground:number}[]=[],dirs:{to:Vec3;amount:number}[]=[];let ambient=0;scene.updateMatrixWorld(true);
    scene.traverse(o=>{if(!o.visible)return;if(o instanceof THREE.AmbientLight)ambient+=o.intensity*luminance(o.color);else if(o instanceof THREE.HemisphereLight)hemi.push({up:o.getWorldPosition(new THREE.Vector3()).normalize().toArray() as unknown as Vec3,sky:o.intensity*luminance(o.color),ground:o.intensity*luminance(o.groundColor)});else if(o instanceof THREE.DirectionalLight)dirs.push({to:o.getWorldPosition(new THREE.Vector3()).sub(o.target.getWorldPosition(new THREE.Vector3())).normalize().toArray() as unknown as Vec3,amount:o.intensity*luminance(o.color)});});
@@ -52,7 +55,7 @@ export function createStageForTest(options:ViewerOptions & {onError?:(error:Stag
     studio.setCasterDirections(new THREE.Vector3(...nextLighting.key.position).sub(new THREE.Vector3(...nextLighting.key.target)),new THREE.Vector3(...nextLighting.shadowFill.position).sub(new THREE.Vector3(...nextLighting.shadowFill.target)));activeLighting=nextLighting;
    }
    backend.setView?.({aspect:nextAspect,distance:fit.distance,far:fit.far,exposure,toneMapping:nextLighting?.toneMapping??activeLighting?.toneMapping??'neutral'});exposurePolicy=nextExposure;policy=candidate;aspect=nextAspect;zoom=nextZoom;envelope={...nextEnvelope};if(moved)moved.parent.position.set(moved.position[0],moved.position[1],moved.position[2]);display.quaternion.set(...view.orientation);display.scale.setScalar(fit.groupScale);
-   if(!options.singleCompatibility && view.placements.length){const centers=view.placements.map(p=>new THREE.Vector3(...p.position).multiplyScalar(fit.groupScale).applyQuaternion(display.quaternion));studio.fitCasters(centers,envelope.radius*fit.groupScale,envelope.clearance*fit.groupScale);}
+   if(!options.singleCompatibility && candidateCenters.length)studio.fitCasters(candidateCenters,candidateRadius,candidateClearance);
    schedule();try{options.onViewChanged?.(view);}catch{}return ok(undefined);
   } catch {return {ok:false,error:{code:'InvalidView',message:'Invalid view policy'}};}
  }
