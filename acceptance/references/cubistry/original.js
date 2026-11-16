@@ -4,7 +4,7 @@ import { applyMoves, parseAlg } from '@cubistry/cube-mechanics';
 
 // Reference path uses Cubistry's physical state and viewer, independently of the candidate.
 export async function mountOriginal(root, fixture, base = '/') {
-  const loaded = await loadAssets(fixture.assets, [fixture.print], undefined, base);
+  const loaded = await loadAssets(fixture.assets, [fixture.print], undefined, new URL(base, location.href).pathname);
   const viewer = new CubeViewer(root);
   let state = fixture.target;
   viewer.configure(fixture.print, state, loaded);

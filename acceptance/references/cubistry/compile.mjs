@@ -1,4 +1,4 @@
-import ts from 'typescript';
+import {stripTypeScriptTypes} from 'node:module';
 import {readdir,readFile,writeFile,mkdir,cp} from 'node:fs/promises';
 import {dirname,join,relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -12,8 +12,8 @@ export async function compileReference(out) {
         const dest=join(out,rel.replace(/\.ts$/,'.js'));
         await mkdir(dirname(dest),{recursive:true});
         const text=await readFile(path,'utf8');
-        const result=ts.transpileModule(text,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,rewriteRelativeImportExtensions:true}});
-        await writeFile(dest,result.outputText);
+        const result=stripTypeScriptTypes(text,{mode:'transform'}).replace(/([\"'])(\.{1,2}\/[^\"']+)\.ts\1/g, '$1$2.js$1');
+        await writeFile(dest,result);
       } else if (path.endsWith('.mjs')) {const dest=join(out,rel); await mkdir(dirname(dest),{recursive:true}); await cp(path,dest);}
     }
   }
