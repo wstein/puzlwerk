@@ -268,6 +268,47 @@
       "stickerUv": "72b9d2e1af6131ec36b47c1bd868def2a93619a6268cca6e7cb0d60114c66c3a",
       "stickerRadius": 0.055,
       "stickerSide": 0.87
+    },
+    {
+      "name": "unequal-7",
+      "size": 7,
+      "widths": [
+        0.7,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1.4
+      ],
+      "nominalEdge": 7.1,
+      "cell": [
+        0.7,
+        1,
+        1.4
+      ],
+      "outer": [
+        [
+          true,
+          false
+        ],
+        [
+          false,
+          false
+        ],
+        [
+          false,
+          true
+        ]
+      ],
+      "bodyPosition": "750287c84711cf556e9bf1da8d191c23c56597934612a0e7a04c01e97c17f7ee",
+      "bodyNormal": "f1c64d8db37bf05a0e18a7b72eb29ab457aa27e476870a5e2c9baad7ffb33a8d",
+      "bodyUv": "a38271e989866710ea49f4ee711d9844366999ac5242b2e83bd1d4eed6afe3c1",
+      "bodyIndex": "b97a4a5a0454c9cc9b09e5fe0a9d29a98bd529253c8d93f19fabea92078ca352",
+      "stickerPosition": "287509b9dceeaa12e35d004c0920b8ff199c16b11a9a0825805db448c8a463b5",
+      "stickerUv": "31faa0191a4d729caffa26460d61e1e1a178e10b26bb201dbf3fd7407992c883",
+      "stickerRadius": 0.13016666666666665,
+      "stickerSide": 0.8338
     }
   ]
 }
