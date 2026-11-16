@@ -73,3 +73,8 @@ test('symbolic test labels track every facelet through the native and core moves
   assert.deepEqual(faceletsFromWire(def,JSON.parse(C.encodeState(s._0)),appearance),native,face);
  }
 });
+
+test('native fixture generator reproduces each original state', async () => {
+ const {generateNative}=await import('../fixtures/cube-assembler-solved-2/generate-native.mjs');
+ assert.deepEqual(generateNative(),JSON.parse(await readFile(new URL('native.json',base),'utf8')));
+});
