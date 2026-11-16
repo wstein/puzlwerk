@@ -15,10 +15,10 @@ const hex = (v,n) => typeof v === 'string' && new RegExp(`^[a-f0-9]{${n}}$`).tes
 export function parsePublication(text) {
  if (Buffer.byteLength(text)>32768) throw Error('Receipt exceeds budget');
  const r=JSON.parse(text);
- if (!r || Array.isArray(r) || Object.keys(r).sort().join(',')!=='attempt,nonce,root,run,schema,sha,snapshot' || r.schema!==1 || !positive(r.run) || !positive(r.attempt) || !hex(r.sha,40) || !hex(r.nonce,32) || !hex(r.root,64) || !hex(r.snapshot,64)) throw Error('Invalid publication receipt');
+ if (!r || Array.isArray(r) || Object.keys(r).sort().join(',')!=='attempt,nonce,previous,root,run,schema,sha,snapshot' || r.schema!==1 || !positive(r.run) || !positive(r.attempt) || !hex(r.sha,40) || !hex(r.nonce,32) || !(r.previous===null || hex(r.previous,32)) || !hex(r.root,64) || !hex(r.snapshot,64)) throw Error('Invalid publication receipt');
  return r;
 }
-export function samePublication(a,b) { return Boolean(a && b && ['schema','sha','run','attempt','nonce','root','snapshot'].every(k=>a[k]===b[k])); }
+export function samePublication(a,b) { return Boolean(a && b && ['schema','sha','run','attempt','nonce','previous','root','snapshot'].every(k=>a[k]===b[k])); }
 export async function readPublication({fetch:request=fetch}={}) {
  const response=await request(`${PUBLICATION_URL}?receipt=${randomUUID()}`,{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(15000)});
  if(response.status===404) return null;
@@ -39,6 +39,90 @@ export function trustedPublisher(run,receipt,{context}={}) {
  const event=workflow==='.github/workflows/documentation.yml' ? run?.event==='workflow_dispatch' : workflow==='.github/workflows/pages-publish.yml' && ['workflow_dispatch','workflow_run'].includes(run?.event);
  return Boolean(run && run.id===receipt.run && run.run_attempt===receipt.attempt && run.head_sha===receipt.sha && run.head_branch==='main' && run.repository?.full_name===REPOSITORY && run.head_repository?.full_name===REPOSITORY && event && ((run.status==='completed' && run.conclusion==='success') || own));
 }
+
+export function verifyWriterLedger(records,receipt,{bootstrap,context}={}) {
+ parsePublication(JSON.stringify(receipt));
+ if (!Array.isArray(records) || !records.length || records.length>5000 || !bootstrap || !positive(bootstrap.run) || !positive(bootstrap.attempt) || !hex(bootstrap.nonce,32)) throw Error('Invalid ledger bootstrap');
+ const identities=new Set(), nonces=new Set(), children=new Map(); let anchor=null;
+ for (const record of records) {
+  const {start,commit}=record || {};
+  if (!start || Object.keys(start).sort().join(',')!=='attempt,previous,run,schema,sha' || start.schema!==1 || !positive(start.run) || !positive(start.attempt) || !hex(start.sha,40) || !(start.previous===null || hex(start.previous,32))) throw Error('Invalid writer start');
+  const key=`${start.run}:${start.attempt}`;
+  if(identities.has(key)) throw Error('Duplicate writer');
+  identities.add(key);
+  if(!commit) {
+   if(context && context.run===start.run && context.attempt===start.attempt && context.sha===start.sha && start.previous===receipt.nonce) continue;
+   throw Error('Unresolved writer');
+  }
+  if(Object.keys(commit).sort().join(',')!=='attempt,previous,receipt,run,schema,sha' || commit.schema!==1 || commit.run!==start.run || commit.attempt!==start.attempt || commit.sha!==start.sha || commit.previous!==start.previous) throw Error('Invalid writer commit');
+  const r=parsePublication(JSON.stringify(commit.receipt));
+  if(r.run!==start.run || r.attempt!==start.attempt || r.sha!==start.sha || r.previous!==start.previous || nonces.has(r.nonce) || children.has(r.previous)) throw Error('Invalid or forked ledger');
+  nonces.add(r.nonce); children.set(r.previous,r);
+  if(r.run===bootstrap.run && r.attempt===bootstrap.attempt && r.nonce===bootstrap.nonce) anchor=r;
+ }
+ if(!anchor || anchor.previous!==null) throw Error('Missing ledger bootstrap');
+ let tip=anchor, count=1;
+ while(children.has(tip.nonce)) { tip=children.get(tip.nonce); if(++count>nonces.size) throw Error('Ledger cycle'); }
+ if(count!==nonces.size || !samePublication(tip,receipt)) throw Error('Stale or disconnected ledger');
+ return true;
+}
+
+
+// The bootstrap is established after draining the writer queue. GitHub and the
+// maintainer retain all runs and artifacts throughout the ledger window; deleted
+// terminal history cannot be distinguished from an older valid ledger.
+export async function readWriterLedger(api,receipt,{bootstrap,context}={}) {
+ if(!bootstrap || !positive(bootstrap.run) || !positive(bootstrap.attempt) || !hex(bootstrap.nonce,32)) throw Error('Missing ledger bootstrap');
+ const anchor=await api.request(`actions/runs/${bootstrap.run}`);
+ const validTime=x=>typeof x==='string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(x) && Number.isFinite(Date.parse(x));
+ if(!anchor || anchor.id!==bootstrap.run || !validTime(anchor.created_at)) throw Error('Invalid bootstrap run');
+ const workflows=[['documentation.yml','Deploy production snapshot'],['pages-publish.yml','Publish preview snapshot']];
+ const records=[], seen=new Set();
+ for(const [workflow,jobName] of workflows) {
+  const runs=await api.pages(`actions/workflows/${workflow}/runs`,'workflow_runs');
+  if(!Array.isArray(runs) || runs.length>5000) throw Error('Incomplete writer runs');
+  for(const run of runs) {
+   if(!run || !positive(run.id) || !positive(run.run_attempt) || run.run_attempt>100 || !validTime(run.created_at) || seen.has(run.id)) throw Error('Invalid writer run list');
+   seen.add(run.id);
+   if(run.created_at<anchor.created_at || run.head_branch!=='main') continue;
+   if(run.path!==`.github/workflows/${workflow}` || run.head_branch!=='main' || run.repository?.full_name!==REPOSITORY || run.head_repository?.full_name!==REPOSITORY || !hex(run.head_sha,40) || !(workflow==='documentation.yml' ? run.event==='workflow_dispatch' : ['workflow_dispatch','workflow_run'].includes(run.event))) {
+    // Other documentation triggers cannot execute its deploy job; still require its job evidence.
+    if(!(workflow==='documentation.yml' && ['push','pull_request'].includes(run.event) && run.path===`.github/workflows/${workflow}` && run.repository?.full_name===REPOSITORY)) throw Error('Untrusted writer run');
+   }
+   const artifacts=await api.pages(`actions/runs/${run.id}/artifacts`,'artifacts');
+   for(let attempt=1;attempt<=run.run_attempt;attempt++) {
+    const jobs=await api.pages(`actions/runs/${run.id}/attempts/${attempt}/jobs`,'jobs');
+    const selected=jobs.filter(j=>j.name===jobName);
+    if(selected.length!==1) throw Error('Missing or ambiguous writer job');
+    if(selected[0].status==='completed' && selected[0].conclusion==='skipped') continue;
+    const load=async kind=>{
+     const matches=artifacts.filter(a=>a.name===`pages-writer-${kind}-${attempt}`);
+     if(matches.length!==1 || matches[0].expired || matches[0].workflow_run?.id!==run.id || !positive(matches[0].id) || !positive(matches[0].size_in_bytes) || matches[0].size_in_bytes>65536) throw Error('Missing or invalid writer artifact');
+     const bytes=await api.zip(matches[0].id);
+     if(!Buffer.isBuffer(bytes) || !bytes.length || bytes.length>65536) throw Error('Invalid writer archive');
+     return readLedgerArchive(bytes);
+    };
+    const start=await load('start');
+    let commit=null;
+    const own=context && context.run===run.id && context.attempt===attempt && context.sha===run.head_sha;
+    if(!own || artifacts.some(a=>a.name===`pages-writer-commit-${attempt}`)) commit=await load('commit');
+    if(start.run!==run.id || start.attempt!==attempt || start.sha!==run.head_sha || (commit && (run.status!=='completed' || run.conclusion!=='success'))) throw Error('Untrusted writer identity');
+    records.push({start,commit});
+   }
+  }
+ }
+ return verifyWriterLedger(records,receipt,{bootstrap,context});
+}
+async function readLedgerArchive(bytes) {
+ const temp=await mkdtemp(join(tmpdir(),'puzlwerk-ledger-'));
+ try {
+  const path=join(temp,'ledger.zip'); await writeFile(path,bytes);
+  const script="import sys,zipfile,stat\nz=zipfile.ZipFile(sys.argv[1]); a=z.infolist()\nif len(a)!=1 or a[0].filename!='ledger.json' or a[0].file_size>32768 or stat.S_IFMT(a[0].external_attr>>16) not in (0,stat.S_IFREG): raise ValueError('Invalid ledger archive')\nsys.stdout.buffer.write(z.read(a[0]))";
+  const {stdout}=await promisify(execFile)('python3',['-c',script,path],{timeout:10000,maxBuffer:32768,encoding:'utf8'});
+  return JSON.parse(stdout);
+ } finally {await rm(temp,{recursive:true,force:true});}
+}
+
 // Fixed verifier code: archive content is data, never imported or executed.
 const verifier=String.raw`
 import json, os, stat, sys, zipfile
@@ -64,16 +148,13 @@ with zipfile.ZipFile(archive) as z:
  receipt=json.loads((root/'.puzlwerk-publication.json').read_text(encoding='utf-8'))
  if receipt!=json.loads(expected) or digest(root)!=receipt['root'] or digest(root,include_previews=True)!=receipt['snapshot']: raise ValueError('Snapshot receipt or digest mismatch')
 `;
-// verifyCurrentDeployment must independently prove this exact receipt is the latest
-// deployed writer, including its run, attempt and nonce. Missing or ambiguous proof
-// is failure; checking the public receipt or source SHA alone is insufficient.
-export async function readVerifiedSnapshot(api,{destination,fetch:request=fetch,context,verifyCurrentDeployment}={}) {
+export async function readVerifiedSnapshot(api,{destination,fetch:request=fetch,context,bootstrap}={}) {
  if(typeof destination!=='string' || !destination) throw Error('Missing snapshot destination');
  const receipt=await readPublication({fetch:request});
  if(!receipt) return null;
  const run=await api.request(`actions/runs/${receipt.run}`);
  if(!trustedPublisher(run,receipt,{context})) throw Error('Untrusted publication run');
- if(typeof verifyCurrentDeployment!=='function' || await verifyCurrentDeployment(receipt,run)!==true) throw Error('Current deployment proof unavailable');
+ await readWriterLedger(api,receipt,{bootstrap,context});
  const artifacts=await api.pages(`actions/runs/${receipt.run}/artifacts`,'artifacts');
  const matches=artifacts.filter(a=>a.name===`pages-published-snapshot-${receipt.attempt}` && !a.expired && a.workflow_run?.id===receipt.run);
  if(matches.length!==1 || !positive(matches[0].id) || !positive(matches[0].size_in_bytes) || matches[0].size_in_bytes>33554432) throw Error('Invalid publication artifact');
@@ -86,7 +167,7 @@ export async function readVerifiedSnapshot(api,{destination,fetch:request=fetch,
   const zip=join(temp,'snapshot.zip'); await writeFile(zip,bytes);
   await promisify(execFile)('python3',['-c',verifier,zip,destination,JSON.stringify(receipt),dirname(fileURLToPath(import.meta.url))],{timeout:30000,maxBuffer:65536});
   await verifyLiveReceipt(receipt,{fetch:request});
-  if(await verifyCurrentDeployment(receipt,run)!==true) throw Error('Current deployment proof changed');
+  await readWriterLedger(api,receipt,{bootstrap,context});
   return receipt;
  } catch(error) { if(created) await rm(destination,{recursive:true,force:true}); throw error; }
  finally { await rm(temp,{recursive:true,force:true}); }
