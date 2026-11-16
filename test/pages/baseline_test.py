@@ -36,6 +36,9 @@ class ReceiptTest(unittest.TestCase):
             self.assertEqual(receipt['run'],12)
             self.assertEqual(receipt['attempt'],2)
             self.assertEqual(receipt['sha'],'a'*40)
+            self.assertIsNone(receipt['previous'])
+            self.assertEqual(baseline.make_receipt(root,'a'*40,12,2,'b'*32,previous='c'*32)['previous'],'c'*32)
+            with self.assertRaises(ValueError): baseline.make_receipt(root,'a'*40,12,2,'b'*32,previous='bad')
             for args in [('bad',12,2,'b'*32),('a'*40,0,2,'b'*32),('a'*40,12,0,'b'*32),('a'*40,12,2,'bad')]:
                 with self.assertRaises(ValueError): baseline.make_receipt(root,*args)
 

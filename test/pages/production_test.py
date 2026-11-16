@@ -12,10 +12,11 @@ class ProductionTest(unittest.TestCase):
             base=Path(tmp); old=base/'old'; old.mkdir(); (old/'index.html').write_text('old')
             (old/'pr-preview/pr-12').mkdir(parents=True); (old/'pr-preview/pr-12/index.html').write_text('preview')
             new=base/'new'; new.mkdir(); (new/'index.html').write_text('new')
-            out=base/'out'; receipt=production.prepare(new,out,'a'*40,12,1,'b'*32,old)
+            out=base/'out'; receipt=production.prepare(new,out,'a'*40,12,1,'b'*32,old,previous='c'*32)
             self.assertEqual((out/'index.html').read_text(),'new')
             self.assertEqual((out/'pr-preview/pr-12/index.html').read_text(),'preview')
             self.assertEqual(receipt['run'],12)
+            self.assertEqual(receipt['previous'],'c'*32)
     def test_no_baseline_requires_explicit_legacy_permission(self):
         with tempfile.TemporaryDirectory() as tmp:
             base=Path(tmp); new=base/'new'; new.mkdir(); (new/'index.html').write_text('new')
