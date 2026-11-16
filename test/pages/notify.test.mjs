@@ -46,3 +46,23 @@ test('a head change just before notification never writes a success link',async(
  await notifyOne(api,{number:72,sha,run:12,attempt:2},async()=>true);
  assert.equal(writes,0);
 });
+
+test('stale-clear concurrency distinguishes PRs while coalescing each PR',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const workflow=await readFile('.github/workflows/pages-notify.yml','utf8');
+ const job=workflow.split('  clear-stale:\n')[1]?.split('  clear-build:\n')[0];
+ assert.ok(job);
+ const group=/^      group: (.+)$/m.exec(job)?.[1];
+ assert.equal(group,'puzlwerk-pages-clear-${{ github.event.pull_request.number }}');
+ assert.notEqual(group.replace('${{ github.event.pull_request.number }}','1'),group.replace('${{ github.event.pull_request.number }}','2'));
+ assert.match(job,/^      cancel-in-progress: false$/m);
+});
+
+test('two closed PRs each lose their prior success link',async()=>{
+ const {clearStale}=await import('../../scripts/pages/notify.mjs'); const changed=[];
+ const old=number=>`<!-- puzlwerk-pr-preview -->\n[link](https://wstein.github.io/puzlwerk/pr-preview/pr-${number}/) · ${sha} · build 12 attempt 2.`;
+ const api={request:async (path,opts)=>{if(opts?.method){changed.push({path,body:JSON.parse(opts.body).body});return {}} const number=Number(path.split('/')[1]); return {...pr(),number,state:'closed'};},pages:async path=>{const number=Number(path.split('/')[1]);return [{id:number,user:{login:'github-actions[bot]'},body:old(number)}];}};
+ await Promise.all([clearStale(api,71),clearStale(api,72)]);
+ assert.deepEqual(changed.map(x=>x.path).sort(),['issues/comments/71','issues/comments/72']);
+ assert.ok(changed.every(x=>!x.body.includes('https://') && x.body.includes('no longer current')));
+});
