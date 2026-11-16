@@ -18,3 +18,18 @@ export function currentBuild(pr, run) {
 export function publicationAllowed(gate, verifiedBaseline) {
   return gate === 'true' && verifiedBaseline === true;
 }
+// A complete, unambiguous list is required; never fall back after a failed run.
+export function latestCurrentBuild(pr, runs, complete) {
+  if (!eligible(pr) || complete !== true || !Array.isArray(runs) || runs.length === 0) return null;
+  const seen = new Set();
+  for (const run of runs) {
+    if (!run || run.path !== BUILD_WORKFLOW || run.event !== 'pull_request' ||
+        run.repository?.full_name !== REPOSITORY || run.head_repository?.full_name !== REPOSITORY ||
+        run.head_sha !== pr.head.sha || typeof run.created_at !== 'string' ||
+        !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(run.created_at) ||
+        !Number.isFinite(Date.parse(run.created_at)) || seen.has(run.created_at)) return null;
+    seen.add(run.created_at);
+  }
+  const latest = [...runs].sort((a,b) => b.created_at.localeCompare(a.created_at))[0];
+  return currentBuild(pr, latest) ? latest : null;
+}

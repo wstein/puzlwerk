@@ -24,3 +24,14 @@ test('publication gate accepts only literal true after baseline verification', (
   for (const gate of [undefined, null, false, true, 'false', 'TRUE', '']) assert.equal(publicationAllowed(gate,true),false);
   assert.equal(publicationAllowed('true',false),false);
 });
+
+test('latest unsuccessful or ambiguous run never falls back to an older success', async () => {
+  const { latestCurrentBuild } = await import('../../scripts/pages/policy.mjs');
+  const older={...run(),created_at:'2026-11-16T10:00:00Z'};
+  const newer={...run(),id:12,created_at:'2026-11-16T10:01:00Z'};
+  assert.equal(latestCurrentBuild(pr(),[older,newer],true)?.id,12);
+  assert.equal(latestCurrentBuild(pr(),[older,{...newer,conclusion:'failure'}],true),null);
+  assert.equal(latestCurrentBuild(pr(),[older,newer],false),null);
+  assert.equal(latestCurrentBuild(pr(),[older,{...newer,created_at:older.created_at}],true),null);
+  assert.equal(latestCurrentBuild(pr(),[older,{...newer,created_at:'invalid'}],true),null);
+});
