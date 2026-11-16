@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {sourceMeshProfile} from '../runtime/source-mesh-profile.mjs';
 const dir=resolve(process.argv[2] ?? 'acceptance/fixtures/cube-assembler-solved-2');
 const load=async name=>JSON.parse(await readFile(resolve(dir,name),'utf8'));
@@ -23,10 +24,10 @@ for(const range of raw.ranges){
 }
 assert.equal(checked,raw.mesh.indices.length);assert.equal(profile.meshes.length,definition.pieces.length);
 console.log(`PASS: ${checked} indexed source vertices retain owner, position, normal, color and occlusion`);
-if(process.argv[3]){
- const turnDir=resolve(process.argv[3]);
+{
+ const {generateRawMesh}=await import(pathToFileURL(resolve(dir,'generate-raw-mesh.mjs')).href);
  for(const [name,angle] of [['zero',0],['mid',Math.PI/4],['end',Math.PI/2]]){
-  const native=JSON.parse(await readFile(resolve(turnDir,`ca-native-r-${name}.json`),'utf8'));
+  const {baseline:mesh,ranges}=await generateRawMesh({face:'R',depth:1,width:1,angle});const native={mesh,ranges};
   assert.deepEqual(native.ranges,raw.ranges);let max=0,count=0;
   const cs=Math.cos(-angle),sn=Math.sin(-angle);
   for(const range of raw.ranges)for(let i=range.firstIndex;i<range.firstIndex+range.indexCount;i++){
