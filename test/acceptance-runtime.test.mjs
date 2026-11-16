@@ -9,4 +9,6 @@ test('pose comparison checks identity, position, and full orientation',()=>{
  assert.equal(comparePoses(n,{poses:[{...p,position:[1,-1,-1]}]}),false);
  assert.equal(comparePoses(n,{poses:[{...p,orientation:[1,0,0,0,1,0,0,0,1]}]}),false);
  assert.equal(comparePoses(n,{poses:[]}),false);
+ const n2={cubies:[...n.cubies,{...n.cubies[0],id:8}]};
+ assert.equal(comparePoses(n2,{poses:[p,p]}),false);
 });
