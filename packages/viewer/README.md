@@ -71,3 +71,18 @@ in tile, plain stickerless, miter, picture-sticker and picture-body modes. It
 renders each view with WebGL, copies the finished frame to a display canvas and
 releases the context before rendering the next view. This gallery does not
 establish full Stage 1 HQ acceptance or migrate any application.
+
+The shared-stage demo is at `packages/viewer/demo/stage.html`. `createCubeStage`
+creates one renderer, studio and camera for independently operated child
+scenes; `createCubeScene` retains its single-child interface. Stage view policies
+and lighting receive or supply render-only data. Applications own layouts,
+assets, appearance policy and state. Registered interaction surfaces remain
+caller-owned. Disposal removes the canvas and releases its WebGL context.
+
+The demo uses two and three source-framed cubes and a 7×7 source Names geometry
+and lighting setup with synthetic solid face colors, not calendar print data.
+Its browser test uses `PLAYWRIGHT_MODULE` as above and
+`node packages/viewer/test/stage-browser-smoke.mjs` with the demo server running.
+It checks desktop/mobile viewport sizes, source-derived sample colors, input,
+turns, artwork updates, idle rendering, context loss and disposal. Browser
+viewports are not physical-device or full HQ acceptance.
