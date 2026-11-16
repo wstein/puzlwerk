@@ -54,3 +54,18 @@ test('core move trace reproduces every native facelet state', async () => {
   assert.deepEqual(faceletsFromWire(definition,JSON.parse(C.encodeState(s._0)),appearance),native.trace[i].state,`step ${i+1}`);
  }
 });
+
+test('symbolic test labels track every facelet through the native and core moves', async () => {
+ const C=await import('../../core/res/PwCodec.res.mjs'); const M=await import('../../core/res/PwMove.res.mjs'); const V=await import('../../core/res/PwValidate.res.mjs');
+ const {applyCubeMove}=await import('../references/cube-assembler/src/cube/CubeMoves.res.mjs');
+ const {faceletsFromWire}=await import('../fixtures/cube-assembler-solved-2/facelets.mjs');
+ const read=async n=>JSON.parse(await readFile(new URL(n,base),'utf8'));
+ const def=await read('definition.json'), state=await read('state.json'), appearance=await read('appearance.json');
+ for(const sticker of appearance.stickers) sticker.color=sticker.id;
+ let native=faceletsFromWire(def,state,appearance);
+ const d=C.decodeDefinition(JSON.stringify(def)); assert.equal(d.TAG,'Ok'); let s=C.decodeState(d._0,JSON.stringify(state)); assert.equal(s.TAG,'Ok');
+ for(const [face,turns,axis,coreTurns] of [['R',1,'X',-1],['U',1,'Y',-1],['R',-1,'X',1],['U',-1,'Y',1]]) {
+  native=applyCubeMove(native,2,face,turns); const move=M.make(C.size(d._0),axis,[1],coreTurns); assert.equal(move.TAG,'Ok'); s=V.applyMove(d._0,s._0,move._0); assert.equal(s.TAG,'Ok');
+  assert.deepEqual(faceletsFromWire(def,JSON.parse(C.encodeState(s._0)),appearance),native,face);
+ }
+});
