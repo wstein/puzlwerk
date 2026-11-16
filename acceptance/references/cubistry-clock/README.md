@@ -19,3 +19,6 @@ Run `acceptance/test/cubistry-clock-source-browser.mjs` with Node 24,
 `REFERENCE_SCRATCH` set to an existing writable scratch directory. If the repo's
 `node_modules` is not populated, `REFERENCE_NODE_MODULES` may name an existing
 directory containing Three.js and `@rescript/runtime`.
+
+If Playwright uses a browser in a nondefault location, set
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE` to that existing executable.
