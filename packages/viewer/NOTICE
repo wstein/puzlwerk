@@ -151,3 +151,6 @@ revision efafcc1d97687eccea0cde87a230f447ce1b6c66, source SHA-256
 Imports use existing local render-only helpers; piece and sticker identifiers use
 opaque strings instead of numbers, and Construction is a local type. The source
 scene is staged for integration; the existing production entry point is unchanged.
+The staged physical scene additionally accepts explicit opaque body poses for pieces
+without sticker frames, rejects overlapping identities, and validates required poses
+before synchronization. These extensions do not define or mutate puzzle state.

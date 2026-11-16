@@ -82,7 +82,9 @@ const bodyExtent = (geometry: THREE.BufferGeometry): Vec3 => {
   const size = geometry.boundingBox!.getSize(new THREE.Vector3());
   return [size.x, size.y, size.z];
 };
+export interface PhysicalBodyPose { readonly id: string; readonly position: Vec3; readonly rotation: readonly [number, number, number, number] }
 export interface PhysicalSceneOptions extends StickerlessBodyOptions {
+  readonly bodies?: readonly PhysicalBodyPose[];
   readonly layers?: LayerProfile;
   /**
    * Stickerless construction only: the exterior faces of the bodies take planar UV (`u = position / body extent + 0.5`) instead of
@@ -95,6 +97,7 @@ export interface PhysicalSceneOptions extends StickerlessBodyOptions {
  * Textures/materials and animation deadlines stay caller-owned. */
 export class PhysicalCubeScene {
   private readonly bodies = new Map<string, THREE.Group>();
+  private readonly unprintedBodies = new Set<string>();
   private readonly references = new Map<string, { id: string; inverse: THREE.Matrix4 }>();
   private readonly shells = new Map<string, { mesh: THREE.Mesh; stickerless: THREE.Material[]; base: THREE.BufferGeometry; key: string; extent: Vec3; image: ReadonlySet<number> }>();
   /** Projected stickerless look: body geometries with planar UV on the image faces, by body variant key (see body-artwork.ts). */
@@ -146,6 +149,12 @@ export class PhysicalCubeScene {
     options: PhysicalSceneOptions = {},
   ) {
     demand(Number.isFinite(spacing) && spacing > 0, "Invalid viewer spacing");
+    const bodyIds = new Set<string>();
+    for (const body of options.bodies ?? []) {
+      demand(!!body.id && !bodyIds.has(body.id) && !printed.some(frame => frame.cubie === body.id), "Duplicate physical body");
+      demand(body.position.length === 3 && body.position.every(Number.isFinite) && body.rotation.length === 4 && body.rotation.every(Number.isFinite) && Math.abs(Math.hypot(...body.rotation) - 1) < 1e-6, "Invalid physical body pose");
+      bodyIds.add(body.id);
+    }
     this.parent = parent;
     this.plastic = plastic;
     const coreColor = options.coreColor ?? DEFAULT_CORE_COLOR;
@@ -160,7 +169,7 @@ export class PhysicalCubeScene {
     // The core belongs to construction, never a selected frame color.
     this.coreMaterial = this.neutralPlastic(coreColor) as THREE.MeshStandardMaterial;
     this.spacing = spacing;
-    this.axisCoordinates = [0, 1, 2].map((axis) => [...new Set(printed.map((s) => s.p[axis]))].sort((a, b) => a - b));
+    this.axisCoordinates = [0, 1, 2].map((axis) => [...new Set([...printed.map((s) => s.p[axis]), ...(options.bodies ?? []).map(body => body.position[axis])])].sort((a, b) => a - b));
     // The profile of the caller, else the profile the geometry brings (the two-radius cubie of the preset) when it fits the cube.
     const profile = options.layers ?? (geometry.layers && this.axisCoordinates.every((c) => c.length === geometry.layers!.widths.length) ? geometry.layers : undefined);
     if (profile) validateLayerWidths(profile.widths);
@@ -267,6 +276,16 @@ export class PhysicalCubeScene {
       sticker.castShadow = sticker.receiveShadow = true;
       body.add(sticker);
       this.stickers.push(sticker);
+    }
+    for (const pose of options.bodies ?? []) {
+      const body = new THREE.Group();
+      const cell = this.cellAt(pose.position), outer = this.outerSidesAt(pose.position);
+      let bodyGeometry = geometry.body;
+      if (cell) { bodyGeometry = this.layers!.body(cell, outer!); this.geometries.push(bodyGeometry); }
+      const shell = new THREE.Mesh(bodyGeometry, plastic); shell.castShadow = shell.receiveShadow = true;
+      body.add(shell); body.position.set(...this.worldAt(pose.position)).multiplyScalar(this.spacing);
+      body.quaternion.set(...pose.rotation); parent.add(body);
+      this.bodies.set(pose.id, body); this.unprintedBodies.add(pose.id);
     }
     if (geometry.core && printed.length) {
       // One static core ball at the cube center, as in real cubes: it never
@@ -480,9 +499,25 @@ export class PhysicalCubeScene {
     for (const sticker of this.stickers) sticker.visible = construction === "stickered";
     this.refreshArtwork();
   }
-  sync(poses: readonly PhysicalStickerFrame[]): void {
+  sync(poses: readonly PhysicalStickerFrame[], bodies: readonly PhysicalBodyPose[] = []): void {
+    const direct = new Map(bodies.map(body => [body.id, body]));
+    demand(direct.size === bodies.length && direct.size === this.unprintedBodies.size, "Missing or duplicate physical body pose");
+    for (const id of this.unprintedBodies) {
+      const pose = direct.get(id);
+      demand(pose && pose.position.length === 3 && pose.position.every(Number.isFinite) && pose.rotation.length === 4 && pose.rotation.every(Number.isFinite) && Math.abs(Math.hypot(...pose.rotation) - 1) < 1e-6, "Invalid physical body pose");
+    }
     const byId = new Map(poses.map((s) => [s.id, s]));
+    demand(byId.size === poses.length, "Duplicate physical sticker frame");
+    for (const [id, ref] of this.references) {
+      const target = byId.get(ref.id);
+      demand(target && target.cubie === id, "Missing physical body frame");
+    }
     for (const [id, body] of this.bodies) {
+      if (this.unprintedBodies.has(id)) {
+        const pose = direct.get(id)!;
+        body.position.set(...this.worldAt(pose.position)).multiplyScalar(this.spacing);
+        body.quaternion.set(...pose.rotation); continue;
+      }
       const ref = this.references.get(id)!;
       const target = byId.get(ref.id);
       demand(target && target.cubie === id, "Missing physical body frame");
@@ -514,6 +549,7 @@ export class PhysicalCubeScene {
     for (const core of this.cores) core.removeFromParent();
     for (const body of this.bodies.values()) body.removeFromParent();
     this.bodies.clear();
+    this.unprintedBodies.clear();
     this.references.clear();
     this.shells.clear();
     this.cores.length = 0;
