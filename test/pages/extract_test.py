@@ -26,7 +26,7 @@ class ExtractionTest(unittest.TestCase):
         self.assertEqual(out['assets/app.js'],'ok')
     def test_unsafe_paths_and_duplicate_entries_rejected(self):
         for path in ['../outside', 'pr-preview/pr-73/index.html', '.git/config', 'acceptance/%2e%2e/index.html', 'CNAME']:
-            with self.subTest(path=path), self.assertRaises(ValueError): self.run_archive([('index.html',HTML),(path,'x')])
+            with self.subTest(path=path), self.assertRaises(ValueError): self.run_archive([('index.html',HTML),(path,HTML)])
         with self.assertRaises(ValueError): self.run_archive([('index.html',HTML),('index.html',HTML)])
     def test_symlink_and_special_modes_rejected(self):
         for mode in [stat.S_IFLNK | 0o777, stat.S_IFIFO | 0o644]:
