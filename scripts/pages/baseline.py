@@ -70,6 +70,20 @@ def stage(source, destination, sha, run, attempt, nonce):
     (destination/RECEIPT).write_text(json.dumps(receipt, separators=(',', ':')) + '\n')
     return receipt
 
+def merge_production(current, production, destination):
+    """Combine verified snapshot previews with a separately authorized root."""
+    import shutil
+    current, production, destination = map(Path, (current, production, destination))
+    if destination.exists() or destination.resolve().is_relative_to(current.resolve()) or destination.resolve().is_relative_to(production.resolve()):
+        raise ValueError('Unsafe merge destination')
+    digest(current, include_previews=True)
+    digest(production, include_previews=True)
+    if (production/'pr-preview').exists():
+        raise ValueError('Production root contains reserved preview namespace')
+    shutil.copytree(production, destination, ignore=lambda directory, names: [RECEIPT] if Path(directory)==production and RECEIPT in names else [])
+    if (current/'pr-preview').exists():
+        shutil.copytree(current/'pr-preview', destination/'pr-preview')
+
 if __name__ == '__main__':
     import secrets
     import sys

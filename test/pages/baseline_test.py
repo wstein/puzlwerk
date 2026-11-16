@@ -62,4 +62,22 @@ class StageTest(unittest.TestCase):
             dest.rmdir(); (root/'link').symlink_to('index.html')
             with self.assertRaises(ValueError): baseline.stage(root,dest,'a'*40,42,1,'b'*32)
 
+
+class MergeTest(unittest.TestCase):
+    def test_production_merge_preserves_all_preview_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old=Path(tmp)/'old'; old.mkdir(); (old/'index.html').write_text('old')
+            (old/'pr-preview/pr-1').mkdir(parents=True); (old/'pr-preview/pr-1/index.html').write_bytes(b'one')
+            (old/'pr-preview/pr-2').mkdir(); (old/'pr-preview/pr-2/index.html').write_bytes(b'two')
+            new=Path(tmp)/'new'; new.mkdir(); (new/'index.html').write_text('new')
+            out=Path(tmp)/'combined'; baseline.merge_production(old,new,out)
+            self.assertEqual((out/'index.html').read_text(),'new')
+            self.assertEqual((out/'pr-preview/pr-1/index.html').read_bytes(),b'one')
+            self.assertEqual((out/'pr-preview/pr-2/index.html').read_bytes(),b'two')
+    def test_production_cannot_supply_preview_namespace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old=Path(tmp)/'old'; old.mkdir(); (old/'index.html').write_text('old')
+            new=Path(tmp)/'new'; new.mkdir(); (new/'index.html').write_text('new'); (new/'pr-preview').mkdir()
+            with self.assertRaises(ValueError): baseline.merge_production(old,new,Path(tmp)/'out')
+
 if __name__=='__main__': unittest.main()
