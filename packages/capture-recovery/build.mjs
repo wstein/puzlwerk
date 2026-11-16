@@ -1,10 +1,14 @@
 // Private build artifact only; no registry publication.
-import {readFileSync,writeFileSync,mkdirSync,copyFileSync,existsSync,unlinkSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdirSync,copyFileSync,existsSync,unlinkSync,readdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 const pkg=dirname(fileURLToPath(import.meta.url)),root=resolve(pkg,'../..');
+// ReScript's incremental cache may outlive an erased GenType build artifact.
+const core=resolve(root,'core/res');
+const missingBindings=readdirSync(core).filter(name=>name.endsWith('.resi')).some(name=>readFileSync(resolve(core,name),'utf8').includes('@genType')&&!existsSync(resolve(core,name.replace(/\.resi$/,'.gen.ts'))));
+if(missingBindings)execFileSync('rescript',['clean'],{cwd:root,stdio:'inherit'});
 execFileSync('rescript',['build'],{cwd:root,stdio:'inherit'});
 const lib=resolve(pkg,'lib'),source=resolve(pkg,'source');
 mkdirSync(lib,{recursive:true});mkdirSync(source,{recursive:true});
