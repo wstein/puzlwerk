@@ -147,3 +147,11 @@ test("accepted transactional HUD mode persists committed state; refresh only upd
  h.binding.controller.setMode("free",2);const before=h.data.get("test-key");h.binding.refresh();
  assert.equal(h.select.value,"free");assert.equal(h.data.get("test-key"),before);assert.equal(h.binding.controller.mode,"free");h.binding.dispose();
 });
+
+test("throwing transactional HUD request restores HUD and leaves state and storage untouched",()=>{
+ let writes=0,calls=0;const h=rotationHarness({mode:"free",requestMode:()=>{throw Error("policy failed");},changed:()=>calls++});
+ const before=h.data.get("test-key");h.env.storage.setItem=()=>{writes++;};h.media.matches=true;
+ h.select.value="classic";h.select.dispatchEvent(new Event("change"));
+ assert.equal(h.binding.controller.mode,"free");assert.equal(h.binding.controller.reducedMotion,false);
+ assert.equal(h.select.value,"free");assert.equal(h.data.get("test-key"),before);assert.equal(writes,0);assert.equal(calls,0);h.binding.dispose();
+});

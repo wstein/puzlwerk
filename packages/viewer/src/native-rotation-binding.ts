@@ -81,7 +81,9 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
     const chosen = select.value;
     if (!rotationModes.includes(chosen as RotationMode)) { refresh(); return; }
     if (options.requestMode) {
-      if (!options.requestMode(chosen as RotationMode)) { refresh(); return; }
+      let accepted = false;
+      try { accepted = options.requestMode(chosen as RotationMode); } catch { /* Treat a failed policy as a rejected request. */ }
+      if (!accepted) { refresh(); return; }
     } else {
       if (env.media.matches !== controller.reducedMotion) preference();
       controller.setMode(chosen as RotationMode, env.now());
