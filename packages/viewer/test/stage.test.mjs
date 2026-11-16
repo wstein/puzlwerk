@@ -181,3 +181,11 @@ test('far plane must lie strictly beyond the near plane',()=>{
 test('child material survives full projection replacement without affecting its neighbor',async()=>{
  const h=harness(),a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;const p={pieces:[{id:'same',transform:t(),stickers:[{id:'tile',transform:t(),size:[.8,.8],color:'#fff'}]}],core:{center:[0,0,0],halfExtent:1}};await a.setProjection(p);await b.setProjection(p);a.setMaterial({specularIntensity:.03,roughness:.65,clearcoat:.01,receiveShadow:false});await a.setProjection(p);h.step(0);const tiles=[];h.scene.traverse(o=>{if(o.name==='tile')tiles.push(o)});const changed=tiles.find(o=>o.material.specularIntensity===.03),other=tiles.find(o=>o!==changed);assert.ok(changed);assert.equal(changed.material.roughness,.65);assert.equal(changed.material.clearcoat,.01);assert.equal(changed.receiveShadow,false);assert.notEqual(other.material.specularIntensity,.03);h.stage.dispose();
 });
+
+test('default stage starts with native Cubistry camera and presentation orientation',()=>{
+ let view;const clock={now:()=>0,request:()=>1,cancel:()=>{}};
+ const stage=createStageForTest({resolveAsset:async()=>({ok:false}),onViewChanged:v=>{view=v}},clock,{render(){},dispose(){}});
+ assert.equal(stage.resize(1).ok,true);assert.equal(view.fovDegrees,18);
+ const expected=new THREE.Quaternion().setFromEuler(new THREE.Euler(7*Math.PI/180,-Math.PI/18,0,'XYZ'));
+ assert.ok(1-Math.abs(expected.dot(new THREE.Quaternion(...view.orientation)))<1e-12);stage.dispose();
+});

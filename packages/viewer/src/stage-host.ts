@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import {configurePresentationRenderer} from './presentation-preset.js';
 import {createStageForTest} from './stage.js';
+import {presentationCameraRadius,cubePresentationRadius} from './presentation-rotation.js';
 import type {StageChild,StageError,StageResult,StageView,ViewPolicy} from './stage.js';
 import type {StageLighting} from './stage-lighting.js';
 import type {RotationMode} from './smart-rotation.js';
@@ -13,7 +14,9 @@ export interface CubeStage {
  setRotationMode(mode:RotationMode):StageResult<void>;setReducedMotion(enabled:boolean):StageResult<void>;resetDisplayOrientation():StageResult<void>;interact():StageResult<void>;registerInteractionSurface(element:HTMLElement):StageResult<()=>void>;invalidate():StageResult<void>;dispose():void;
 }
 const failure=(code:'InvalidView'|'Unavailable',message:string):StageResult<never>=>({ok:false,error:{code,message}});
-export function createCubeStage(host:HTMLElement,options:StageOptions):StageResult<CubeStage>{
+export function createCubeStage(host:HTMLElement,input:Pick<StageOptions,"resolveAsset"> & Partial<Omit<StageOptions,"resolveAsset">>):StageResult<CubeStage>{
+ const orientation=new THREE.Quaternion().setFromEuler(new THREE.Euler(7*Math.PI/180,-Math.PI/18,0,"XYZ")).toArray() as [number,number,number,number];
+ const options:StageOptions={fovDegrees:18,zoom:1,initialOrientation:orientation,mode:"smart",sensitivity:.008,dragThreshold:4,reducedMotion:typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches,casterEnvelope:{radius:cubePresentationRadius(1),clearance:.08},viewPolicy:view=>{const radius=cubePresentationRadius(1),distance=presentationCameraRadius(view.aspect,radius,view.fovDegrees)*view.zoom;return {distance,far:Math.max(100,distance+2*radius),groupScale:1}},...input};
  if(!host||!options||typeof options.resolveAsset!=='function'||!Number.isFinite(options.fovDegrees)||options.fovDegrees<=0||options.fovDegrees>=180||!Number.isFinite(options.zoom)||options.zoom<=0||!Array.isArray(options.initialOrientation)||options.initialOrientation.length!==4||Array.from(options.initialOrientation).some(v=>!Number.isFinite(v))||Math.abs(Math.hypot(...options.initialOrientation)-1)>1e-6||!['smart','free','classic'].includes(options.mode)||!Number.isFinite(options.sensitivity)||options.sensitivity<=0||!Number.isFinite(options.dragThreshold)||options.dragThreshold<0||typeof options.reducedMotion!=='boolean'||typeof options.viewPolicy!=='function'||!options.casterEnvelope)return failure('InvalidView','Invalid stage options');
  let renderer:THREE.WebGLRenderer;try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}catch{return failure('Unavailable','WebGL is unavailable');}
  configurePresentationRenderer(renderer,null);const camera=new THREE.PerspectiveCamera(options.fovDegrees,1,.1,100);camera.position.set(0,0,10);camera.lookAt(0,0,0);host.appendChild(renderer.domElement);
@@ -22,7 +25,7 @@ export function createCubeStage(host:HTMLElement,options:StageOptions):StageResu
  let engine:ReturnType<typeof createStageForTest>;
  const onLost=(event:Event)=>{event.preventDefault();engine.contextLost()};
  const onBlur=()=>engine.suspendInput(),onFocus=()=>engine.resumeInput();
- const onWheel=(event:WheelEvent)=>{event.preventDefault();engine.interact();const next=Math.max(.8,Math.min(2,zoom*Math.exp(Math.max(-1000,Math.min(1000,event.deltaY))*.001)));const result=engine.setZoom(next);if(result.ok)zoom=next;else options.onError?.(result.error);};
+ const onWheel=(event:WheelEvent)=>{event.preventDefault();engine.interact();const next=Math.max(6/10.5,Math.min(18/10.5,zoom+event.deltaY*.005/10.5));const result=engine.setZoom(next);if(result.ok)zoom=next;else options.onError?.(result.error);};
  const backend={render(scene:THREE.Scene){const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);renderer.render(scene,camera)},setView(view:Readonly<{aspect:number;distance:number;far:number;exposure:number;toneMapping?:'neutral'|'softShoulder'}>){camera.aspect=view.aspect;camera.position.set(0,0,view.distance);camera.lookAt(0,0,0);camera.far=view.far;camera.updateProjectionMatrix();renderer.toneMapping=view.toneMapping==='softShoulder'?THREE.CustomToneMapping:THREE.NeutralToneMapping;renderer.toneMappingExposure=view.exposure;},dispose(){observer?.disconnect();renderer.domElement.removeEventListener('webglcontextlost',onLost);renderer.domElement.removeEventListener('wheel',onWheel);window.removeEventListener('blur',onBlur);window.removeEventListener('focus',onFocus);renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();}};
  try{engine=createStageForTest(options,clock,backend);}catch{renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();return failure('InvalidView','Invalid stage options');}
  const init=[()=>engine.setCasterEnvelope(options.casterEnvelope),()=>engine.setZoom(options.zoom),()=>engine.setViewPolicy(options.viewPolicy),()=>options.lighting?engine.setLighting(options.lighting):({ok:true,value:undefined} as const),()=>engine.attachInput(renderer.domElement)];
