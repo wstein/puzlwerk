@@ -1,6 +1,6 @@
 import { CubeViewer } from '@cubistry/cube-viewer';
 import { loadAssets } from '@cubistry/cube-assets';
-import { applyMoves, parseAlg } from '@cubistry/cube-mechanics';
+import { parseMove, presentMove } from '@cubistry/cube-mechanics';
 
 // Reference path uses Cubistry's physical state and viewer, independently of the candidate.
 export async function mountOriginal(root, fixture, base = '/') {
@@ -9,7 +9,7 @@ export async function mountOriginal(root, fixture, base = '/') {
   let state = fixture.target;
   viewer.configure(fixture.print, state, loaded);
   return {
-    move(token) { state = applyMoves(state, parseAlg(token)); viewer.configure(fixture.print, state, loaded); },
+    async move(token) { const presentation=presentMove(state,parseMove(token));await viewer.animate(presentation);state=presentation.to; },
     getState() { return state; },
     dispose() { viewer.destroy(); loaded.dispose(); },
   };

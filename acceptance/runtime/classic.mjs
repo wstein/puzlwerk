@@ -30,7 +30,7 @@ export async function mountClassic(root, fixtureBase) {
   const actions=[['R','X',-1],['U','Y',-1],["R'",'X',1],["U'",'Y',1]];
   for(const [token,axis,turns] of actions){const button=make('button',token,controls);button.onclick=async()=>{
     for(const b of controls.children)b.disabled=true;
-    try {const result=await player.turn(axis,[1],turns,350);if(!result.ok)throw Error(JSON.stringify(result.error));await original.move(token);status.textContent=compare()?`States match after ${token}`:`State mismatch after ${token}`;}
+    try {const [result]=await Promise.all([player.turn(axis,[1],turns,250),original.move(token)]);if(!result.ok)throw Error(JSON.stringify(result.error));status.textContent=compare()?`States match after ${token}`:`State mismatch after ${token}`;}
     catch(e){status.textContent=`Error: ${e.message}`;}
     finally {for(const b of controls.children)b.disabled=false;}
   };}
