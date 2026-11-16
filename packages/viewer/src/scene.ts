@@ -68,7 +68,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     scene.updateMatrixWorld(true); backend.render(scene);
     if (again) draw();
   }
-  function prepareNative(p: CubeProjection, assets: Map<string, CanvasImageSource>) {
+  function prepareNative(p: CubeProjection, assets: Map<string, CanvasImageSource>,projectPicture=true) {
     const converted=nativeFrames(p); if(!converted.ok) throw Error(converted.error.message);
     const staging=new THREE.Group(), candidateResources:{dispose():void}[]=[];
     try {
@@ -110,7 +110,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const next=new PhysicalCubeScene(staging,data.frames,materials,plastic,1,nativeGeometry,faceColors,{...p.appearance,bodies:bodyOnly,bodyGeometry,stickerGeometry,faceEdgeColors,corePose:p.core});
       candidateResources.splice(candidateResources.indexOf(constructionGuard),1);candidateResources.push(next);
       next.syncBodyPoses(data.bodies);
-      if(p.picture){const faces=new Map();for(const [face,id] of Object.entries(p.picture.faces)){const texture=new THREE.Texture(assets.get(id) as TexImageSource);texture.colorSpace=THREE.SRGBColorSpace;texture.flipY=false;texture.needsUpdate=true;faces.set(face,texture);candidateResources.push(texture);}next.setPictureProjection({faces});}
+      if(p.picture && projectPicture){const faces=new Map();for(const [face,id] of Object.entries(p.picture.faces)){const texture=new THREE.Texture(assets.get(id) as TexImageSource);texture.colorSpace=THREE.SRGBColorSpace;texture.flipY=false;texture.needsUpdate=true;faces.set(face,texture);candidateResources.push(texture);}next.setPictureProjection({faces});}
       if(p.appearance?.construction)next.setConstruction(p.appearance.construction);
       return {p,staging,next,candidateResources,replacementTurn:undefined as ReturnType<PhysicalCubeScene["beginTurn"]>|undefined};
     } catch(error) { for(const resource of candidateResources)resource.dispose(); throw error; }
@@ -126,13 +126,10 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
   }
   function renderProjection(p:CubeProjection,value=viewerAppearance):CubeProjection {
     if(!value)return p;
-    const useTiles=value.construction==='stickered' && value.pictureMode==='per-sticker';
-    const pieces=useTiles?p.pieces.map(piece=>({...piece,stickers:piece.stickers.map(sticker=>{const {picture,...rest}=sticker;return rest;})})):p.pieces;
-    const {picture,...base}=p;
-    return {...base,...(!useTiles && picture?{picture}:{}),pieces,appearance:{...p.appearance,construction:value.construction,frameColor:value.frameColor}};
+    return {...p,appearance:{...p.appearance,construction:value.construction,frameColor:value.frameColor ?? p.appearance?.frameColor}};
   }
   function present(p:CubeProjection,assets:Map<string,CanvasImageSource>,live=false) {
-    const candidate=prepareNative(renderProjection(p),assets);
+    const candidate=prepareNative(renderProjection(p),assets,!(viewerAppearance?.construction==='stickered' && viewerAppearance.pictureMode==='per-sticker'));
     try { sealNative(candidate,live); } catch(error) { discardNative(candidate);throw error; }
     commitNative(candidate,live,p);
   }
@@ -171,7 +168,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
         try {const assets=new Map<string,CanvasImageSource>(),rendered=renderProjection(current,value);
           for(const id of new Set([...rendered.pieces.flatMap(piece=>piece.stickers.flatMap(sticker=>sticker.imageId?[sticker.imageId]:[])),...Object.values(rendered.picture?.faces??{})])){
             const result=await options.resolveAsset(id,controller.signal);if(livePending!==op)return fail('Cancelled','Operation cancelled');if(!result.ok){livePending=undefined;appearanceOp=undefined;finished=true;return fail('UnresolvedAsset',`Unable to resolve ${id}`);}assets.set(id,result.value);}
-          if(livePending!==op)return fail('Cancelled','Operation cancelled');prepared=prepareNative(rendered,assets);
+          if(livePending!==op)return fail('Cancelled','Operation cancelled');prepared=prepareNative(rendered,assets,!(value.construction==='stickered' && value.pictureMode==='per-sticker'));
           const candidate=prepared;let sealed=false;
           return ok({seal(){if(finished || livePending!==op || disposed || lost || !projection)return fail('Cancelled','Appearance no longer current');try{
             if(!activeTurn){const pose=nativeFrames(projection);if(!pose.ok)return pose;candidate.next.syncBodyPoses(pose.value.bodies);}

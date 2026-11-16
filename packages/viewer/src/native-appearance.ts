@@ -49,7 +49,7 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
   if (key !== undefined && storage) initialValue = readAppearance(storage, key);
   let value = DEFAULT_APPEARANCE; let pending = false, disposed = false;
   let pendingChoice: { readonly available: boolean; readonly mode: PictureMode } | undefined;
-  let defaultColor = "#202329", pendingDefaultColor: string | undefined;
+  let defaultColor = "#202329",defaultMixed=false,pendingDefaultColor: {color:string;mixed:boolean} | undefined;
   // A host that names a dock region (`data-appearance-dock`) gets the panel as a collapsed section of that region
   // instead of an overlay on the stage. Pages without it keep the floating panel.
   const dockName = (host as { dataset?: DOMStringMap }).dataset?.appearanceDock;
@@ -185,6 +185,7 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
   const refresh = () => {
     mode.checked = value.construction === "stickerless"; color.value = value.frameColor ?? defaultColor;
     color.disabled = reset.disabled = value.construction === "stickerless";
+    color.setAttribute("aria-description", value.frameColor === null && defaultMixed ? "Multiple style defaults" : "");
     showPictureMode(shownMode);
   };
   const update = (next: ViewerAppearance, pictureChosen = false, persist = true) => {
@@ -199,7 +200,7 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
       pending = false;
       if (accepted === false) { pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); return; }
       value = candidate;
-      if (pendingDefaultColor !== undefined) { defaultColor = pendingDefaultColor; pendingDefaultColor = undefined; }
+      if (pendingDefaultColor !== undefined) { defaultColor = pendingDefaultColor.color;defaultMixed=pendingDefaultColor.mixed; pendingDefaultColor = undefined; }
       if (pendingChoice) { picturesWrap.style.display = pendingChoice.available ? "" : "none"; shownMode = pendingChoice.mode; pendingChoice = undefined; }
       refresh();
       try { if (persist && key !== undefined) storage?.setItem(key, JSON.stringify({ version: 1, ...value })); } catch { /* Presentation remains usable. */ }
@@ -222,7 +223,7 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
   refresh(); update(initialValue, false, false);
   return {
     panel,
-    setDefaultColor(color: string) { if (disposed) return; if (pending) { pendingDefaultColor = color; return; } defaultColor = color; refresh(); },
+    setDefaultColor(color: string,mixed=false) { if (disposed) return; if (pending) { pendingDefaultColor = {color,mixed}; return; } defaultColor = color;defaultMixed=mixed;refresh(); },
     /** Shows or hides the Pictures choice and shows the mode in effect; never a user choice, nothing is stored. */
     setPictureChoice(choice: { readonly available: boolean; readonly mode: PictureMode }) {
       if (disposed) return;
