@@ -1,0 +1,37 @@
+import { createCubeScene } from '../viewer/index.js';
+import { createPlayer } from '../packages/core-viewer-bridge/src/index.mjs';
+import { mountOriginal } from '../reference/original.js';
+import { comparePoses } from './compare.mjs';
+
+const read = async url => { const r=await fetch(url); if(!r.ok) throw Error(`Failed to load ${url}`); return r.json(); };
+export async function mountClassic(root, fixtureBase) {
+  const [native,definition,state,appearance] = await Promise.all(['native.json','definition.json','state.json','appearance.json'].map(f=>read(new URL(f,fixtureBase))));
+  const make=(tag,text,parent=root)=>{const e=document.createElement(tag); if(text)e.textContent=text; parent.append(e);return e;};
+  const panes=make('div'); panes.className='comparison';
+  const originalPane=make('section','',panes), candidatePane=make('section','',panes);
+  make('h2','Original Cubistry',originalPane); const originalHost=make('div','',originalPane); originalHost.className='scene';
+  make('h2','PuzlWerk Core + Viewer',candidatePane); const candidateHost=make('div','',candidatePane); candidateHost.className='scene';
+  const info=make('p','Native Cubistry classic 2×2; move buttons compare independent physical states. Gesture parity and owner visual acceptance remain open.');
+  const status=make('output'); status.textContent='Loading';
+  const details=make('details'); make('summary','Wire, appearance, and native assets',details); const inspector=make('pre','',details);
+  inspector.textContent=JSON.stringify({definition,state,appearance,assets:native.assets},null,2);
+  const palette=Object.fromEntries(native.assets.images.filter(i=>i.kind==='color').map(i=>[i.id,i.color]));
+  const resolveAsset=async id=>({ok:false,error:{code:'UnresolvedAsset',message:`No image asset mapping for ${id}`}});
+  const created=createCubeScene(candidateHost,{resolveAsset}); if(!created.ok) throw Error(created.error.message);
+  const scene=created.value;
+  const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff'},scene);
+  if(!opened.ok) throw Error(JSON.stringify(opened.error));
+  const player=opened.value, loaded=await scene.setProjection(player.projection()); if(!loaded.ok) throw Error(JSON.stringify(loaded.error));
+  const original=await mountOriginal(originalHost,native,fixtureBase.href);
+  const compare=()=>comparePoses(original.getState(),JSON.parse(player.state()));
+  status.textContent=compare()?'States match':'State mismatch';
+  const controls=make('div');
+  const actions=[['R','X',-1],['U','Y',-1],["R'",'X',1],["U'",'Y',1]];
+  for(const [token,axis,turns] of actions){const button=make('button',token,controls);button.onclick=async()=>{
+    for(const b of controls.children)b.disabled=true;
+    try {const result=await player.turn(axis,[1],turns,350);if(!result.ok)throw Error(JSON.stringify(result.error));await original.move(token);status.textContent=compare()?`States match after ${token}`:`State mismatch after ${token}`;}
+    catch(e){status.textContent=`Error: ${e.message}`;}
+    finally {for(const b of controls.children)b.disabled=false;}
+  };}
+  return {player,original,dispose(){player.dispose();original.dispose();info.remove();}};
+}
