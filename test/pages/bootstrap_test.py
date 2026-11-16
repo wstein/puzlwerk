@@ -19,7 +19,9 @@ class BootstrapTest(unittest.TestCase):
  def test_hash_mismatch_and_traversal_fail(self):
   with tempfile.TemporaryDirectory() as tmp:
    root=Path(tmp); archive=self.archive(root)
-   with self.assertRaises(ValueError): bootstrap.assemble(archive,root/'out','0'*64,'0'*64,'a'*40,44,1,'b'*32)
+   source=root/'source'; source.mkdir(); (source/'index.html').write_bytes(b'old root')
+   full=bootstrap.baseline.digest(source,include_previews=True)
+   with self.assertRaises(ValueError): bootstrap.assemble(archive,root/'out','0'*64,full,'a'*40,44,1,'b'*32)
   with tempfile.TemporaryDirectory() as tmp:
    root=Path(tmp); archive=self.archive(root,'../outside')
    with self.assertRaises(ValueError): bootstrap.assemble(archive,root/'out','0'*64,'0'*64,'a'*40,44,1,'b'*32)
