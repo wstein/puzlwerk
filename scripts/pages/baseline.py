@@ -40,7 +40,7 @@ def digest(source, include_previews=False):
         result.update(hashlib.sha256(data).digest())
     return result.hexdigest()
 
-def make_receipt(root, sha, run, attempt, nonce):
+def make_receipt(root, sha, run, attempt, nonce, previous=None):
     import re
     if not isinstance(sha, str) or not re.fullmatch('[a-f0-9]{40}', sha):
         raise ValueError('Invalid source SHA')
@@ -48,7 +48,9 @@ def make_receipt(root, sha, run, attempt, nonce):
         raise ValueError('Invalid run identity')
     if not isinstance(nonce, str) or not re.fullmatch('[a-f0-9]{32}', nonce):
         raise ValueError('Invalid nonce')
-    return {'schema': 1, 'sha': sha, 'run': run, 'attempt': attempt,
+    if previous is not None and (not isinstance(previous, str) or not re.fullmatch('[a-f0-9]{32}', previous)):
+        raise ValueError('Invalid previous nonce')
+    return {'schema': 1, 'sha': sha, 'run': run, 'attempt': attempt, 'previous': previous,
             'nonce': nonce, 'root': digest(root),
             'snapshot': digest(root, include_previews=True)}
 
