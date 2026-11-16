@@ -1,0 +1,128 @@
+{
+  "schema": "puzlwerk.appearance",
+  "revision": 1,
+  "id": "playground_classic_appearance_v1",
+  "definitionId": "playground_classic_v1",
+  "stickers": [
+    {
+      "id": "s3",
+      "color": "R",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s2",
+      "color": "R",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s1",
+      "color": "R",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s0",
+      "color": "R",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s6",
+      "color": "L",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s7",
+      "color": "L",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s4",
+      "color": "L",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s5",
+      "color": "L",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s8",
+      "color": "U",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s10",
+      "color": "U",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s9",
+      "color": "U",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s11",
+      "color": "U",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s14",
+      "color": "D",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s12",
+      "color": "D",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s15",
+      "color": "D",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s13",
+      "color": "D",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s18",
+      "color": "F",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s16",
+      "color": "F",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s19",
+      "color": "F",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s17",
+      "color": "F",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s23",
+      "color": "B",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s21",
+      "color": "B",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s22",
+      "color": "B",
+      "symmetry": "C4"
+    },
+    {
+      "id": "s20",
+      "color": "B",
+      "symmetry": "C4"
+    }
+  ]
+}
