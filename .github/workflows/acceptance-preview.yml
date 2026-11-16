@@ -24,6 +24,8 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      - name: Require acceptance suite in this PR head
+        run: test -f acceptance/build.mjs || { echo 'Acceptance suite is missing from this PR head'; exit 1; }
       - run: npm ci
       - run: npm run build --workspace @puzlwerk/viewer
       - run: node acceptance/build.mjs --base "/puzlwerk/pr-preview/pr-${PR_NUMBER}/" --out "$RUNNER_TEMP/acceptance-preview"
