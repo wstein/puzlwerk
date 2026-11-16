@@ -260,3 +260,74 @@ test('native stage preserves source inertia and settling at deterministic times'
  for(const time of [32,80,160,320,640,1200,2400]){now=time;source.step(time/1000);const pending=[...frames.values()];frames.clear();for(const cb of pending)cb(time);assert.ok(1-Math.abs(source.quaternion.dot(new THREE.Quaternion(...view.orientation)))<1e-10,`pose at ${time}ms`);}
  stage.dispose();source.dispose();
 });
+
+test('viewer appearance prepares all children before committing any child',async()=>{
+ let rejectSecond=false;const h=harness(async id=>rejectSecond&&id==='second'?{ok:false,error:{code:'UnresolvedAsset',message:'second'}}:{ok:true,value:{}});
+ const a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;
+ const make=(id,imageId)=>({pieces:[{id,transform:t(),stickers:[{id:`${id}-tile`,transform:t([0,0,.5]),size:[.87,.87],color:'#fff',imageId}]}]});
+ assert.equal((await a.setProjection(make('a','first'))).ok,true);assert.equal((await b.setProjection(make('b','second'))).ok,true);h.step(0);
+ const beforeA=h.scene.getObjectByName('a'),beforeB=h.scene.getObjectByName('b');rejectSecond=true;
+ const {PhysicalCubeScene}=await import('../dist/physical-scene.js'),originalDispose=PhysicalCubeScene.prototype.dispose;let disposed=0;PhysicalCubeScene.prototype.dispose=function(){disposed++;return originalDispose.call(this)};let rejected;
+ try{rejected=await h.stage.setViewerAppearance({construction:'stickerless',frameColor:'#123456'});}finally{PhysicalCubeScene.prototype.dispose=originalDispose;}
+ assert.equal(rejected.ok,false);assert.equal(disposed,1,'prepared successful child is disposed on another child failure');assert.equal(h.scene.getObjectByName('a'),beforeA);assert.equal(h.scene.getObjectByName('b'),beforeB);
+ rejectSecond=false;assert.equal((await h.stage.setViewerAppearance({construction:'stickerless',frameColor:'#123456'})).ok,true);h.step(0);
+ assert.notEqual(h.scene.getObjectByName('a'),beforeA);assert.notEqual(h.scene.getObjectByName('b'),beforeB);assert.ok(Array.isArray(h.scene.getObjectByName('a').children[0].material));assert.ok(Array.isArray(h.scene.getObjectByName('b').children[0].material));h.stage.dispose();
+});
+
+test('initial viewer appearance survives an empty stage and a later asynchronous first projection',async()=>{
+ let release;const h=harness(()=>new Promise(resolve=>{release=resolve}));
+ const initial=h.stage.setViewerAppearance({construction:'stickerless',frameColor:'#123456'});
+ const added=h.stage.addCube({position:[0,0,0]});assert.equal(added.ok,true);const child=added.value,p={pieces:[{id:'late',transform:t(),stickers:[{id:'tile',transform:t([0,0,.5]),size:[.87,.87],color:'#fff',imageId:'image'}]}]};
+ const setting=child.setProjection(p);release({ok:true,value:{}});assert.equal((await initial).ok,true);assert.equal((await setting).ok,true);h.step(0);
+ assert.ok(Array.isArray(h.scene.getObjectByName('late').children[0].material));h.stage.dispose();
+});
+
+test('appearance transaction rejects new children until the current children commit',async()=>{
+ let wait=false,release;const h=harness(()=>wait?new Promise(resolve=>{release=resolve}):Promise.resolve({ok:true,value:{}}));const child=h.stage.addCube({position:[0,0,0]}).value;
+ const p={pieces:[{id:'p',transform:t(),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#fff',imageId:'image'}]}]};assert.equal((await child.setProjection(p)).ok,true);h.step(0);
+ wait=true;const pending=h.stage.setViewerAppearance({construction:'stickerless',frameColor:null});const added=h.stage.addCube({position:[1,0,0]});assert.equal(added.ok,false);assert.equal(added.error.code,'Busy');release({ok:true,value:{}});assert.equal((await pending).ok,true);
+ assert.equal(h.stage.addCube({position:[1,0,0]}).ok,true);h.stage.dispose();
+});
+
+test('removing a child during appearance preparation aborts the whole update',async()=>{
+ let wait=false,release;const h=harness(()=>wait?new Promise(resolve=>{release=resolve}):Promise.resolve({ok:true,value:{}}));const a=h.stage.addCube({position:[0,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;
+ const p={pieces:[{id:'p',transform:t(),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#fff',imageId:'image'}]}]};assert.equal((await a.setProjection(p)).ok,true);h.step(0);const before=h.scene.getObjectByName('p');
+ wait=true;const pending=h.stage.setViewerAppearance({construction:'stickerless',frameColor:null});b.dispose();release({ok:true,value:{}});assert.equal((await pending).ok,false);assert.equal(h.scene.getObjectByName('p'),before);h.stage.dispose();
+});
+
+test('appearance preparation failure preserves two active turns and their current poses',async()=>{
+ const h=harness(),a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;
+ const from={pieces:[{id:'piece',transform:t([1,0,0]),stickers:[{id:'tile',transform:t([0,0,.5]),size:[.87,.87],color:'#fff'}]}]},to={pieces:[{...from.pieces[0],transform:{position:[-1,0,0],rotation:[0,0,1,0]}}]};
+ assert.equal((await a.setProjection(from)).ok,true);assert.equal((await b.setProjection(from)).ok,true);h.step(0);const motion={from,to,pieceIds:['piece'],axis:[0,0,1],pivot:[0,0,0],signedAngleRadians:Math.PI,durationMs:100},pa=a.transition(motion),pb=b.transition(motion);h.step(50);
+ const pieces=[];h.scene.traverse(o=>{if(o.name==='piece')pieces.push(o)});h.scene.updateMatrixWorld(true);const positions=pieces.map(p=>p.getWorldPosition(new THREE.Vector3()));
+ const {PhysicalCubeScene}=await import('../dist/physical-scene.js'),original=PhysicalCubeScene.prototype.beginTurn;let count=0;PhysicalCubeScene.prototype.beginTurn=function(...args){if(++count===2)throw Error('second candidate fails');return original.apply(this,args)};
+ try{assert.equal((await h.stage.setViewerAppearance({construction:'stickerless',frameColor:null})).ok,false);}finally{PhysicalCubeScene.prototype.beginTurn=original;}
+ h.scene.updateMatrixWorld(true);for(let i=0;i<pieces.length;i++)assert.ok(pieces[i].getWorldPosition(new THREE.Vector3()).distanceTo(positions[i])<1e-9);h.step(50);assert.equal((await pa).ok,true);assert.equal((await pb).ok,true);h.stage.dispose();
+});
+
+test('shared viewer appearance switches projected and per-sticker picture modes',async()=>{
+ const image={width:8,height:8},h=harness(async()=>({ok:true,value:image})),child=h.stage.addCube({position:[0,0,0]}).value,sf={normal:[0,0,1],up:[0,1,0]},faces={U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'};
+ const p={pieces:[{id:'p',transform:t([-.5,.5,.5]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#fff',sourceFace:sf,picture:{face:'F',layerIndex:[0,1,1]}}]},{id:'opposite',transform:t([.5,-.5,-.5]),stickers:[]}],picture:{widths:[1,1],faces}};
+ assert.equal((await child.setProjection(p)).ok,true);h.step(0);assert.ok(h.scene.getObjectByName('s').material.map);
+ assert.equal((await h.stage.setViewerAppearance({construction:'stickered',frameColor:null,pictureMode:'per-sticker'})).ok,true);h.step(0);assert.equal(h.scene.getObjectByName('s').material.map,null);
+ assert.equal((await h.stage.setViewerAppearance({construction:'stickered',frameColor:null,pictureMode:'projected'})).ok,true);h.step(0);assert.ok(h.scene.getObjectByName('s').material.map);h.stage.dispose();
+});
+
+test('an empty child cannot start its first projection during another child appearance preparation',async()=>{
+ let wait=false,release;const h=harness(()=>wait?new Promise(resolve=>{release=resolve}):Promise.resolve({ok:true,value:{}}));const a=h.stage.addCube({position:[0,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;
+ const p=id=>({pieces:[{id,transform:t(),stickers:[{id:`${id}-tile`,transform:t([0,0,.5]),size:[.87,.87],color:'#fff',imageId:'image'}]}]});assert.equal((await a.setProjection(p('a'))).ok,true);h.step(0);wait=true;
+ const pending=h.stage.setViewerAppearance({construction:'stickerless',frameColor:null});const competing=await Promise.race([b.setProjection(p('b')),Promise.resolve({ok:false,error:{code:'StillPending'}})]);assert.equal(competing.error.code,'Busy');release({ok:true,value:{}});assert.equal((await pending).ok,true);wait=false;assert.equal((await b.setProjection(p('b'))).ok,true);h.step(0);assert.ok(Array.isArray(h.scene.getObjectByName('b').children[0].material));h.stage.dispose();
+});
+
+test('failed appearance preparation cancels another child resolver without cancelling its turn',async()=>{
+ let mode='ready',signal;const h=harness((id,current)=>{if(mode==='ready')return Promise.resolve({ok:true,value:{}});if(id==='first'){signal=current;return new Promise(()=>{});}return Promise.resolve({ok:false,error:{code:'UnresolvedAsset',message:'second'}})});
+ const a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value,make=(id,imageId)=>({pieces:[{id,transform:t(),stickers:[{id:`${id}-tile`,transform:t([0,0,.5]),size:[.87,.87],color:'#fff',imageId}]}]});
+ const from=make('a','first'),to={...from,pieces:[{...from.pieces[0],transform:{position:[0,0,0],rotation:[0,0,1,0]}}]};assert.equal((await a.setProjection(from)).ok,true);assert.equal((await b.setProjection(make('b','second'))).ok,true);h.step(0);const turning=a.transition({from,to,pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0],signedAngleRadians:Math.PI,durationMs:100});h.step(25);const before=h.scene.getObjectByName('a');mode='fail';
+ const result=await Promise.race([h.stage.setViewerAppearance({construction:'stickerless',frameColor:null}),new Promise(resolve=>setTimeout(()=>resolve({ok:false,error:{code:'Timeout'}}),100))]);assert.equal(result.error.code,'UnresolvedAsset');assert.equal(signal.aborted,true);assert.equal(h.scene.getObjectByName('a'),before);h.step(75);assert.equal((await turning).ok,true);mode='ready';assert.equal((await h.stage.setViewerAppearance({construction:'stickerless',frameColor:null})).ok,true);h.stage.dispose();
+});
+
+test('shared appearance commits preserve each child material overrides',async()=>{
+ const h=harness(),a=h.stage.addCube({position:[-1,0,0]}).value,b=h.stage.addCube({position:[1,0,0]}).value,p=id=>({pieces:[{id,transform:t(),stickers:[]}]});assert.equal((await a.setProjection(p('a'))).ok,true);assert.equal((await b.setProjection(p('b'))).ok,true);
+ assert.equal(a.setMaterial({specularIntensity:.2,roughness:.25,clearcoat:.3,receiveShadow:false}).ok,true);assert.equal(b.setMaterial({specularIntensity:.4,roughness:.45,clearcoat:.5,receiveShadow:true}).ok,true);
+ assert.equal((await h.stage.setViewerAppearance({construction:'stickered',frameColor:'#112233'})).ok,true);h.step(0);const ma=h.scene.getObjectByName('a').children[0],mb=h.scene.getObjectByName('b').children[0];assert.equal(ma.material.roughness,.25);assert.equal(mb.material.roughness,.45);assert.equal(ma.receiveShadow,false);assert.equal(mb.receiveShadow,true);h.stage.dispose();
+});

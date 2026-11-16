@@ -11,23 +11,26 @@ import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, pr
 import { createPresentationStudio } from './studio.js';
 import { fail, ok, sameValues, validateProjection, validateTransition } from './contract.js';
 import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
+import {validateAppearance,type ViewerAppearance} from './native-appearance.js';
 
 type Clock = { now(): number; request(cb: (time: number) => void): number; cancel(id: number): void; isHidden?(): boolean; onVisibility?(cb: () => void): () => void };
 type Backend = { render(scene: THREE.Scene): void; dispose(): void };
 type Pending = { controller: AbortController; finish(result: Result<void>): void; from?: CubeProjection; to?: CubeProjection };
+type PreparedAppearance={seal():Result<void>;commit():void;discard():void};
 const copy = <T>(x: T): T => structuredClone(x);
 const sameProjection = (a: CubeProjection, b: CubeProjection) => {
   const normalize = (p: CubeProjection) => [...p.pieces].sort((x,y) => x.id.localeCompare(y.id)).map(x => ({...x, stickers: [...x.stickers].sort((s,t) => s.id.localeCompare(t.id))}));
   return sameValues(normalize(a), normalize(b)) && sameValues(a.renderProfile,b.renderProfile) && sameValues(a.geometryProfile,b.geometryProfile) && sameValues(a.presentation,b.presentation) && sameValues(a.core,b.core) && sameValues(a.appearance,b.appearance) && sameValues(a.picture,b.picture);
 };
 
-export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend, shared?: { scene: THREE.Scene; parent: THREE.Group }): CubeScene {
+export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend, shared?: { scene: THREE.Scene; parent: THREE.Group }): CubeScene & {prepareViewerAppearance(value:ViewerAppearance):Promise<Result<PreparedAppearance>>;cancelViewerAppearancePreparation():void;setInitialViewerAppearance(value:ViewerAppearance):void} {
   const scene = shared?.scene ?? new THREE.Scene();
   const parent = shared?.parent ?? scene;
   const root = new THREE.Group(); parent.add(root);
   const studio = shared ? undefined : createPresentationStudio(scene);
 
   let native: PhysicalCubeScene | undefined;
+  let viewerAppearance: ViewerAppearance | undefined,appearanceOp:Pending|undefined;
   let activeTurnState: {ids:readonly string[];axis:readonly [number,number,number];angle:number;pivot:readonly [number,number,number];progress:number}|undefined;
   let activeTurn: ReturnType<PhysicalCubeScene["beginTurn"]> | undefined;
   let projection: CubeProjection | undefined, pending: Pending | undefined, livePending: Pending | undefined, disposed = false, lost = false;
@@ -65,7 +68,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     scene.updateMatrixWorld(true); backend.render(scene);
     if (again) draw();
   }
-  function present(p: CubeProjection, assets: Map<string, CanvasImageSource>, live = false) {
+  function prepareNative(p: CubeProjection, assets: Map<string, CanvasImageSource>) {
     const converted=nativeFrames(p); if(!converted.ok) throw Error(converted.error.message);
     const staging=new THREE.Group(), candidateResources:{dispose():void}[]=[];
     try {
@@ -109,11 +112,29 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       next.syncBodyPoses(data.bodies);
       if(p.picture){const faces=new Map();for(const [face,id] of Object.entries(p.picture.faces)){const texture=new THREE.Texture(assets.get(id) as TexImageSource);texture.colorSpace=THREE.SRGBColorSpace;texture.flipY=false;texture.needsUpdate=true;faces.set(face,texture);candidateResources.push(texture);}next.setPictureProjection({faces});}
       if(p.appearance?.construction)next.setConstruction(p.appearance.construction);
-      let replacementTurn:ReturnType<PhysicalCubeScene["beginTurn"]>|undefined;
-      if(live && activeTurn && activeTurnState){replacementTurn=next.beginTurn(activeTurnState.ids,activeTurnState.axis,activeTurnState.angle,activeTurnState.pivot);replacementTurn.update(activeTurnState.progress);}
-      if(live && native && p.picture && projection?.picture && sameValues(p.picture,projection.picture)) next.reuseProjectionTextures(native);
-      activeTurn?.dispose();clear();root.add(staging);resourcesForCommit(candidateResources);native=next;activeTurn=replacementTurn;projection=p;draw();
+      return {p,staging,next,candidateResources,replacementTurn:undefined as ReturnType<PhysicalCubeScene["beginTurn"]>|undefined};
     } catch(error) { for(const resource of candidateResources)resource.dispose(); throw error; }
+  }
+  type PreparedNative=ReturnType<typeof prepareNative>;
+  function sealNative(candidate:PreparedNative,live:boolean) {
+    if(live && activeTurn && activeTurnState){candidate.replacementTurn=candidate.next.beginTurn(activeTurnState.ids,activeTurnState.axis,activeTurnState.angle,activeTurnState.pivot);candidate.replacementTurn.update(activeTurnState.progress);}
+  }
+  function discardNative(candidate:PreparedNative) { candidate.replacementTurn?.dispose();for(const resource of candidate.candidateResources)resource.dispose(); }
+  function commitNative(candidate:PreparedNative,live:boolean,canonical=candidate.p) {
+    if(live && native && candidate.p.picture && projection?.picture && sameValues(candidate.p.picture,projection.picture)) candidate.next.reuseProjectionTextures(native);
+    activeTurn?.dispose();clear();root.add(candidate.staging);resourcesForCommit(candidate.candidateResources);native=candidate.next;activeTurn=candidate.replacementTurn;projection=canonical;draw();
+  }
+  function renderProjection(p:CubeProjection,value=viewerAppearance):CubeProjection {
+    if(!value)return p;
+    const useTiles=value.construction==='stickered' && value.pictureMode==='per-sticker';
+    const pieces=useTiles?p.pieces.map(piece=>({...piece,stickers:piece.stickers.map(sticker=>{const {picture,...rest}=sticker;return rest;})})):p.pieces;
+    const {picture,...base}=p;
+    return {...base,...(!useTiles && picture?{picture}:{}),pieces,appearance:{...p.appearance,construction:value.construction,frameColor:value.frameColor}};
+  }
+  function present(p:CubeProjection,assets:Map<string,CanvasImageSource>,live=false) {
+    const candidate=prepareNative(renderProjection(p),assets);
+    try { sealNative(candidate,live); } catch(error) { discardNative(candidate);throw error; }
+    commitNative(candidate,live,p);
   }
   const status = (): Result<void> => disposed ? fail('Disposed','Scene disposed') : lost ? fail('ContextLost','Context lost') : pending || livePending ? fail('Busy','Operation in progress') : ok(undefined);
   function begin(from?: CubeProjection) {
@@ -135,7 +156,32 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       return assets;
     } catch { finish(op,fail('UnresolvedAsset','Asset resolver failed')); return undefined; }
   }
-  const api: CubeScene = {
+  const api: CubeScene & {prepareViewerAppearance(value:ViewerAppearance):Promise<Result<PreparedAppearance>>;cancelViewerAppearancePreparation():void;setInitialViewerAppearance(value:ViewerAppearance):void} = {
+    setInitialViewerAppearance(value) { viewerAppearance=validateAppearance(value); },
+    cancelViewerAppearancePreparation() {const op=appearanceOp;if(!op || livePending!==op)return;livePending=undefined;op.controller.abort();op.finish(fail('Cancelled','Appearance preparation cancelled'));},
+    async prepareViewerAppearance(input) {
+      if(disposed)return fail('Disposed','Scene disposed');if(lost)return fail('ContextLost','Context lost');
+      if(livePending || (pending && !pending.from))return fail('Busy','Operation in progress');
+      let value:ViewerAppearance;try{value=validateAppearance(input);}catch{return fail('InvalidProjection','Invalid viewer appearance');}
+      if(!projection)return ok({seal:()=>ok(undefined),commit:()=>{viewerAppearance=value;},discard:()=>{}});
+      const current=projection,controller=new AbortController();let prepared:PreparedNative|undefined,finished=false;
+      let cancel!: (result:Result<PreparedAppearance>)=>void;const cancelled=new Promise<Result<PreparedAppearance>>(resolve=>{cancel=resolve;});
+      const op:Pending={controller,finish:result=>{if(prepared){discardNative(prepared);prepared=undefined;}if(appearanceOp===op)appearanceOp=undefined;finished=true;cancel(result as Result<PreparedAppearance>);}};livePending=op;appearanceOp=op;
+      const work=(async():Promise<Result<PreparedAppearance>>=>{
+        try {const assets=new Map<string,CanvasImageSource>(),rendered=renderProjection(current,value);
+          for(const id of new Set([...rendered.pieces.flatMap(piece=>piece.stickers.flatMap(sticker=>sticker.imageId?[sticker.imageId]:[])),...Object.values(rendered.picture?.faces??{})])){
+            const result=await options.resolveAsset(id,controller.signal);if(livePending!==op)return fail('Cancelled','Operation cancelled');if(!result.ok){livePending=undefined;appearanceOp=undefined;finished=true;return fail('UnresolvedAsset',`Unable to resolve ${id}`);}assets.set(id,result.value);}
+          if(livePending!==op)return fail('Cancelled','Operation cancelled');prepared=prepareNative(rendered,assets);
+          const candidate=prepared;let sealed=false;
+          return ok({seal(){if(finished || livePending!==op || disposed || lost || !projection)return fail('Cancelled','Appearance no longer current');try{
+            if(!activeTurn){const pose=nativeFrames(projection);if(!pose.ok)return pose;candidate.next.syncBodyPoses(pose.value.bodies);}
+            sealNative(candidate,true);sealed=true;return ok(undefined);
+          }catch{return fail('Unavailable','Unable to prepare appearance');}},
+          commit(){if(!sealed || finished || livePending!==op || !projection)throw Error('Appearance was not sealed');const canonical=projection;commitNative(candidate,true,canonical);viewerAppearance=value;prepared=undefined;finished=true;livePending=undefined;appearanceOp=undefined;},
+          discard(){if(finished)return;finished=true;if(livePending===op)livePending=undefined;if(appearanceOp===op)appearanceOp=undefined;discardNative(candidate);prepared=undefined;}});
+        }catch{if(livePending===op)livePending=undefined;if(appearanceOp===op)appearanceOp=undefined;finished=true;return fail('Unavailable','Unable to prepare appearance');}
+      })();return Promise.race([work,cancelled]);
+    },
     setArtwork(input) {
       if (disposed) return Promise.resolve(fail('Disposed','Scene disposed'));
       if (lost) return Promise.resolve(fail('ContextLost','Context lost'));
