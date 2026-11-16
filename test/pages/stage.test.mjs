@@ -18,6 +18,7 @@ test('stages a packaged artifact only while run and source still match',async()=
   let state=pr(); const api={request:async path=>path.startsWith('pulls/')?state:{encoding:'base64',content:manifest.toString('base64'),size:manifest.length},pages:async()=>[run()],artifact:async()=>({id:5,size_in_bytes:1000}),zip:async()=>readFile(archive)};
   await stage(api,72,12,2,join(tmp,'output'));
   assert.match(await readFile(join(tmp,'output/acceptance/case/index.html'),'utf8'),/noindex/);
+  assert.deepEqual(JSON.parse(await readFile(join(tmp,'output/preview-info.json'),'utf8')),{number:72,sha,run:12,attempt:2});
   let reads=0; const moving={...api,request:async path=>path.startsWith('pulls/')?(++reads===1?pr():{...pr(),state:'closed'}):{encoding:'base64',content:manifest.toString('base64'),size:manifest.length}};
   await assert.rejects(stage(moving,72,12,2,join(tmp,'moving')),/current/);
   await assert.rejects(readFile(join(tmp,'moving/index.html')),{code:'ENOENT'});
