@@ -44,6 +44,9 @@ test('snapshot authenticates artifact and verifies both tree digests',async()=>{
   await assert.rejects(readVerifiedSnapshot(api,{destination:join(temp,'unproven'),fetch}));
   const dest=join(temp,'output'); assert.deepEqual(await readVerifiedSnapshot(api,{destination:dest,fetch,bootstrap}),valid);
   assert.equal(await readFile(join(dest,'pr-preview','x'),'utf8'),'preview');
+  const rerun={...run,run_attempt:2,conclusion:'failure'};
+  const rerunApi={...api,request:async path=>path.includes('/attempts/1')?run:path.includes('/attempts/2')?rerun:rerun,pages:async path=>path.includes('/attempts/2/jobs')?[{name:'Deploy production snapshot',status:'completed',conclusion:'skipped'}]:path.includes('documentation.yml/runs')?[rerun]:api.pages(path)};
+  assert.deepEqual(await readVerifiedSnapshot(rerunApi,{destination:join(temp,'prior-attempt'),fetch,bootstrap}),valid);
   await assert.rejects(readVerifiedSnapshot({...api,pages:async path=>path.includes('/artifacts')?[artifact,artifact,...ledgerArtifacts]:api.pages(path)},{destination:join(temp,'duplicate'),fetch,bootstrap}));
   await assert.rejects(readVerifiedSnapshot({...api,request:async()=>({...run,conclusion:'failure'})},{destination:join(temp,'untrusted'),fetch,bootstrap}));
   const existing=join(temp,'existing'); await mkdir(existing); await writeFile(join(existing,'keep'),'safe');
@@ -96,9 +99,15 @@ test('ledger API binds artifact bytes and rejects incomplete writer history',asy
   const api={request:async()=>run,pages:async(path)=>path.includes('/artifacts')?artifacts:path.includes('/jobs')?[{name:'Deploy production snapshot',status:'completed',conclusion:'success'}]:path.includes('documentation.yml')?[run]:[],zip:async id=>zips[id-1]};
   const bootstrap={run:42,attempt:1,nonce:r.nonce};
   assert.equal(await readWriterLedger(api,r,{bootstrap}),true);
+  await assert.rejects(readWriterLedger({...api,request:async path=>path.includes('/attempts/')?{...run,run_attempt:2}:run},r,{bootstrap}));
   const signal={...run,id:43,path:'.github/workflows/pages-publish.yml',event:'pull_request_target'};
-  const signalApi=state=>({...api,pages:async path=>path.includes('pages-publish.yml/runs')?[signal]:path.includes('/43/attempts/')?[{name:'Publish preview snapshot',status:'completed',conclusion:state}]:api.pages(path)});
+  const signalApi=state=>({...api,request:async path=>path.includes('/runs/43/attempts/')?signal:run,pages:async path=>path.includes('pages-publish.yml/runs')?[signal]:path.includes('/43/attempts/')?[{name:'Publish preview snapshot',status:'completed',conclusion:state}]:api.pages(path)});
   assert.equal(await readWriterLedger(signalApi('skipped'),r,{bootstrap}),true);
+  const fork={...run,id:44,event:'pull_request',head_repository:{full_name:'fork/puzlwerk'}};
+  const forkApi={...api,request:async path=>path.includes('/runs/44/attempts/')?fork:run,pages:async path=>path.includes('documentation.yml/runs')?[run,fork]:path.includes('/44/attempts/')?[{name:'Deploy production snapshot',status:'completed',conclusion:'skipped'}]:api.pages(path)};
+  assert.equal(await readWriterLedger(forkApi,r,{bootstrap}),true);
+  await assert.rejects(readWriterLedger({...forkApi,request:async path=>path.includes('/runs/44/attempts/')?{...fork,head_repository:{full_name:'other/puzlwerk'}}:run},r,{bootstrap}));
+  await assert.rejects(readWriterLedger({...forkApi,pages:async path=>path.includes('/44/attempts/')?[{name:'Deploy production snapshot',status:'completed',conclusion:'success'}]:forkApi.pages(path)},r,{bootstrap}),/Untrusted writer repository/);
   await assert.rejects(readWriterLedger(signalApi('success'),r,{bootstrap}));
   const next={...r,run:43,nonce:'e'.repeat(32),previous:r.nonce};
   const signalStart={schema:1,run:43,attempt:1,sha:r.sha,previous:r.nonce};
@@ -171,10 +180,13 @@ test('actual failed-deploy shape is recovered in the ledger and later skipped-de
   const skipped={...failed,id:43875644347,created_at:'2026-11-16T13:25:00Z'};
   const art=(id,name,run)=>({id,name,expired:false,size_in_bytes:blobs[id].length,workflow_run:{id:run}});
   const items={10:[art(1,'pages-writer-start-1',10),art(2,'pages-writer-commit-1',10)],[failed.id]:[art(3,'pages-writer-start-1',failed.id),art(4,'pages-published-snapshot-1',failed.id)],[skipped.id]:[]};
-  const api={request:async path=>path.startsWith('contents/')?{sha:'757cc0f56c8edb67cf62306da379c018b5902c65'}:path.endsWith('/10')?anchorRun:failed,pages:async path=>{if(path.includes('/artifacts'))return items[Number(path.match(/runs\/(\d+)/)[1])];if(path.includes('/jobs')){const id=Number(path.match(/runs\/(\d+)/)[1]);return id===10?[{name:'Deploy production snapshot',status:'completed',conclusion:'success'}]:id===failed.id?deployedJobs:skippedJobs;}return path.includes('documentation.yml')?[anchorRun]:[failed,skipped];},zip:async id=>blobs[id]};
+  const api={request:async path=>path.startsWith('contents/')?{sha:'757cc0f56c8edb67cf62306da379c018b5902c65'}:(path.endsWith('/10')||path.includes('/runs/10/attempts/'))?anchorRun:(path.endsWith('/43875644347')||path.includes('/runs/43875644347/attempts/'))?skipped:failed,pages:async path=>{if(path.includes('/artifacts'))return items[Number(path.match(/runs\/(\d+)/)[1])];if(path.includes('/jobs')){const id=Number(path.match(/runs\/(\d+)/)[1]);return id===10?[{name:'Deploy production snapshot',status:'completed',conclusion:'success'}]:id===failed.id?deployedJobs:skippedJobs;}return path.includes('documentation.yml')?[anchorRun]:[failed,skipped];},zip:async id=>blobs[id]};
   const fetch=async()=>new Response(JSON.stringify(current));
   const got=await readVerifiedSnapshot(api,{destination:join(tmp,'out'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}});
   assert.deepEqual(got,current);
+  const rerun={...failed,run_attempt:2};
+  const rerunApi={...api,request:async path=>path.includes(`/runs/${failed.id}/attempts/2`)?rerun:api.request(path),pages:async path=>path.includes(`/runs/${failed.id}/attempts/2/jobs`)?[{name:'Publish preview snapshot',status:'completed',conclusion:'skipped'}]:path.includes('pages-publish.yml/runs')?[rerun,skipped]:api.pages(path)};
+  assert.deepEqual(await readVerifiedSnapshot(rerunApi,{destination:join(tmp,'failed-prior-attempt'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}),current);
   await assert.rejects(readVerifiedSnapshot({...api,zip:async id=>id===4?Buffer.from('corrupt'):blobs[id]},{destination:join(tmp,'corrupt'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}));
   await assert.rejects(readVerifiedSnapshot({...api,request:async path=>path.startsWith('contents/')?{sha:'f'.repeat(40)}:api.request(path)},{destination:join(tmp,'wrong-workflow'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}));
   await assert.rejects(readVerifiedSnapshot({...api,pages:async path=>path.includes(`/runs/${failed.id}/artifacts`)?items[failed.id].filter(x=>!x.name.startsWith('pages-writer-start-')):api.pages(path)},{destination:join(tmp,'missing-start'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}));
@@ -186,7 +198,7 @@ test('actual failed-deploy shape is recovered in the ledger and later skipped-de
   blobs[5]=await readFile(archive2); blobs[6]=await zip('next-start.zip',start(next)); blobs[7]=await zip('next-commit.zip',{...start(next),receipt:next});
   const success={...failed,id:50,created_at:'2026-11-16T13:30:00Z',status:'completed',conclusion:'success'};
   items[50]=[art(5,'pages-published-snapshot-1',50),art(6,'pages-writer-start-1',50),art(7,'pages-writer-commit-1',50)];
-  const later={...api,request:async path=>path.endsWith('/50')?success:api.request(path),pages:async path=>{if(path.includes('/runs/50/artifacts'))return items[50];if(path.includes('/runs/50/attempts/'))return [{name:'Publish preview snapshot',status:'completed',conclusion:'success'}];if(path.includes('pages-publish.yml/runs'))return [failed,skipped,success];return api.pages(path);}};
+  const later={...api,request:async path=>(path.endsWith('/50')||path.includes('/runs/50/attempts/'))?success:api.request(path),pages:async path=>{if(path.includes('/runs/50/artifacts'))return items[50];if(path.includes('/runs/50/attempts/'))return [{name:'Publish preview snapshot',status:'completed',conclusion:'success'}];if(path.includes('pages-publish.yml/runs'))return [failed,skipped,success];return api.pages(path);}};
   assert.deepEqual(await readVerifiedSnapshot(later,{destination:join(tmp,'later'),fetch:async()=>new Response(JSON.stringify(next)),bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}),next);
  } finally {await rm(tmp,{recursive:true,force:true});}
 });
