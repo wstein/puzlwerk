@@ -94,3 +94,11 @@ at revision efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
 576916c1b54bcdc19a522f8f5a44ad6477be257edefaaccd71c129fe8bc9f222.
 Copied with an SPDX header; target SHA-256
 9125ae5f014053281870fd42a89614d791d088719e8eeb8575556ee761cdadaf.
+
+src/clock-framing.ts: Cubistry src/apps/clock/framing.ts at revision
+efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
+90a25c77aeeefe62f69bb2cd7d89575c4e7e40cf, source SHA-256
+b48ad097d289c213d85f19a46386e8f4cb5a1db94e801b261d61505610ccecf8.
+The viewer import is replaced with the local source framing helper and an SPDX
+header is added; target SHA-256
+dfac990d1adf242da6b1446bd64ab642806fbaca6ed57f764613c304f6d80cf9.
