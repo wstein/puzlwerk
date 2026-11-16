@@ -1,0 +1,53 @@
+{
+  "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+  "sourceHash": "576916c1b54bcdc19a522f8f5a44ad6477be257edefaaccd71c129fe8bc9f222",
+  "result": {
+    "events": [
+      [
+        "down",
+        1
+      ],
+      [
+        "move",
+        6,
+        0,
+        20
+      ],
+      [
+        "down",
+        2
+      ],
+      [
+        "up",
+        1,
+        true
+      ],
+      [
+        "down",
+        3
+      ],
+      [
+        "move",
+        0,
+        8,
+        10
+      ],
+      [
+        "up",
+        3,
+        true
+      ],
+      [
+        "down",
+        4
+      ],
+      [
+        "up",
+        null,
+        true
+      ]
+    ],
+    "remainingHandlers": 0,
+    "captured": []
+  }
+}

@@ -87,3 +87,10 @@ at revision efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
 7fd3eae7d16897b6d8ff2632a861ddfa051e7688994dc30bad7fc1af009f6992.
 Copied with an SPDX header; target SHA-256
 31b918f6df425da2a4a8f709923f2e0fbdc5195980119b92264453770d5a37f3.
+
+src/presentation-input.ts: Cubistry packages/cube-viewer/src/presentation-input.ts
+at revision efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
+0ec1d824096589f19b8d5b0e709ae4045d7f9c46, source SHA-256
+576916c1b54bcdc19a522f8f5a44ad6477be257edefaaccd71c129fe8bc9f222.
+Copied with an SPDX header; target SHA-256
+9125ae5f014053281870fd42a89614d791d088719e8eeb8575556ee761cdadaf.
