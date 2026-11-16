@@ -295,3 +295,185 @@ establish references not yet present. A failed, canceled or pending update does
 not reserve references. A successful setProjection starts a new construction and
 its references. The registry does not supply hidden render state: visible data
 and transition equality still come solely from the explicit snapshots.
+
+## Stage 1 shared stage, display and lighting slice
+
+This slice adapts the source display and studio behavior at Cubistry revision
+`efafcc1d97687eccea0cde87a230f447ce1b6c66`. A viewer-owned stage has one canvas,
+renderer, scene, camera, studio and scheduler; each child uses the same physical
+builder and CubeScene operations, including the separately reviewed artwork API.
+The existing `createCubeScene(host, options)` is a one-child wrapper preserving
+its signature, FOV 35, camera position [4,3,5], preset, lack of input binding,
+errors and visibility/cancel semantics. New stages opt into display controls.
+Child operations are exclusive per child but independent across children. Child
+IDs are scoped locally. Child disposal cancels its work and removes its own
+resources; stage disposal cancels all children and releases shared resources
+once. Context loss is stage-wide, late asset completions cannot commit, and the
+caller disposes and recreates as in the current contract.
+
+### View, input and scheduling contract
+
+The application supplies child-local placements and a synchronous pure view
+policy receiving an immutable snapshot of aspect, FOV, zoom, presentation
+quaternion and placements. Its result contains positive finite camera distance,
+far plane and uniform group scale, with far greater than the camera near plane.
+The stage validates a complete result before applying it; invalid results or a
+thrown policy leave the last valid view intact and report `InvalidView` through
+an explicit stage error callback. A synchronous setter that triggers the policy
+returns that error; asynchronous resize or input reports it through the callback
+and stops repeated evaluation until a new invalidation or input. No callback
+receives Three objects or scheduling control. Camera refit follows resize, zoom
+or layout changes; group scale is recalculated for relevant display poses. Empty
+stages retain a valid camera and skip caster fitting. Clock source helpers may be
+adapted as render-only functions: the source default-orientation camera distance
+and per-pose `min(1, defaultDistance / requiredDistance)` scale must both be
+preserved. No fixed encompassing radius substitutes for that policy.
+
+A caller supplies a positive finite common caster radius and nonnegative finite
+clearance in stage-local units; stage transforms child centers by placement,
+display quaternion and scale, and scales radius and clearance before fitting.
+This expresses the source clock's equal-cube envelope, not inferred puzzle
+bounds or a claim for unequal caster radii. Child placements and display
+transforms never modify caller projection or transition coordinates; the core
+follows its child and stage but remains stationary relative to its layer turns.
+
+The stage owns source SmartRotation initial/anchor/reset behavior, smart/free/
+classic modes, drag threshold, inertia, zoom and reduced motion. A caller may
+register its own UI interaction elements and call `interact()`; ownership,
+markup, storage and preferences remain with the app. Preserve source panel and
+canvas pointer overlap blocking until every contact ends, pointer cancellation,
+settings/wheel interaction, focus and visibility suspension. Reset returns to
+the source initial/anchor semantics without changing puzzle poses. Do not add an
+unproven arbitrary orientation setter or picking, export or overlay API.
+
+One monotonic stage clock and one coalesced RAF serve all children. Coasting,
+returning and leveling request frames; `awaiting-return` schedules at most one
+earliest wake timer for the source return deadline, converting its seconds to
+stage milliseconds. Idle requests neither RAF nor timer. Pointer, setting,
+visibility and disposal changes reschedule or cancel wakeups. Hidden child
+transitions retain the existing pause-without-jump behavior. Stage renders at
+most once per scheduled frame, including concurrent child turns, and endpoint
+completion does not commit application state.
+
+### Light and material contract
+
+The stage owns its source studio and effective ambient, hemisphere, key, fill,
+rim and shadow-fill roles, with bounded finite color, intensity, visibility,
+position and target render values and optional non-shadow directionals. It owns
+contact shadow, floor opacity, fine-shadow and color-temperature configuration.
+Shadow intensity and floor opacity are set against saved base values, never
+compounded across updates. Caster fitting uses the effective configured key and
+shadow-fill directions; switching Names light on and off must not let the
+studio's construction-time directions overwrite them.
+
+A stage-wide tone selection offers source neutral and the source soft-shoulder
+custom tone mapping (shoulder .95), not arbitrary shader injection. Install the
+fixed source shader chunk idempotently before the first dependent program is
+compiled; neutral stages remain neutral and separate stages must not overwrite
+one another's shader definition. Stage-wide exposure is a positive finite value
+or a synchronous pure policy evaluated after view and effective lights and
+before drawing. The policy receives an immutable numerical light, display
+quaternion, camera position and shadow-map snapshot; source-equivalent pure
+weighted-face exposure helpers may be reused. Invalid exposure or policy failure
+retains the last valid frame and reports `InvalidLighting` through the same
+synchronous/asynchronous error channels. Re-evaluate on relevant light, view,
+shadow or material changes, never in an otherwise idle loop. One render pass
+has one stage-wide tone and exposure; mixed per-child operators are not claimed.
+
+Child material render values cover source plasticity's specular intensity,
+roughness, clearcoat and receive-shadow behavior, including the core and affected
+artwork surfaces. Application-owned mapping chooses those values; no calendar
+layout, URL or settings model enters core or viewer. Coordinate this setter with
+the accepted artwork API and use its single builder and resource ownership.
+No raw renderer, mutable Three light/camera or shader callback is exposed.
+
+### Evidence and boundaries
+
+Acceptance compares the actual pinned source and extraction for Clock two and
+three children in portrait and landscape, rest, mid-turn, drag, zoom and reset:
+camera distance/far, group scale, transformed caster centers and shadow frusta.
+Names on/off, color temperature, light visibility and plasticity 0/.6/1 require
+source material, floor, exposure and shader comparisons including simultaneous
+caster fitting. Browser captures cover desktop and mobile viewport settings;
+physical devices remain separately reported. Tests cover overlapping contacts,
+return wakeups, one render per frame, idle zero work, independent child operations,
+asset cancellation, context loss and exact resource disposal, with targeted
+mutations for each new check. The actual Artwork implementation and public API
+must be frozen and reviewed before integrating scene ownership; no parallel
+builder is introduced. Source motion timing revisions, absolute deadlines and
+hidden-time interaction remain a separate Phase 2 decision. This slice neither
+migrates consumers nor claims full HQ acceptance or publication.
+
+### Stage API shape and atomic presentation
+
+The following is the contract shape for review, not an implementation or a
+change to the existing `ViewerError` union. Numeric vectors and quaternions use
+the existing readonly tuple types; snapshots and their nested arrays are copied.
+The separately reviewed `CubeScene` interface, including its artwork operation,
+is inherited rather than duplicated.
+
+```ts
+type StageError = ViewerError | { readonly code: 'InvalidView' | 'InvalidLighting'; readonly message: string };
+type StageResult<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: StageError };
+type Placement = Readonly<{ position: Vec3 }>;
+type StageView = Readonly<{ aspect: number; fovDegrees: number; zoom: number;
+  orientation: Quaternion; placements: readonly Placement[] }>;
+type FrameFit = Readonly<{ distance: number; far: number; groupScale: number }>;
+type ViewPolicy = (view: StageView) => FrameFit;
+type CasterEnvelope = Readonly<{ radius: number; clearance: number }>;
+type DirectionalData = Readonly<{ color: string; intensity: number; visible: boolean;
+  position: Vec3; target: Vec3 }>;
+type LightSnapshot = Readonly<{ ambient: number;
+  hemispheres: readonly Readonly<{ up: Vec3; sky: number; ground: number }>[];
+  directionals: readonly Readonly<{ to: Vec3; amount: number }>[] }>;
+type ExposureSnapshot = Readonly<{ lights: LightSnapshot; orientation: Quaternion;
+  cameraPosition: Vec3; shadowMapEnabled: boolean }>;
+type ExposurePolicy = (snapshot: ExposureSnapshot) => number;
+type StageLighting = Readonly<{
+  ambient: Readonly<{ color: string; intensity: number; visible: boolean }>;
+  hemisphere: Readonly<{ sky: string; ground: string; intensity: number; visible: boolean; position: Vec3 }>;
+  key: DirectionalData; fill: DirectionalData; rim: DirectionalData; shadowFill: DirectionalData;
+  extraDirectionals: readonly DirectionalData[];
+  keyShadowStrength: number; shadowFillStrength: number; floorOpacity: number;
+  contactShadow: boolean; fineShadowEdges: boolean; colorTemperature: boolean;
+  toneMapping: 'neutral' | 'softShoulder'; exposure: number | ExposurePolicy;
+}>;
+type ChildMaterial = Readonly<{ specularIntensity: number; roughness: number;
+  clearcoat: number; receiveShadow: boolean }>;
+type StageOptions = Readonly<{ resolveAsset: AssetResolver; fovDegrees: number; zoom: number;
+  initialOrientation: Quaternion; mode: 'smart' | 'free' | 'classic'; sensitivity: number;
+  dragThreshold: number; reducedMotion: boolean; viewPolicy: ViewPolicy;
+  casterEnvelope: CasterEnvelope; lighting?: StageLighting;
+  onError?: (error: StageError) => void; onViewChanged?: (view: StageView) => void }>;
+interface StageChild extends CubeScene {
+  setPosition(position: Vec3): StageResult<void>;
+  setMaterial(material: ChildMaterial): StageResult<void>;
+}
+interface CubeStage {
+  addCube(placement: Placement): StageResult<StageChild>;
+  setViewPolicy(policy: ViewPolicy): StageResult<void>;
+  setCasterEnvelope(envelope: CasterEnvelope): StageResult<void>;
+  setZoom(zoom: number): StageResult<void>;
+  setLighting(lighting: StageLighting): StageResult<void>;
+  setRotationMode(mode: 'smart' | 'free' | 'classic'): StageResult<void>;
+  setReducedMotion(enabled: boolean): StageResult<void>;
+  resetDisplayOrientation(): StageResult<void>;
+  interact(): StageResult<void>;
+  registerInteractionSurface(element: HTMLElement): StageResult<() => void>;
+  invalidate(): StageResult<void>;
+  dispose(): void;
+}
+declare function createCubeStage(host: HTMLElement, options: StageOptions): StageResult<CubeStage>;
+```
+
+For every presentation update, prepare candidate display pose, placements,
+view fit, effective lights, material values and exposure; the exposure policy
+reads the candidate view and candidate effective lights. Validate the entire
+candidate before committing any camera, group, lighting, material or rendered
+state. A synchronous setter failure keeps the previously accepted configuration
+and returns the error. An asynchronous input or resize can advance internal
+controller time, but on failure it retains the last presented configuration,
+reports the error once and does not cause an error-driven RAF loop. A later
+input or invalidation retries from a coherent candidate. `onViewChanged` runs
+only after a successful commit; it observes a copy and does not own the frame.
+The callback cannot mutate a candidate being evaluated.
