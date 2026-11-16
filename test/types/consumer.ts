@@ -25,3 +25,7 @@ async function consumer(
   return { moves, quotient, exactGuarantee, quotientGuarantee };
 }
 void consumer;
+
+import type { Player } from '../../packages/core-viewer-bridge/src/index.mjs';
+declare const timedPlayer: Player;
+timedPlayer.turn('X', [1], 1, 100, () => ({endAt: 200, durationMs: 100, revision: 1}));

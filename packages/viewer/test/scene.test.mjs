@@ -863,3 +863,11 @@ test('explicit two-radius profiles reach native body geometry',async()=>{
  const actual=rendered.getObjectByName('p').children[0].geometry;const expected=createTwoRadiusBody({size:[1.39,.99,.69],outer,big:.04,small:.012,segments:3});
  assert.deepEqual([...actual.attributes.position.array],[...expected.attributes.position.array]);expected.dispose();scene.dispose();
 });
+
+test('a failing timing source retains artwork committed during the turn',async()=>{
+ const h=harness();assert.equal((await h.scene.setProjection(projection)).ok,true);h.step(0);let fail=false;
+ const pending=h.scene.transition(turn(Math.PI,100),()=>{if(fail)throw Error('timing failed');return {endAt:100,durationMs:100,revision:1}});h.step(30);
+ assert.equal((await h.scene.setArtwork({stickers:[{id:'s',color:'#ff0000'}]})).ok,true);fail=true;h.step(1);assert.equal((await pending).error.code,'Unavailable');
+ const red={...projection,pieces:[{...projection.pieces[0],stickers:[{...projection.pieces[0].stickers[0],color:'#ff0000'}]}]};
+ const next={from:red,to:red,pieceIds:[],axis:[0,0,1],signedAngleRadians:0,pivot:[0,0,0],durationMs:0};assert.equal((await h.scene.transition(next)).ok,true);h.scene.dispose();
+});
