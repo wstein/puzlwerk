@@ -116,3 +116,27 @@ test('overlapping wire piece and sticker IDs have distinct reversible viewer IDs
  assert.equal(result.value.ids.pieces.find(p=>p.wire===wire.pieces[0].id).viewer,piece.id);
  assert.equal(result.value.ids.stickers.find(s=>s.wire===wire.pieces[0].id).viewer,`sticker:${wire.pieces[0].id}`);
 });
+
+test('explicit presentation dimensions map to viewer geometry without changing wire state',()=>{
+ const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d));
+ const appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]});
+ const palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const presentation={cellSize:1,bodyGap:.01,bodyRadius:.058,stickerWidth:.86,stickerRadius:.045,stickerOffset:.5};
+ const result=open(definition,state,appearance,{palette,defaultColor:'#ffffff',presentation});
+ assert.equal(result.ok,true);assert.equal(validateProjection(result.value.projection).ok,true);
+ assert.deepEqual(result.value.projection.geometryProfile.body,{kind:'roundedBox',gap:.01,radius:.058,bevelSegments:3});
+ const piece=result.value.projection.pieces[0], sticker=piece.stickers[0];
+ assert.deepEqual(piece.geometry.cellSize,[1,1,1]);assert.deepEqual(sticker.size,[.86,.86]);assert.equal(sticker.geometry.cornerRadius,.045);
+ assert.equal(Math.hypot(...sticker.transform.position),.5);assert.equal(Codec.encodeState(result.value.state),state);
+ assert.equal(open(definition,state,appearance,{palette,defaultColor:'#ffffff',presentation:{...presentation,stickerWidth:-1}}).ok,false);
+});
+
+test('explicit source profile survives a real Core move and validates its viewer transition',async()=>{
+ const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d));
+ const appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]});
+ const palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const presentation={cellSize:1,bodyGap:.01,bodyRadius:.058,stickerWidth:.86,stickerRadius:.045,stickerOffset:.5};
+ let count=0;const scene={transition(t){count++;assert.equal(validateTransition(t).ok,true);return Promise.resolve({ok:true});},cancel(){return {ok:true};},dispose(){}};
+ const player=createPlayer(definition,state,appearance,{palette,defaultColor:'#ffffff',presentation},scene).value;
+ assert.equal((await player.turn('X',[1],-1,0)).ok,true);assert.equal(count,1);assert.notEqual(player.state(),state);
+});
