@@ -1,0 +1,61 @@
+{
+  "size": 2,
+  "pitch": 0.52,
+  "yaw": -0.74,
+  "soft": 0.4,
+  "alpha": 0.3,
+  "floorY": -1.8,
+  "outline": [
+    [
+      -1.412756470357733,
+      -0.4411829413249818
+    ],
+    [
+      -0.06418064710144289,
+      -1.722897299033877
+    ],
+    [
+      1.412756470357733,
+      -0.5525773343624917
+    ],
+    [
+      1.412756470357733,
+      0.4411829413249818
+    ],
+    [
+      0.06418064710144289,
+      1.722897299033877
+    ],
+    [
+      -1.412756470357733,
+      0.5525773343624917
+    ]
+  ],
+  "outlinePoints": 8,
+  "padded": [
+    -1.4127564430236816,
+    -0.441182941198349,
+    -0.0641806498169899,
+    -1.7228972911834717,
+    1.4127564430236816,
+    -0.5525773167610168,
+    1.4127564430236816,
+    0.441182941198349,
+    0.0641806498169899,
+    1.7228972911834717,
+    -1.4127564430236816,
+    0.5525773167610168,
+    -1.4127564430236816,
+    0.5525773167610168,
+    -1.4127564430236816,
+    0.5525773167610168
+  ],
+  "shader": {
+    "vertex": "\nattribute vec2 a_floor;\nuniform mat4 u_viewProj;\nuniform float u_floorY;\nvarying vec2 v_floor;\nvoid main() {\n  v_floor = a_floor;\n  gl_Position = u_viewProj * vec4(a_floor.x, u_floorY, a_floor.y, 1.0);\n}\n",
+    "fragment": "\nprecision mediump float;\nvarying vec2 v_floor;\nuniform vec2 u_outline[8];\nuniform float u_soft;\nuniform float u_alpha;\nfloat outlineDistance(vec2 p) {\n  float d = dot(p - u_outline[0], p - u_outline[0]);\n  float s = 1.0;\n  vec2 prev = u_outline[7];\n  for (int i = 0; i < 8; i++) {\n    vec2 cur = u_outline[i];\n    vec2 e = prev - cur;\n    vec2 w = p - cur;\n    float ee = dot(e, e);\n    if (ee > 1e-6) {\n      vec2 b = w - e * clamp(dot(w, e) / ee, 0.0, 1.0);\n      d = min(d, dot(b, b));\n      bvec3 c = bvec3(p.y >= cur.y, p.y < prev.y, e.x * w.y > e.y * w.x);\n      if (all(c) || all(not(c))) s = -s;\n    }\n    prev = cur;\n  }\n  return s * sqrt(d);\n}\nvoid main() {\n  float d = outlineDistance(v_floor);\n  // A darker core under the cube and a wide, faint falloff around it.\n  float core = 1.0 - smoothstep(-u_soft * 0.6, u_soft, d);\n  float halo = 1.0 - smoothstep(-u_soft, u_soft * 3.5, d);\n  float a = u_alpha * max(core, halo * 0.45);\n  gl_FragColor = vec4(0.0, 0.0, 0.0, a);\n}\n"
+  },
+  "sourceSha256": {
+    "cubeShadowTs": "09732c0ee1bcb2dded339fe07ec7945a09184fa9240fa0af29c4fac2b4db33cd",
+    "cubeShadowRes": "a4d9f0eae60355ac8e1aa37b3d0b4fdcbbf751147e0b357d9d7f5dee1e0538a0"
+  }
+}

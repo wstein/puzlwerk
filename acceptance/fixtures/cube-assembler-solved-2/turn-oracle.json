@@ -1,0 +1,2429 @@
+[
+  {
+    "turn": {
+      "face": "R",
+      "depth": 1,
+      "width": 1,
+      "angle": 0
+    },
+    "sha256": {
+      "positions": "c09f31bfcba4f0eea5204537f2598c047d5f7e6568d8bcb53415ac62a2a85625",
+      "normals": "1ab8321e3e3000ad243f37cd015fb05e3c3f09d734054fc65d6da51c945f2432",
+      "colors": "e71ad762cec7660c6129b9c2a164a4e03c49f80485437b21b604da6978ca4a38",
+      "occlusion": "01049ba42cddc7308e98111c204c22012506da2a025fb16c72b2992c19f11452",
+      "indices": "60e29244a5d3be41b6e9b1c8e84209e6b62177d468224add65c7e23d4ed94e59"
+    },
+    "ranges": [
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 0,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 90,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 216,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 306,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 432,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 522,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 648,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 654,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 660,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 666,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 756,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 882,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 972,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 1098,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 1188,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 1314,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 1320,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 1326,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 1332,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 1422,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 1548,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 1638,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 1764,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 1854,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 1980,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 1986,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 1992,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 1998,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 2088,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 2214,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 2304,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 2430,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 2520,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 2646,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 2652,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 2658,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 2664,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 2754,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 2880,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 2970,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 3096,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 3186,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 3312,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 3318,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 3324,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 3330,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 3420,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 3546,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 3636,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 3762,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 3852,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 3978,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 3984,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 3990,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 3996,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 4086,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 4212,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 4302,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 4428,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 4518,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 4644,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 4650,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 4656,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 4662,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 4752,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 4878,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 4968,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 5094,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 5184,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 5310,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 5316,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 5322,
+        "indexCount": 6
+      }
+    ]
+  },
+  {
+    "turn": {
+      "face": "R",
+      "depth": 1,
+      "width": 1,
+      "angle": 0.7853981633974483
+    },
+    "sha256": {
+      "positions": "5b3aa2c6e458d3e5f3ce6b75ef8bfdc844b6943be1f0619731133bbbd2540327",
+      "normals": "e1a749a7fefb942c9be09612350cc5884a33196a7feb8ad8a8da9e7146199421",
+      "colors": "e71ad762cec7660c6129b9c2a164a4e03c49f80485437b21b604da6978ca4a38",
+      "occlusion": "01049ba42cddc7308e98111c204c22012506da2a025fb16c72b2992c19f11452",
+      "indices": "60e29244a5d3be41b6e9b1c8e84209e6b62177d468224add65c7e23d4ed94e59"
+    },
+    "ranges": [
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 0,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 90,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 216,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 306,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 432,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 522,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 648,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 654,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 660,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 666,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 756,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 882,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 972,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 1098,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 1188,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 1314,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 1320,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 1326,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 1332,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 1422,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 1548,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 1638,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 1764,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 1854,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 1980,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 1986,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 1992,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 1998,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 2088,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 2214,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 2304,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 2430,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 2520,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 2646,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 2652,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 2658,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 2664,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 2754,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 2880,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 2970,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 3096,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 3186,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 3312,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 3318,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 3324,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 3330,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 3420,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 3546,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 3636,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 3762,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 3852,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 3978,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 3984,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 3990,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 3996,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 4086,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 4212,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 4302,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 4428,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 4518,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 4644,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 4650,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 4656,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 4662,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 4752,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 4878,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 4968,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 5094,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 5184,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 5310,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 5316,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 5322,
+        "indexCount": 6
+      }
+    ]
+  },
+  {
+    "turn": {
+      "face": "R",
+      "depth": 1,
+      "width": 1,
+      "angle": 1.5707963267948966
+    },
+    "sha256": {
+      "positions": "1280abcc02e789bcdf64c9e2c8d724d0e22ce11629da4ab15b0db8b078a150a1",
+      "normals": "5566e39516731863ba68891973ce837b8460280a1ec215c9dccf290952f43361",
+      "colors": "e71ad762cec7660c6129b9c2a164a4e03c49f80485437b21b604da6978ca4a38",
+      "occlusion": "01049ba42cddc7308e98111c204c22012506da2a025fb16c72b2992c19f11452",
+      "indices": "60e29244a5d3be41b6e9b1c8e84209e6b62177d468224add65c7e23d4ed94e59"
+    },
+    "ranges": [
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 0,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 90,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 216,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 306,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 432,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 522,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 648,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 654,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 660,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 666,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 756,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 882,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 972,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 1098,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 1188,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 1314,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 1320,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          0
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 1326,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 1332,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 1422,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 1548,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 1638,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 1764,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 1854,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 1980,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 1986,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 1992,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 1998,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 2088,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "b",
+        "firstIndex": 2214,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "b",
+        "firstIndex": 2304,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 2430,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 2520,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 2646,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "f",
+        "firstIndex": 2652,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          0
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 2658,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 2664,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 2754,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 2880,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 2970,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 3096,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 3186,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 3312,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 3318,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 3324,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "d",
+        "firstIndex": 3330,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "d",
+        "firstIndex": 3420,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 3546,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 3636,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 3762,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 3852,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "u",
+        "firstIndex": 3978,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 3984,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          0,
+          1
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 3990,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 3996,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 4086,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 4212,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 4302,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "l",
+        "firstIndex": 4428,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "l",
+        "firstIndex": 4518,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 4644,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 4650,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          0,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "r",
+        "firstIndex": 4656,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "u",
+        "firstIndex": 4662,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "u",
+        "firstIndex": 4752,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "f",
+        "firstIndex": 4878,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "f",
+        "firstIndex": 4968,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "body",
+        "face": "r",
+        "firstIndex": 5094,
+        "indexCount": 90
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "sticker",
+        "face": "r",
+        "firstIndex": 5184,
+        "indexCount": 126
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "d",
+        "firstIndex": 5310,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "b",
+        "firstIndex": 5316,
+        "indexCount": 6
+      },
+      {
+        "owner": [
+          1,
+          1,
+          1
+        ],
+        "role": "cap",
+        "face": "l",
+        "firstIndex": 5322,
+        "indexCount": 6
+      }
+    ]
+  }
+]
