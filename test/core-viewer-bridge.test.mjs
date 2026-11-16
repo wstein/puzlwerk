@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { definitionText } from './helpers/cube-model.mjs';
-import { open } from '../packages/core-viewer-bridge/src/index.mjs';
+import { open, createPlayer } from '../packages/core-viewer-bridge/src/index.mjs';
 import * as Codec from '../core/res/PwCodec.res.mjs';
 import { Quaternion, Vector3 } from 'three';
 import { validateProjection, validateTransition } from '../packages/viewer/dist/contract.js';
@@ -38,7 +38,7 @@ test('player commits only completed turns and rejects overlap', async () => {
   const definition = definitionText(2), d = Codec.decodeDefinition(definition)._0;
   const state = Codec.encodeState(Codec.homeState(d)), appearance = JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]});
   let finish;
-  const scene = {transition: t => { assert.equal(validateTransition(t).ok,true); return new Promise(resolve => {finish=resolve;}); }, cancel: () => ({ok:true}), dispose(){}};
+  const scene = {transition: t => { assert.equal(validateTransition(t).ok,true); return new Promise(resolve => {finish=resolve;}); }, cancel: () => {finish({ok:false,error:{code:'Cancelled'}});return {ok:true};}, dispose(){}};
   const player = createPlayer(definition,state,appearance,{palette:{white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'},defaultColor:'#ffffff'},scene).value;
   assert.equal((await player.turn('bad',[1],-1,0)).ok,false);
   const illegal = await player.turn('X',[0,1],1,0);
@@ -50,7 +50,7 @@ test('player commits only completed turns and rejects overlap', async () => {
   assert.equal((await turn).ok,true);
   assert.notEqual(player.state(),state);
   const after = player.state(), cancelled = player.turn('Y',[1],1,10);
-  player.cancel(); finish({ok:true});
+  player.cancel();
   assert.equal((await cancelled).ok,false);
   assert.equal(player.state(),after);
 });
@@ -70,4 +70,36 @@ test('production appearance reader rejects all contract invalid vectors', async(
  const invalid=load('appearance','invalid.json');
  for(const vector of invalid){const result=checkAppearance(defs[vector.definition],vector.document);assert.deepEqual([result.ok,result.code,result.path],[false,vector.code,vector.path],vector.name);}
  assert.equal(invalid.length,20);
+});
+
+test('completed synchronous transition remains committed when cancel or dispose races its promise', async()=>{
+ const definition=definitionText(2), d=Codec.decodeDefinition(definition)._0, state=Codec.encodeState(Codec.homeState(d));
+ const appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]});
+ const palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ for(const action of ['cancel','dispose']){
+  let displayed;
+  const scene={transition(t){displayed=t.to;return Promise.resolve({ok:true});},cancel(){return {ok:true};},dispose(){}};
+  const player=createPlayer(definition,state,appearance,{palette,defaultColor:'#ffffff'},scene).value;
+  const pending=player.turn('X',[1],-1,0); player[action]();
+  assert.equal((await pending).ok,true); assert.notEqual(player.state(),state); assert.deepEqual(player.projection(),displayed);
+  if(action==='cancel'){const next=player.turn('Y',[1],-1,0);assert.equal((await next).ok,true);assert.deepEqual(player.projection(),displayed);}
+ }
+});
+
+test('real viewer completion and cancellation keep canonical state synchronized',async()=>{
+ const {createSceneForTest}=await import('../packages/viewer/dist/scene.js');
+ const definition=definitionText(2), d=Codec.decodeDefinition(definition)._0, initial=Codec.encodeState(Codec.homeState(d));
+ const appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]});
+ const palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ let time=0,id=0;const frames=new Map();const clock={now:()=>time,request:cb=>{frames.set(++id,cb);return id;},cancel:i=>frames.delete(i)};
+ const step=ms=>{time+=ms;const callbacks=[...frames.values()];frames.clear();callbacks.forEach(cb=>cb(time));};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render(){},dispose(){}});
+ const player=createPlayer(definition,initial,appearance,{palette,defaultColor:'#ffffff'},scene).value;
+ assert.equal((await scene.setProjection(player.projection())).ok,true);step(0);
+ const zero=player.turn('X',[1],-1,0);player.cancel();assert.equal((await zero).ok,true);
+ const afterZero=player.state(); assert.notEqual(afterZero,initial);
+ const animation=player.turn('Y',[1],-1,100);step(100);player.cancel();assert.equal((await animation).ok,true);
+ const afterAnimation=player.state();assert.notEqual(afterAnimation,afterZero);
+ const pending=player.turn('X',[1],1,100);step(50);player.cancel();assert.equal((await pending).error.code,'Cancelled');assert.equal(player.state(),afterAnimation);
+ assert.equal((await player.turn('Y',[1],1,0)).ok,true);player.dispose();
 });
