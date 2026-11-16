@@ -20,7 +20,7 @@ function copyModule(name){
  for(const match of text.matchAll(/from ['"]\.\/(\w+\.res\.mjs)['"]/g))copyModule(match[1]);
  for(const extension of ['.res','.resi']){const src=path.replace(/\.res\.mjs$/,extension);if(existsSync(src))copyFileSync(src,resolve(source,name.replace(/\.res\.mjs$/,extension)));}
 }
-copyModule('PwCapture.res.mjs');
+copyModule('PwCapture.res.mjs');copyModule('PwRecovery.res.mjs');
 // ReScript type dependencies can be erased from JS but are required to rebuild source.
 const sourceModules=new Set();
 function copySource(name){
@@ -34,11 +34,12 @@ function copySource(name){
 for(const name of visited)copySource(name.replace(/\.res\.mjs$/,''));
 writeFileSync(resolve(pkg,'rescript.json'),JSON.stringify({name:'@puzlwerk/capture-recovery',sources:[{dir:'source',subdirs:false}],'package-specs':{module:'esmodule','in-source':true},suffix:'.res.mjs',dependencies:[],gentypeconfig:{module:'esmodule',moduleResolution:'bundler',generatedFileExtension:'.gen.ts'}},null,2)+'\n');
 copyFileSync(resolve(root,'core/res/PwCapture.gen.ts'),resolve(lib,'PwCapture.gen.ts'));
-writeFileSync(resolve(lib,'index.ts'),"export * from './PwCapture.gen.js';\n");
-execFileSync('tsc',['--strict','--allowJs','--checkJs','false','--declaration','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','--outDir',resolve(pkg,'lib-compiled'),resolve(lib,'index.ts')],{cwd:root,stdio:'inherit'});
+copyFileSync(resolve(root,'core/res/PwRecovery.gen.ts'),resolve(lib,'PwRecovery.gen.ts'));
+writeFileSync(resolve(lib,'index.ts'),"export * from './PwCapture.gen.js';\nexport * as Recovery from './PwRecovery.gen.js';\n");
+execFileSync('tsc',['--strict','--allowJs','--checkJs','false','--declaration','--rewriteRelativeImportExtensions','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022','--outDir',resolve(pkg,'lib-compiled'),resolve(lib,'index.ts')],{cwd:root,stdio:'inherit'});
 // tsc copies the reachable JavaScript closure and generates its declarations.
-for(const name of ['index.js','index.d.ts','PwCapture.gen.js','PwCapture.gen.d.ts'])copyFileSync(resolve(pkg,'lib-compiled',name),resolve(lib,name));
-unlinkSync(resolve(lib,'index.ts'));unlinkSync(resolve(lib,'PwCapture.gen.ts'));
+for(const name of ['index.js','index.d.ts','PwCapture.gen.js','PwCapture.gen.d.ts','PwRecovery.gen.js','PwRecovery.gen.d.ts'])copyFileSync(resolve(pkg,'lib-compiled',name),resolve(lib,name));
+unlinkSync(resolve(lib,'index.ts'));unlinkSync(resolve(lib,'PwCapture.gen.ts'));unlinkSync(resolve(lib,'PwRecovery.gen.ts'));
 const files=[...sourceModules].sort().flatMap(name=>['.res','.resi'].map(ext=>name+ext)).filter(name=>existsSync(resolve(source,name)));
 const hashes=Object.fromEntries(files.map(name=>[name,createHash('sha256').update(readFileSync(resolve(source,name))).digest('hex')]));
 const dirty=files.some(name=>{try{return !readFileSync(resolve(source,name)).equals(execFileSync('git',['show','HEAD:core/res/'+name],{cwd:root,stdio:['ignore','pipe','ignore']}));}catch{return true;}});

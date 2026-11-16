@@ -192,7 +192,9 @@ Case `cube-assembler-capture-recovery` reserves one informational inventory rout
 for the [proposed envelope and application port](spec.md#proposed-capture-recovery-application-contract).
 Implementation: **not implemented**; architecture: **blocked**; functional,
 visual and owner acceptance: **not tested / UNKNOWN**. There is no recovery runtime
-or hosted original on this route. The following scenarios are proposed checks,
+or hosted original on this route. A bounded local ReScript domain package for
+WI1/WI2 is recorded in the specification; its unit and package evidence does not
+implement this application comparison. The following scenarios are proposed checks,
 not claims that existing source tests implement or pass them.
 
 Source evidence: [CubeAssembler PR #56](https://github.com/wstein/cube-assembler/pull/56),
