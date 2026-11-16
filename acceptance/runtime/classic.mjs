@@ -17,10 +17,10 @@ export async function mountClassic(root, fixtureBase) {
   inspector.textContent=JSON.stringify({definition,state,appearance,assets:native.assets},null,2);
   const palette=Object.fromEntries(native.assets.images.filter(i=>i.kind==='color').map(i=>[i.id,i.color]));
   const resolveAsset=async id=>({ok:false,error:{code:'UnresolvedAsset',message:`No image asset mapping for ${id}`}});
-  const created=createCubeStage(candidateHost,{resolveAsset}); if(!created.ok) throw Error(created.error.message);
+  const created=createCubeStage(candidateHost,{resolveAsset,rotationStorageKey:`cubistry-viewer-rotation-v1:${location.pathname.slice(0,200)}`}); if(!created.ok) throw Error(created.error.message);
   const stage=created.value, added=stage.addCube({position:[0,0,0]}); if(!added.ok) throw Error(added.error.message);
   const scene=added.value;
-  const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff'},scene);
+  const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff',core:{center:[0,0,0],halfExtent:1}},scene);
   if(!opened.ok) throw Error(JSON.stringify(opened.error));
   const player=opened.value, loaded=await scene.setProjection(player.projection()); if(!loaded.ok) throw Error(JSON.stringify(loaded.error));
   const original=await mountOriginal(originalHost,native,fixtureBase.href);

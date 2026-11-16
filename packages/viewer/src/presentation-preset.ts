@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { createTwoRadiusBody, type OuterSides } from "./two-radius-body.js";
 import { thickOuterLayerWidths } from "./layer-widths.js";
 type LayerProfile = { readonly widths: readonly number[]; readonly body: (cell: readonly [number, number, number], outer: OuterSides) => THREE.BufferGeometry; readonly sticker?: (width: number, height: number) => THREE.BufferGeometry };
@@ -262,4 +263,15 @@ export function addPresentationLighting(scene: THREE.Scene | THREE.Group, shadow
       if (light instanceof THREE.DirectionalLight) light.shadow.map?.dispose();
     }
   } };
+}
+
+export function createPresentationGeometry(size?: number, edge?: number) {
+  const p = PRESENTATION_PRESET;
+  const body = new RoundedBoxGeometry(p.bodyWidth, p.bodyWidth, p.bodyWidth, p.bevelSegments, bodyRadiusFor(size, edge));
+  const radius = stickerRadiusFor(size, edge);
+  const side = stickerSideFor(1, innerRadiusFor(size, edge));
+  const sticker = createStickerGeometry(side, side, radius);
+  const n = size ?? 3;
+  return { body, core: new THREE.SphereGeometry(1, 48, 24), sticker, stickerOffset: p.stickerOffset,
+    layers: edge === undefined && n >= 2 ? presentationLayerProfile(presentationWidths(n), n) : undefined };
 }

@@ -15,6 +15,8 @@ export interface PhysicalStickerFrame {
   readonly p: Vec3;
   readonly n: Vec3;
   readonly up: Vec3;
+  readonly offset?: number;
+  readonly scale?: readonly [number, number];
 }
 export const stickerFrame = (normal: Vec3, up: Vec3): THREE.Matrix4 =>
   new THREE.Matrix4().makeBasis(
@@ -85,6 +87,9 @@ const bodyExtent = (geometry: THREE.BufferGeometry): Vec3 => {
 export interface PhysicalBodyPose { readonly id: string; readonly position: Vec3; readonly rotation: readonly [number, number, number, number] }
 export interface PhysicalSceneOptions extends StickerlessBodyOptions {
   readonly bodies?: readonly PhysicalBodyPose[];
+  readonly bodyGeometry?: ReadonlyMap<string, THREE.BufferGeometry>;
+  readonly stickerGeometry?: ReadonlyMap<string, THREE.BufferGeometry>;
+  readonly corePose?: { readonly center: Vec3; readonly halfExtent: number };
   readonly layers?: LayerProfile;
   /**
    * Stickerless construction only: the exterior faces of the bodies take planar UV (`u = position / body extent + 0.5`) instead of
@@ -98,6 +103,7 @@ export interface PhysicalSceneOptions extends StickerlessBodyOptions {
 export class PhysicalCubeScene {
   private readonly bodies = new Map<string, THREE.Group>();
   private readonly unprintedBodies = new Set<string>();
+  private readonly unprintedShells = new Set<THREE.Mesh>();
   private readonly references = new Map<string, { id: string; inverse: THREE.Matrix4 }>();
   private readonly shells = new Map<string, { mesh: THREE.Mesh; stickerless: THREE.Material[]; base: THREE.BufferGeometry; key: string; extent: Vec3; image: ReadonlySet<number> }>();
   /** Projected stickerless look: body geometries with planar UV on the image faces, by body variant key (see body-artwork.ts). */
@@ -181,7 +187,7 @@ export class PhysicalCubeScene {
       demand(materials.has(s.id), "Missing printed sticker material");
       let body = this.bodies.get(s.cubie);
       if (!body) {
-        body = new THREE.Group();
+        body = new THREE.Group(); body.name = s.cubie;
         const sourceFaces = printed.filter(face => face.cubie === s.cubie);
         // Layer profile: the cell (layer widths of the position at construction, in the local axes of the body) decides the box.
         const cell = this.cellAt(s.p);
@@ -193,7 +199,9 @@ export class PhysicalCubeScene {
           if (!sized) { sized = this.layers!.body(cell, outerSides!); this.cellBodies.set(cellKey, sized); this.geometries.push(sized); }
           base = sized;
         }
-        const key = cellKey + "|" + bodyArtworkKey(sourceFaces);
+        const supplied = options.bodyGeometry?.get(s.cubie);
+        if (supplied) { base = supplied; if (!this.geometries.includes(supplied)) this.geometries.push(supplied); }
+        const key = cellKey + "|" + (supplied?.uuid ?? "") + "|" + bodyArtworkKey(sourceFaces);
         let bodyGeometry = this.bodyVariants.get(key);
         if (!bodyGeometry) {
           bodyGeometry = orientBodyArtwork(base, sourceFaces);
@@ -268,7 +276,14 @@ export class PhysicalCubeScene {
           sticker.geometry = sized;
         } else sticker.scale.set(right, up, 1);
       }
-      sticker.userData.stickerId = s.id;
+      const explicitSticker = options.stickerGeometry?.get(s.id);
+      if (explicitSticker) {
+        sticker.geometry = explicitSticker;
+        if (!this.geometries.includes(explicitSticker)) this.geometries.push(explicitSticker);
+        sticker.scale.set(s.scale![0], s.scale![1], 1);
+        sticker.position.set(...s.n).multiplyScalar(s.offset!);
+      }
+      sticker.name = s.id; sticker.userData.stickerId = s.id;
       const own = sticker.geometry.userData.size as readonly [number, number] | undefined;
       sticker.geometry.computeBoundingBox();
       const box = sticker.geometry.boundingBox!;
@@ -278,16 +293,18 @@ export class PhysicalCubeScene {
       this.stickers.push(sticker);
     }
     for (const pose of options.bodies ?? []) {
-      const body = new THREE.Group();
+      const body = new THREE.Group(); body.name = pose.id;
       const cell = this.cellAt(pose.position), outer = this.outerSidesAt(pose.position);
       let bodyGeometry = geometry.body;
       if (cell) { bodyGeometry = this.layers!.body(cell, outer!); this.geometries.push(bodyGeometry); }
+      const supplied = options.bodyGeometry?.get(pose.id);
+      if (supplied) { bodyGeometry = supplied; if (!this.geometries.includes(supplied)) this.geometries.push(supplied); }
       const shell = new THREE.Mesh(bodyGeometry, plastic); shell.castShadow = shell.receiveShadow = true;
-      body.add(shell); body.position.set(...this.worldAt(pose.position)).multiplyScalar(this.spacing);
+      this.unprintedShells.add(shell); body.add(shell); body.position.set(...this.worldAt(pose.position)).multiplyScalar(this.spacing);
       body.quaternion.set(...pose.rotation); parent.add(body);
       this.bodies.set(pose.id, body); this.unprintedBodies.add(pose.id);
     }
-    if (geometry.core && printed.length) {
+    if (geometry.core && (printed.length || options.corePose)) {
       // One static core ball at the cube center, as in real cubes: it never
       // follows layer turns. Unit-pitch cubies span +-0.5 around their centers.
       const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
@@ -295,12 +312,12 @@ export class PhysicalCubeScene {
         lo[axis] = Math.min(lo[axis], s.p[axis] * spacing); hi[axis] = Math.max(hi[axis], s.p[axis] * spacing);
       }
       // Layer profile: the core is centered in the cube whose edge is the sum of the layer widths.
-      const half = this.layers ? layerEdge(this.layers.widths) * this.pitch * spacing / 2 : Math.max(...hi.map((v, axis) => (v - lo[axis]) / 2)) + 0.5;
+      const half = options.corePose?.halfExtent ?? (this.layers ? layerEdge(this.layers.widths) * this.pitch * spacing / 2 : Math.max(...hi.map((v, axis) => (v - lo[axis]) / 2)) + 0.5);
       const core = new THREE.Mesh(geometry.core, plastic);
       core.userData.plasticCore = true;
       core.castShadow = core.receiveShadow = true;
       core.scale.setScalar(half * CORE_DIAMETER_RATIO); // radius = ratio * edge / 2 = ratio * half edge
-      core.position.set(...(this.layers ? [0, 0, 0] : hi.map((v, axis) => (v + lo[axis]) / 2)) as [number, number, number]);
+      core.position.set(...(options.corePose?.center ?? (this.layers ? [0, 0, 0] : hi.map((v, axis) => (v + lo[axis]) / 2))) as [number, number, number]);
       parent.add(core);
       this.cores.push(core);
     }
@@ -410,6 +427,36 @@ export class PhysicalCubeScene {
     this.projectionTextures.push(texture);
     return texture;
   }
+  /** Transfer unchanged projected windows at commit, after the replacement scene has fully prepared. */
+  reuseProjectionTextures(previous: PhysicalCubeScene): boolean {
+    if (!this.projecting || !previous.projecting || this.projectionTextures.length !== previous.projectionTextures.length) return false;
+    const replacements = new Map<THREE.Texture, THREE.Texture>();
+    for (let i = 0; i < this.projectionTextures.length; i++) {
+      const candidate = this.projectionTextures[i], existing = previous.projectionTextures[i];
+      if (candidate.source.data !== existing.source.data || !candidate.offset.equals(existing.offset) ||
+          !candidate.repeat.equals(existing.repeat) || !candidate.center.equals(existing.center) ||
+          candidate.rotation !== existing.rotation || candidate.mapping !== existing.mapping ||
+          candidate.wrapS !== existing.wrapS || candidate.wrapT !== existing.wrapT ||
+          candidate.magFilter !== existing.magFilter || candidate.minFilter !== existing.minFilter ||
+          candidate.anisotropy !== existing.anisotropy || candidate.flipY !== existing.flipY ||
+          candidate.colorSpace !== existing.colorSpace || candidate.premultiplyAlpha !== existing.premultiplyAlpha ||
+          candidate.format !== existing.format || candidate.type !== existing.type || candidate.internalFormat !== existing.internalFormat ||
+          candidate.channel !== existing.channel ||
+          candidate.matrixAutoUpdate !== existing.matrixAutoUpdate || (!candidate.matrixAutoUpdate && !candidate.matrix.equals(existing.matrix)) ||
+          candidate.generateMipmaps !== existing.generateMipmaps || candidate.unpackAlignment !== existing.unpackAlignment) return false;
+      replacements.set(candidate, existing);
+    }
+    const materials = [...this.projectionMaterials, ...this.artwork.map(entry => entry.surface)];
+    for (const material of materials) {
+      const mapped = material as THREE.MeshStandardMaterial;
+      if (mapped.map && replacements.has(mapped.map)) mapped.map = replacements.get(mapped.map)!;
+    }
+    for (const texture of this.projectionTextures) texture.dispose();
+    this.projectionTextures = previous.projectionTextures;
+    for (const texture of this.projectionTextures) texture.needsUpdate = true;
+    previous.projectionTextures = [];
+    return true;
+  }
   private clearProjection(): void {
     for (const info of this.stickerInfo.values()) info.mesh.material = info.base;
     for (const entry of this.artwork) if (entry.projected) { entry.projected = false; entry.surface.map = null; entry.surface.needsUpdate = true; }
@@ -494,6 +541,8 @@ export class PhysicalCubeScene {
     this.updateBodyUv();
     for (const { mesh, stickerless } of this.shells.values())
       mesh.material = construction === "stickerless" ? stickerless : this.plastic;
+    for (const shell of this.unprintedShells)
+      shell.material = construction === "stickerless" ? this.cutMaterial(0, []) : this.plastic;
     for (const core of this.cores)
       core.material = construction === "stickerless" ? this.coreMaterial : this.plastic;
     for (const sticker of this.stickers) sticker.visible = construction === "stickered";
@@ -563,6 +612,7 @@ export class PhysicalCubeScene {
     for (const body of this.bodies.values()) body.removeFromParent();
     this.bodies.clear();
     this.unprintedBodies.clear();
+    this.unprintedShells.clear();
     this.references.clear();
     this.shells.clear();
     this.cores.length = 0;

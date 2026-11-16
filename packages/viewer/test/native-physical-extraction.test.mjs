@@ -82,3 +82,32 @@ test('direct Core body poses orient stickered native bodies without quantization
  const previous=parent.children[0].position.clone();assert.throws(()=>scene.syncBodyPoses([]),/Missing or duplicate/);assert.ok(parent.children[0].position.equals(previous));
  scene.dispose();material.dispose();
 });
+
+test('direct free body pose preserves exact sticker center, normal, and up in world coordinates',()=>{
+ const parent=new THREE.Group(),material=new THREE.MeshStandardMaterial();
+ const geometry={body:new THREE.BoxGeometry(.9,.9,.9),sticker:new THREE.PlaneGeometry(.71,.83),stickerOffset:.4321};
+ const frame={id:'face',cubie:'piece',p:[1,2,3],n:[0,0,1],up:[0,1,0]},q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),.4);
+ const pose={id:'piece',position:[1,2,3],rotation:q.toArray()}, scene=new PhysicalCubeScene(parent,[frame],new Map([['face',material]]),material,1,geometry);
+ scene.syncBodyPoses([pose]);parent.updateMatrixWorld(true);let sticker;parent.traverse(o=>{if(o.userData.stickerId==='face')sticker=o});
+ const center=sticker.getWorldPosition(new THREE.Vector3()),expected=new THREE.Vector3(1,2,3).add(new THREE.Vector3(0,0,.4321).applyQuaternion(q));
+ assert.ok(center.distanceTo(expected)<1e-9);const worldQ=sticker.getWorldQuaternion(new THREE.Quaternion());
+ assert.ok(new THREE.Vector3(0,0,1).applyQuaternion(worldQ).distanceTo(new THREE.Vector3(0,0,1).applyQuaternion(q))<1e-9);
+ assert.ok(new THREE.Vector3(0,1,0).applyQuaternion(worldQ).distanceTo(new THREE.Vector3(0,1,0).applyQuaternion(q))<1e-9);scene.dispose();material.dispose();
+});
+
+test('unprinted body respects source stickerless material and restores frame material',()=>{
+ const parent=new THREE.Group(),material=new THREE.MeshStandardMaterial({color:'#123456'});
+ const geometry={body:new THREE.BoxGeometry(.9,.9,.9),sticker:new THREE.PlaneGeometry(.8,.8),stickerOffset:.46};
+ const body={id:'inner',position:[0,0,0],rotation:[0,0,0,1]},scene=new PhysicalCubeScene(parent,[],new Map(),material,1,geometry,new Map(),{bodies:[body]});
+ const mesh=parent.children[0].children[0];scene.setConstruction('stickerless');assert.equal(mesh.material.color.getHexString(),'3a3d42');
+ scene.setConstruction('stickered');assert.equal(mesh.material,material);scene.dispose();material.dispose();
+});
+
+test('native unequal layer grids place every body at canonical world centers once',async()=>{
+ const {presentationLayerProfile}=await import('../dist/presentation-preset.js');const parent=new THREE.Group(),material=new THREE.MeshStandardMaterial();
+ const geometry={body:new THREE.BoxGeometry(.9,.9,.9),sticker:new THREE.PlaneGeometry(.8,.8),stickerOffset:.46};
+ const bodies=[];for(const x of [-.5,.5])for(const y of [-.5,.5])for(const z of [-.5,.5])bodies.push({id:`${x}/${y}/${z}`,position:[x,y,z],rotation:[0,0,0,1]});
+ const scene=new PhysicalCubeScene(parent,[],new Map(),material,1,geometry,new Map(),{bodies,layers:presentationLayerProfile([1,1.2])});scene.syncBodyPoses(bodies);
+ const positions=parent.children.map(o=>o.position.toArray());for(const position of positions)for(const v of position)assert.ok(Math.abs(v+.6)<1e-9||Math.abs(v-.5)<1e-9);
+ scene.dispose();material.dispose();
+});

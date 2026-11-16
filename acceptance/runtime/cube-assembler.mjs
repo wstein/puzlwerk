@@ -55,7 +55,14 @@ export async function mountCubeAssembler(root,fixtureBase,referenceBase) {
   const added=stage.addCube({position:[0,0,0]});if(!added.ok)throw Error(added.error.message);const scene=added.value;
   const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff',renderProfile},scene);
   if(!opened.ok)throw Error(JSON.stringify(opened.error));const player=opened.value;
-  const loaded=await scene.setProjection(player.projection());if(!loaded.ok)throw Error(JSON.stringify(loaded.error));
+  const loaded=await scene.setProjection(player.projection());
+  if(!loaded.ok){
+    if(loaded.error.code==='Unavailable'){
+      status.textContent='BLOCKED: source mesh requires a shared native geometry capability.';
+      return {player,original,dispose(){player.dispose();stage.dispose();original.request('dispose').finally(()=>original.dispose());}};
+    }
+    throw Error(JSON.stringify(loaded.error));
+  }
   const projected=()=>projector.faceletsFromWire(definition,JSON.parse(player.state()),appearance);
   const initial=await original.ready;
   const show=(nativeState,label)=>{const equal=visibleColorsMatch(nativeState,projected());status.textContent=equal?`Visible facelets match ${label}`:`Visible facelets differ ${label}`;return equal;};

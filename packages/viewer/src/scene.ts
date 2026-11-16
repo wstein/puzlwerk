@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Pivot grouping adapted from Cubistry physical-scene.ts; see NOTICE.
+// Production rendering uses the extracted Cubistry physical scene; see NOTICE.
 import * as THREE from 'three';
-import {createCubeAssemblerMaterial,createCubeAssemblerGeometry,createCubeAssemblerShadow} from './cube-assembler-profile.js';
 import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import {createTwoRadiusBody} from './two-radius-body.js';
+import {PhysicalCubeScene} from './physical-scene.js';
+import {nativeFrames} from './native-projection.js';
+import {createPresentationGeometry} from './presentation-preset.js';
 import type { OuterSides } from './two-radius-body.js';
 import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile, stickerRadiusFor, bodyRadiusFor, innerRadiusFor } from './presentation-preset.js';
 import { createPresentationStudio } from './studio.js';
-import { sourceBody, pictureTexture } from './artwork-scene.js';
-import { stickerWindow } from './projected-uv.js';
-import { sourceFaceIndex } from './body-artwork.js';
 import { fail, ok, sameValues, validateProjection, validateTransition } from './contract.js';
 import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
 
@@ -28,6 +27,9 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
   const root = new THREE.Group(); parent.add(root);
   const studio = shared ? undefined : createPresentationStudio(scene);
 
+  let native: PhysicalCubeScene | undefined;
+  let activeTurnState: {ids:readonly string[];axis:readonly [number,number,number];angle:number;pivot:readonly [number,number,number];progress:number}|undefined;
+  let activeTurn: ReturnType<PhysicalCubeScene["beginTurn"]> | undefined;
   let projection: CubeProjection | undefined, pending: Pending | undefined, livePending: Pending | undefined, disposed = false, lost = false;
   let referenceWidths: readonly number[] | undefined;
   const referenceFaces=new Map<string,{normal:readonly number[];up:readonly number[]}>(), referencePictures=new Map<string,unknown>();
@@ -64,96 +66,54 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     if (again) draw();
   }
   function present(p: CubeProjection, assets: Map<string, CanvasImageSource>, live = false) {
-    const staging = new THREE.Group(), cores: THREE.Object3D[] = [];
-    const candidateResources: {dispose():void}[] = [];
-    const pictureTextures = new Map<string,THREE.Texture>();
-    const artworkCache={cuts:new Map<string,THREE.MeshPhysicalMaterial>(),miters:new Map<string,THREE.MeshPhysicalMaterial>(),artwork:new Map<string,THREE.BufferGeometry>(),planar:new Map<string,THREE.BufferGeometry>()};
-    const bodyGeometries=new Map<string,THREE.BufferGeometry>(),stickerGeometries=new Map<string,THREE.BufferGeometry>();
+    const converted=nativeFrames(p); if(!converted.ok) throw Error(converted.error.message);
+    const staging=new THREE.Group(), candidateResources:{dispose():void}[]=[];
     try {
-    if (p.picture) for (const [face,id] of Object.entries(p.picture.faces)) {
-      const texture=new THREE.Texture(assets.get(id) as TexImageSource); texture.colorSpace=THREE.SRGBColorSpace; texture.flipY=false; texture.needsUpdate=true;
-      candidateResources.push(texture); pictureTextures.set(face,texture);
-    }
-    const profile = p.presentation ? presentationLayerProfile(Array(p.presentation.size).fill(1), p.presentation.nominalEdge) : presentationLayerProfile([1,1],2);
-    if (p.core) {
-      const geometry = new THREE.SphereGeometry(1,48,24);
-      const material = createPlasticMaterial(p.appearance?.construction === 'stickerless' ? (p.appearance.coreColor ?? '#3a3d42') : (p.appearance?.frameColor ?? '#1b2431'));
-      candidateResources.push(geometry,material);
-      const core = new THREE.Mesh(geometry,material);
-      core.position.set(...p.core.center); core.scale.setScalar(.8 * p.core.halfExtent);
-      core.castShadow = true; core.receiveShadow = true; cores.push(core);
-      candidateResources.push({dispose() { core.removeFromParent(); }});
-    }
-    for (const piece of p.pieces) {
-      const body = new THREE.Group(); body.name = piece.id;
-      body.position.set(...piece.transform.position); body.quaternion.set(...piece.transform.rotation);
-      const sourceMesh=p.renderProfile?.meshes.find(m=>m.pieceId===piece.id);
-      if(sourceMesh){const geometry=createCubeAssemblerGeometry(sourceMesh,piece), material=createCubeAssemblerMaterial();candidateResources.push(geometry,material);const surface=new THREE.Mesh(geometry,material);surface.castShadow=false;surface.receiveShadow=false;body.add(surface);staging.add(body);continue;}
-      const sides: [[boolean, boolean], [boolean, boolean], [boolean, boolean]] = [[false,false],[false,false],[false,false]];
-      for (const sticker of piece.stickers) {
-        const n = new THREE.Vector3(0,0,1).applyQuaternion(new THREE.Quaternion(...sticker.transform.rotation));
-        const axis = [Math.abs(n.x), Math.abs(n.y), Math.abs(n.z)].indexOf(Math.max(Math.abs(n.x), Math.abs(n.y), Math.abs(n.z)));
-        const component = [n.x,n.y,n.z][axis];
-        if (Math.abs(component) > .999) sides[axis][component > 0 ? 1 : 0] = true;
+      const data=converted.value, generated=createPresentationGeometry(p.presentation?.size,p.presentation?.nominalEdge);
+      const nativeGeometry: Omit<typeof generated,"stickerOffset" | "core"> & {stickerOffset:number;core?:THREE.BufferGeometry} = {...generated,stickerOffset:Number(generated.stickerOffset)};
+      const bodyGeometry=new Map<string,THREE.BufferGeometry>(),stickerGeometry=new Map<string,THREE.BufferGeometry>();
+      const constructionGuard={dispose(){nativeGeometry.body.dispose();nativeGeometry.sticker.dispose();nativeGeometry.core?.dispose();for(const geometry of new Set([...bodyGeometry.values(),...stickerGeometry.values()]))geometry.dispose();}};
+      candidateResources.push(constructionGuard);
+      if(data.stickerSize) {
+        nativeGeometry.sticker.dispose();
+        nativeGeometry.sticker=createStickerGeometry(data.stickerSize[0],data.stickerSize[1],(data.stickerRadius ?? stickerRadiusFor(p.presentation?.size,p.presentation?.nominalEdge)));
       }
-      const offsets = piece.stickers.map(s => Math.hypot(...s.transform.position)).filter(n => n > .1);
-      const width = offsets.length ? Math.max(.94, Math.min(.99, Math.min(...offsets) * 2 - .002)) : .94;
-      const cell=piece.geometry?.cellSize ?? [width+.01,width+.01,width+.01], outer=piece.geometry?.outerSides ?? sides as OuterSides;
-      const geometryKey=JSON.stringify([cell,outer]);let geometry=bodyGeometries.get(geometryKey);
-      if(!geometry){const custom=p.geometryProfile?.body;if(custom){const size=cell.map(c=>c-custom.gap) as [number,number,number];geometry=custom.kind==='twoRadius'?createTwoRadiusBody({size,outer,big:bodyRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),small:innerRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),segments:custom.bevelSegments}):new RoundedBoxGeometry(...size,custom.bevelSegments,custom.radius);}else geometry=profile.body(cell as [number,number,number],outer);bodyGeometries.set(geometryKey,geometry);candidateResources.push(geometry);}
-      const material = createPlasticMaterial(p.appearance?.frameColor ?? '#1b2431'); candidateResources.push(material);
-      const tileTextures=new Map<string,THREE.Texture>();
-      for (const sticker of piece.stickers) if (sticker.imageId) {
-        const texture=new THREE.Texture(assets.get(sticker.imageId) as TexImageSource); texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;
-        candidateResources.push(texture); tileTextures.set(sticker.id,texture);
+      if(data.stickerOffset!==undefined)nativeGeometry.stickerOffset=data.stickerOffset;
+      nativeGeometry.layers=undefined;
+      if(!p.core){nativeGeometry.core?.dispose();nativeGeometry.core=undefined;}
+      if(data.layerWidths){
+        const layers=presentationLayerProfile(data.layerWidths,p.presentation?.nominalEdge);
+        nativeGeometry.layers={...layers,sticker:data.stickerSize?()=>createStickerGeometry(data.stickerSize![0],data.stickerSize![1],(data.stickerRadius ?? stickerRadiusFor(p.presentation?.size,p.presentation?.nominalEdge))):layers.sticker};
       }
-      const surface=sourceBody(piece,p,geometry,material,pictureTextures,tileTextures,candidateResources,artworkCache);
-      const mesh = new THREE.Mesh(surface.geometry, surface.material); mesh.castShadow = true; mesh.receiveShadow = true; body.add(mesh);
-      for (const sticker of piece.stickers) {
-        const radius=Math.min(p.presentation ? stickerRadiusFor(p.presentation.size,p.presentation.nominalEdge) : .055, ...sticker.size.map(x => x / 2));
-        const base=sticker.geometry?.referenceSize??sticker.size,rounding=sticker.geometry?.cornerRadius??radius;
-        const stickerKey=JSON.stringify([...base,rounding]);let geo=stickerGeometries.get(stickerKey);
-        if(!geo){geo=createStickerGeometry(...base,rounding);stickerGeometries.set(stickerKey,geo);candidateResources.push(geo);}
-        let texture=tileTextures.get(sticker.id); let color=sticker.color;
-        if (sticker.picture && p.picture) { const win=stickerWindow(p.picture.widths,.87,sticker.picture.face,sticker.picture.layerIndex,sticker.size); texture=pictureTexture(pictureTextures.get(sticker.picture.face)!,win,candidateResources); color='#ffffff'; }
-        const mat = createStickerMaterial(texture ?? null, color); if (texture && !sticker.picture && !sticker.sourceFace) mat.transparent = true; candidateResources.push(mat);
-        const mesh = new THREE.Mesh(geo, mat); mesh.name = sticker.id;
-        mesh.castShadow = true; mesh.receiveShadow = true; mesh.visible = p.appearance?.construction !== 'stickerless' || !sticker.sourceFace;
-        mesh.position.set(...sticker.transform.position); mesh.quaternion.set(...sticker.transform.rotation); if(sticker.geometry)mesh.scale.set(sticker.size[0]/base[0],sticker.size[1]/base[1],1); body.add(mesh);
+      const plastic=createPlasticMaterial(p.appearance?.frameColor ?? '#202329');candidateResources.push(plastic);
+      const materials=new Map<string,THREE.Material>();
+      for(const piece of p.pieces)for(const sticker of piece.stickers){
+        let texture:THREE.Texture|null=null;
+        if(sticker.imageId){texture=new THREE.Texture(assets.get(sticker.imageId) as TexImageSource);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;candidateResources.push(texture);}
+        const material=createStickerMaterial(texture,sticker.color);material.transparent=Boolean(texture && !sticker.sourceFace);materials.set(sticker.id,material);candidateResources.push(material);
       }
-      staging.add(body);
-    }
-    if (live) {
-      const pairs = staging.children.map(candidate => ({candidate, existing:root.getObjectByName(candidate.name)}));
-      if (pairs.some(pair => !pair.existing)) throw Error('Missing live body');
-      const keep=new Set<{dispose():void}>(), discard=new Set<{dispose():void}>();
-      const reuse=(old:THREE.MeshStandardMaterial, next:THREE.MeshStandardMaterial) => {
-        keep.add(old); if(old.map) keep.add(old.map); discard.add(next); if(next.map) discard.add(next.map); return old;
-      };
-      if (p.picture && projection?.picture && sameValues(p.picture,projection.picture)) {
-        const oldStickers=new Map(projection.pieces.flatMap(piece=>piece.stickers).map(sticker=>[sticker.id,sticker]));
-        for (const piece of p.pieces) for (const sticker of piece.stickers) {
-          const old=oldStickers.get(sticker.id);
-          if (!sticker.picture || !old || !sameValues(sticker.picture,old.picture) || !sticker.sourceFace || !old.sourceFace || !sameValues(sticker.sourceFace.normal,old.sourceFace.normal) || !sameValues(sticker.sourceFace.up,old.sourceFace.up)) continue;
-          const previous=root.getObjectByName(sticker.id) as THREE.Mesh, next=staging.getObjectByName(sticker.id) as THREE.Mesh;
-          if (previous && next) next.material=reuse(previous.material as THREE.MeshStandardMaterial,next.material as THREE.MeshStandardMaterial);
-          const previousBody=root.getObjectByName(piece.id), nextBody=staging.getObjectByName(piece.id);
-          const oldShell=previousBody?.children[0] as THREE.Mesh|undefined, newShell=nextBody?.children[0] as THREE.Mesh|undefined;
-          if (oldShell && newShell && Array.isArray(oldShell.material) && Array.isArray(newShell.material) && sticker.sourceFace) {
-            const index=sourceFaceIndex(sticker.sourceFace.normal), oldMaterial=oldShell.material[index] as THREE.MeshStandardMaterial, newMaterial=newShell.material[index] as THREE.MeshStandardMaterial;
-            if(oldMaterial.map && newMaterial.map) newShell.material[index]=reuse(oldMaterial,newMaterial);
-          }
-        }
-      }
-      for (const resource of discard) {resource.dispose();const i=candidateResources.indexOf(resource);if(i>=0)candidateResources.splice(i,1);}
-      for (const {candidate,existing} of pairs) { existing!.clear(); while(candidate.children.length) existing!.add(candidate.children[0]); }
-      const retained=resources.splice(0);for (const r of retained) {if(keep.has(r)) candidateResources.push(r);else r.dispose();}
-    } else { clear(); while (staging.children.length) root.add(staging.children[0]); }
-    if(p.renderProfile){const shadow=createCubeAssemblerShadow(p.renderProfile.size,root);scene.add(shadow.mesh);candidateResources.push(shadow);}
-    for (const core of cores) parent.add(core);
-    resourcesForCommit(candidateResources);
-    projection = p; draw();
-    } catch (error) { for (const resource of candidateResources) resource.dispose(); throw error; }
+      const bodyOnly=data.bodies.filter(body=>!data.frames.some(frame=>frame.cubie===body.id));
+      const profile=presentationLayerProfile(Array(p.presentation?.size ?? 2).fill(1),p.presentation?.nominalEdge);
+      const geometryCache=new Map<string,THREE.BufferGeometry>();
+      for(const [id,value] of data.bodyGeometry){const key=JSON.stringify(value);let geometry=geometryCache.get(key);if(!geometry){
+        const custom=p.geometryProfile?.body;
+        if(custom){const size=value.cellSize.map(c=>c-custom.gap) as [number,number,number];geometry=custom.kind==='twoRadius'?createTwoRadiusBody({size,outer:value.outerSides as OuterSides,big:bodyRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),small:innerRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),segments:custom.bevelSegments}):new RoundedBoxGeometry(...size,custom.bevelSegments,custom.radius);}
+        else geometry=profile.body(value.cellSize,value.outerSides as OuterSides);
+        geometryCache.set(key,geometry);}bodyGeometry.set(id,geometry);}
+      const stickerCache=new Map<string,THREE.BufferGeometry>();
+      for(const piece of p.pieces)for(const sticker of piece.stickers)if(sticker.geometry){const shape=sticker.geometry,key=JSON.stringify(shape);let geometry=stickerCache.get(key);if(!geometry){geometry=createStickerGeometry(...shape.referenceSize,shape.cornerRadius);stickerCache.set(key,geometry);}stickerGeometry.set(sticker.id,geometry);}
+      const faceColors=new Map(p.pieces.flatMap(piece=>piece.stickers.filter(sticker=>sticker.sourceFace?.color).map(sticker=>[sticker.id,sticker.sourceFace!.color!] as const)));
+      const faceEdgeColors=new Map(p.pieces.flatMap(piece=>piece.stickers.filter(sticker=>sticker.sourceFace?.edgeColors).map(sticker=>[sticker.id,sticker.sourceFace!.edgeColors!] as const)));
+      const next=new PhysicalCubeScene(staging,data.frames,materials,plastic,1,nativeGeometry,faceColors,{...p.appearance,bodies:bodyOnly,bodyGeometry,stickerGeometry,faceEdgeColors,corePose:p.core});
+      candidateResources.splice(candidateResources.indexOf(constructionGuard),1);candidateResources.push(next);
+      next.syncBodyPoses(data.bodies);
+      if(p.picture){const faces=new Map();for(const [face,id] of Object.entries(p.picture.faces)){const texture=new THREE.Texture(assets.get(id) as TexImageSource);texture.colorSpace=THREE.SRGBColorSpace;texture.flipY=false;texture.needsUpdate=true;faces.set(face,texture);candidateResources.push(texture);}next.setPictureProjection({faces});}
+      if(p.appearance?.construction)next.setConstruction(p.appearance.construction);
+      let replacementTurn:ReturnType<PhysicalCubeScene["beginTurn"]>|undefined;
+      if(live && activeTurn && activeTurnState){replacementTurn=next.beginTurn(activeTurnState.ids,activeTurnState.axis,activeTurnState.angle,activeTurnState.pivot);replacementTurn.update(activeTurnState.progress);}
+      if(live && native && p.picture && projection?.picture && sameValues(p.picture,projection.picture)) next.reuseProjectionTextures(native);
+      activeTurn?.dispose();clear();root.add(staging);resourcesForCommit(candidateResources);native=next;activeTurn=replacementTurn;projection=p;draw();
+    } catch(error) { for(const resource of candidateResources)resource.dispose(); throw error; }
   }
   const status = (): Result<void> => disposed ? fail('Disposed','Scene disposed') : lost ? fail('ContextLost','Context lost') : pending || livePending ? fail('Busy','Operation in progress') : ok(undefined);
   function begin(from?: CubeProjection) {
@@ -223,7 +183,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     setProjection(input) {
       const s = status(); if (!s.ok) return Promise.resolve(s);
       const validation = validateProjection(input); if (!validation.ok) return Promise.resolve(validation);
-      const p = copy(input); const {op,promise} = begin();
+      const p = copy(input); const capability = nativeFrames(p); if(!capability.ok)return Promise.resolve(capability); const {op,promise} = begin();
       void assetsFor(p,op).then(assets => { if (assets && pending === op) { try { present(p,assets); recordReferences(p,true); finish(op,ok(undefined)); } catch { finish(op,fail('Unavailable','Unable to build projection')); } } });
       return promise;
     },
@@ -234,23 +194,18 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const t = copy(input), from = projection; const {op,promise} = begin(from);
       const sourceOrder=new Map(from.pieces.map(piece=>[piece.id,piece.stickers.map(sticker=>sticker.id)]));
       op.to={...t.to,pieces:t.to.pieces.map(piece=>{const byId=new Map(piece.stickers.map(sticker=>[sticker.id,sticker]));return {...piece,stickers:sourceOrder.get(piece.id)!.map(id=>byId.get(id)!)};})};
-      // Stickers are invariant in a transition; reuse the currently rendered materials.
-      const pivot = new THREE.Group(); pivot.position.set(...t.pivot); root.add(pivot); root.updateMatrixWorld(true);
-      for (const id of t.pieceIds) { const body = root.getObjectByName(id); if (body) pivot.attach(body); }
-      const axis = new THREE.Vector3(...t.axis); const started = clock.now();
-      const duration = t.durationMs;
-      pausedDuration = 0; pausedAt = hidden() ? started : undefined;
-      const update = (now: number) => {
-        const progress = duration === 0 ? 1 : Math.min(1,Math.max(0,(now-started-pausedDuration)/duration));
-        const eased = progress * progress * (3 - 2 * progress);
-        pivot.quaternion.setFromAxisAngle(axis,t.signedAngleRadians*eased);
-        if (progress < 1) return true;
-        pivot.updateMatrixWorld(true);
-        for (const id of t.pieceIds) { const body = pivot.getObjectByName(id); if (body) root.attach(body); }
-        pivot.removeFromParent();
-        // Snap to exact endpoint, avoiding accumulated floating point error.
-        for (const piece of op.to!.pieces) { const body = root.getObjectByName(piece.id)!; body.position.set(...piece.transform.position); body.quaternion.set(...piece.transform.rotation); }
-        projection = op.to; animation = undefined; finish(op,ok(undefined)); return false;
+      const target = nativeFrames(op.to); if(!target.ok){finish(op,target);return promise;}
+      if(!native){finish(op,fail('Unavailable','Native scene unavailable'));return promise;}
+      activeTurnState={ids:t.pieceIds,axis:t.axis,angle:t.signedAngleRadians,pivot:t.pivot,progress:0};
+      activeTurn=native.beginTurn(t.pieceIds,t.axis,t.signedAngleRadians,t.pivot);
+      const started=clock.now(),duration=t.durationMs;
+      pausedDuration=0;pausedAt=hidden()?started:undefined;
+      const update=(now:number)=>{
+        const progress=duration===0?1:Math.min(1,Math.max(0,(now-started-pausedDuration)/duration));
+        const eased=progress*progress*(3-2*progress);activeTurnState!.progress=eased;activeTurn!.update(eased);
+        if(progress<1)return true;
+        activeTurn!.dispose();activeTurn=undefined;activeTurnState=undefined;native!.syncBodyPoses(target.value.bodies);
+        projection=op.to;animation=undefined;finish(op,ok(undefined));return false;
       };
       animation = update;
       if (duration === 0) update(started); draw();
@@ -262,9 +217,8 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       if (pending) {
         const op = pending; op.controller.abort(); animation = undefined;
         if (op.from) {
-          // Reparent selected bodies, then restore the exact source transforms.
-          for (const piece of op.from.pieces) { const body = root.getObjectByName(piece.id); if (body) { root.attach(body); body.position.set(...piece.transform.position); body.quaternion.set(...piece.transform.rotation); } }
-          for (const child of [...root.children]) if (!op.from.pieces.some(p => p.id === child.name)) child.removeFromParent();
+          activeTurn?.dispose();activeTurn=undefined;activeTurnState=undefined;
+          const restored=nativeFrames(op.from);if(restored.ok)native?.syncBodyPoses(restored.value.bodies);
           projection = op.from; draw();
         }
         finish(op,fail('Cancelled','Operation cancelled'));

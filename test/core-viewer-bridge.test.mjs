@@ -149,3 +149,10 @@ test('application render profile remains attached across Core transitions',async
  const player=createPlayer(definition,state,appearance,{palette,defaultColor:'#ffffff',renderProfile:profile},{transition(t){transition=t;return Promise.resolve({ok:true});},cancel(){},dispose(){}}).value;
  assert.deepEqual(player.projection().renderProfile,profile);assert.equal(validateProjection(player.projection()).ok,true);await player.turn('X',[1],-1,0);assert.deepEqual(transition.to.renderProfile,profile);assert.equal(validateTransition(transition).ok,true);
 });
+
+test('explicit decorative core remains a scene setting, not a Core piece',()=>{
+ const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d));
+ const appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'classic',definitionId:'cube2',stickers:[]});
+ const options={palette:{red:'#ff0000',white:'#ffffff',green:'#00ff00',blue:'#0000ff',orange:'#ff8800',yellow:'#ffff00'},defaultColor:'#ffffff',core:{center:[0,0,0],halfExtent:1}};
+ const result=open(definition,state,appearance,options);assert.equal(result.ok,true);assert.deepEqual(result.value.projection.core,options.core);assert.equal(result.value.projection.pieces.some(piece=>piece.id==='core'),false);
+});

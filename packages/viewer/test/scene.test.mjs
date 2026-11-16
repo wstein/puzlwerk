@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { createSceneForTest } from '../dist/scene.js';
 import * as Orientation from '../../../core/res/PwOrientation.res.mjs';
 const t = (position = [0,0,0], rotation = [0,0,0,1]) => ({position,rotation});
-const projection = {pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t(),size:[1,1],color:'#fff'}]}]};
+const coresIn = root => {const cores=[];root.traverse(o=>{if(o.userData.plasticCore)cores.push(o)});return cores;};
+const projection = {pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t([0,0,.5]),size:[1,1],color:'#fff'}]}]};
 function harness(resolver = async () => ({ok:true,value:{}})) {
   let now=0, next=0; const frames=new Map(), draws=[];
   const clock={now:()=>now,request:cb=>{frames.set(++next,cb);return next},cancel:id=>frames.delete(id)};
@@ -106,7 +107,7 @@ test('piece and sticker frames retain their world up and normal through a turn',
   const s=Math.SQRT1_2;
   // Piece starts at +90° around Z; sticker starts at +90° around its local X.
   // Therefore piece up = -X, sticker up = +Z, sticker normal = +X.
-  const from={pieces:[{id:'piece',transform:t([1,0,0],[0,0,s,s]),stickers:[{id:'sticker',transform:t([0,0,.5],[s,0,0,s]),size:[.8,.6],color:'#fff'}]}]};
+  const from={pieces:[{id:'piece',transform:t([1,0,0],[0,0,s,s]),stickers:[{id:'sticker',transform:t([0,-.5,0],[s,0,0,s]),size:[.8,.6],color:'#fff'}]}]};
   const to={pieces:[{...from.pieces[0],transform:t([0,1,0],[0,0,1,0])}]};
   let now=0,next=0; const frames=new Map(), draws=[];
   const clock={now:()=>now,request:cb=>{frames.set(++next,cb);return next;},cancel:id=>frames.delete(id)};
@@ -148,17 +149,27 @@ test('presentation uses rounded physical pieces, rounded stickers and a shadow s
   scene.dispose();
 });
 
-test('2x2 body keeps Cubistry exterior and seam radii and floor clears turn sweep', async () => {
-  const {createTwoRadiusBody}=await import('../dist/two-radius-body.js');
-  let rendered; const frames=[];
+test('explicit Cubistry 2x2 corner keeps source geometry and floor clears turn sweep', async () => {
+  const {readFile}=await import('node:fs/promises'),{createHash}=await import('node:crypto');
+  const fixture=JSON.parse(await readFile(new URL('./fixtures/cubistry-2x2-profile.json',import.meta.url)));
+  let rendered;const frames=[];
   const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
-  const corner={pieces:[{...projection.pieces[0],stickers:[...projection.pieces[0].stickers,{id:'top',transform:t([0,.471,0],[-Math.SQRT1_2,0,0,Math.SQRT1_2]),size:[.8,.8],color:'#fff'}]}]};
-  await scene.setProjection(corner); frames.shift()(0);
-  const actual=rendered.getObjectByName('a').children.find(c=>c.isMesh && !c.name).geometry;
-  const expected=createTwoRadiusBody({size:[.94,.94,.94],outer:[[false,false],[false,true],[false,true]],big:.03,small:.018,segments:3});
-  assert.deepEqual([...actual.getAttribute('position').array],[...expected.getAttribute('position').array]);
-  assert.ok(rendered.getObjectByName('studio-shadow-receiver').position.y < -Math.SQRT2);
-  expected.dispose(); scene.dispose();
+  const corner={pieces:[{id:'corner',transform:t([-.506,-.506,-.506]),geometry:{cellSize:[1.012,1.012,1.012],outerSides:fixture.outer},stickers:[{id:'back',transform:t([0,0,-.508],[0,1,0,0]),size:[.87,.87],color:'#fff'},{id:'bottom',transform:t([0,-.508,0],[Math.SQRT1_2,0,0,Math.SQRT1_2]),size:[.87,.87],color:'#fff'}]}],presentation:{size:2,nominalEdge:2}};
+  assert.equal((await scene.setProjection(corner)).ok,true);frames.shift()(0);
+  const actual=rendered.getObjectByName('corner').children.find(c=>c.isMesh && !c.name).geometry;
+  const hash=a=>createHash('sha256').update(Buffer.from(a.buffer,a.byteOffset,a.byteLength)).digest('hex');
+  for(const key of ['position','normal','uv'])assert.equal(hash(actual.getAttribute(key).array),fixture[key]);
+  assert.equal(hash(actual.index.array),fixture.index);
+  assert.ok(rendered.getObjectByName('studio-shadow-receiver').position.y < -Math.SQRT2);scene.dispose();
+});
+
+test('unspecified size uses the native default body geometry',async()=>{
+  const {createPresentationGeometry}=await import('../dist/presentation-preset.js');let rendered;const frames=[];
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  assert.equal((await scene.setProjection(projection)).ok,true);frames.shift()(0);
+  const body=rendered.getObjectByName('a').children.find(c=>c.isMesh && !c.name),source=createPresentationGeometry(3);
+  assert.deepEqual([...body.geometry.getAttribute('position').array],[...source.body.getAttribute('position').array]);
+  source.body.dispose();source.sticker.dispose();source.core.dispose();scene.dispose();
 });
 
 test('renderer enables bounded PCF shadows and neutral output', async () => {
@@ -197,16 +208,19 @@ test('valid empty and sticker-free projections remain renderable', async () => {
   assert.ok(rendered.getObjectByName('free-id')); scene.dispose();
 });
 
-test('free sticker frame and non-axis turn preserve supplied poses around a nonzero pivot', async () => {
+test('unsupported free sticker frame is rejected atomically while non-axis turns remain supported', async () => {
   const THREE=await import('three'); let now=0; const frames=[]; let rendered;
   const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>now,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
   const rotation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,1,0).normalize(),.37);
-  const from={pieces:[{id:'piece/α',transform:t([1,2,3]),stickers:[{id:'art/β',transform:t([.1,.2,.3],rotation.toArray()),size:[.5,.7],color:'#fff'}]}]};
+  assert.equal((await scene.setProjection(projection)).ok,true);frames.shift()(0);const previous=rendered.getObjectByName('a');
+  const unsupported={pieces:[{id:'piece/α',transform:t([1,2,3]),stickers:[{id:'art/β',transform:t([.1,.2,.3],rotation.toArray()),size:[.5,.7],color:'#fff'}]}]};
+  assert.equal((await scene.setProjection(unsupported)).error.code,'Unavailable');assert.equal(rendered.getObjectByName('a'),previous);
+  const from={pieces:[{id:'piece/α',transform:t([1,2,3]),stickers:[{id:'art/β',transform:t([0,0,.5]),size:[.5,.7],color:'#fff'}]}]};
   const axis=new THREE.Vector3(1,1,1).normalize(), pivot=new THREE.Vector3(.2,.3,.4), angle=1.2;
   const q=new THREE.Quaternion().setFromAxisAngle(axis,angle), end=new THREE.Vector3(1,2,3).sub(pivot).applyQuaternion(q).add(pivot);
   const to={pieces:[{...from.pieces[0],transform:t(end.toArray(),q.toArray())}]};
   await scene.setProjection(from); frames.shift()(0);
-  const sticker=rendered.getObjectByName('art/β'); assert.ok(sticker.quaternion.angleTo(rotation)<1e-7); assert.deepEqual(sticker.position.toArray(),[.1,.2,.3]);
+  const sticker=rendered.getObjectByName('art/β'); assert.ok(sticker.quaternion.angleTo(new THREE.Quaternion())<1e-7); assert.deepEqual(sticker.position.toArray(),[0,0,.5]);
   const turn=scene.transition({from,to,pieceIds:['piece/α'],axis:axis.toArray(),pivot:pivot.toArray(),signedAngleRadians:angle,durationMs:100});
   now=50; frames.shift()(now); const expected=new THREE.Vector3(1,2,3).sub(pivot).applyAxisAngle(axis,angle/2).add(pivot);
   assert.ok(rendered.getObjectByName('piece/α').getWorldPosition(new THREE.Vector3()).distanceTo(expected)<1e-6);
@@ -276,7 +290,7 @@ test('explicit core stays static through nonzero-pivot turn and owns its resourc
   const step=ms=>{now+=ms;const callbacks=[...frames.values()];frames.clear();callbacks.forEach(cb=>cb(now));};
   const from={...projection,core:{center:[2,3,4],halfExtent:2}};
   await scene.setProjection(from); step(0);
-  const core=seen.children.find(o=>o.isMesh && o.geometry.type==='SphereGeometry');
+  const core=coresIn(seen)[0];
   assert.ok(core); assert.deepEqual(core.position.toArray(),[2,3,4]); assert.equal(core.scale.x,1.6);
   assert.equal(core.geometry.parameters.widthSegments,48); assert.equal(core.geometry.parameters.heightSegments,24);
   assert.equal(core.castShadow,true); assert.equal(core.receiveShadow,true);
@@ -316,7 +330,7 @@ test('scene snapshots core and presentation while resolving caller assets', asyn
   const snapshot=structuredClone(input); const pending=scene.setProjection(input);
   input.core.center[0]=9; input.core.halfExtent=1; input.presentation.nominalEdge=9;
   resolve({ok:true,value:{}}); assert.equal((await pending).ok,true); frames.shift()(0);
-  const core=rendered.children.find(o=>o.isMesh && o.geometry.type==='SphereGeometry');
+  const core=coresIn(rendered)[0];
   assert.deepEqual(core.position.toArray(),[1,2,3]); assert.ok(Math.abs(core.scale.x-2.8)<1e-12);
   assert.equal((await scene.transition({from:snapshot,to:snapshot,pieceIds:[],axis:[0,0,1],pivot:[0,0,0],signedAngleRadians:0,durationMs:0})).ok,true);
   assert.equal((await scene.transition({from:input,to:input,pieceIds:[],axis:[0,0,1],pivot:[0,0,0],signedAngleRadians:0,durationMs:0})).error.code,'InvalidTransition');
@@ -339,7 +353,7 @@ test('replacing core projections removes and disposes each previous core once', 
   let rendered; const frames=[];
   const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
   const show=async p=>{assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0)};
-  const cores=()=>rendered.children.filter(o=>o.isMesh && o.geometry.type==='SphereGeometry');
+  const cores=()=>coresIn(rendered);
   const watch=core=>{const calls={geometry:0,material:0};core.geometry.addEventListener('dispose',()=>calls.geometry++);core.material.addEventListener('dispose',()=>calls.material++);return calls};
   await show({pieces:[],core:{center:[1,2,3],halfExtent:2}});
   const first=cores()[0],firstCalls=watch(first);
@@ -367,7 +381,7 @@ test('picture resolves six faces atomically and maps a source window',async()=>{
  const scene=createSceneForTest({resolveAsset:async id=>fail&&id==='missing'?{ok:false}:{ok:true,value:{close(){closed.push(id)}}}},clock,{render:s=>{rendered=s},dispose(){}});
  const sticker={id:'face',transform:t([0,0,.5]),size:[.87,.87],color:'#ff0000',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[0,1,1]}};
  const pic={widths:[1,1],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
- const p={pieces:[{id:'piece',transform:t(),stickers:[sticker]}],picture:pic};
+ const p={pieces:[{id:'piece',transform:t([-.5,.5,.5]),stickers:[sticker]},{id:'opposite',transform:t([.5,-.5,-.5]),stickers:[]}],picture:pic};
  assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0);
  const pictureMaterial=rendered.getObjectByName('face').material;assert.equal(pictureMaterial.transparent,false);const map=pictureMaterial.map;assert.equal(map.flipY,false);assert.ok(Math.abs(map.repeat.x-.435)<1e-9);assert.ok(Math.abs(map.offset.x-.0325)<1e-9);
  fail=true;const bad={...p,picture:{...pic,faces:{...pic.faces,B:'missing'}}};assert.equal((await scene.setProjection(bad)).error.code,'UnresolvedAsset');
@@ -394,10 +408,10 @@ test('artwork snapshot is isolated while picture assets resolve and cancel keeps
  let rendered,release;const frames=[];const closed=[];let pending=false;
  const scene=createSceneForTest({resolveAsset:id=>pending?new Promise(r=>{release=()=>r({ok:true,value:{close(){closed.push(id)}}})}):Promise.resolve({ok:true,value:{close(){closed.push(id)}}})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
  const sticker={id:'art',transform:t([0,0,.5]),size:[.87,.87],color:'#ff0000',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[0,1,1]}};
- const p={pieces:[{id:'piece',transform:t(),stickers:[sticker]}],picture:{widths:[1,1],faces:{U:'same',R:'same',F:'same',D:'same',L:'same',B:'same'}}};
+ const p={pieces:[{id:'piece',transform:t([-.5,.5,.5]),stickers:[sticker]},{id:'opposite',transform:t([.5,-.5,-.5]),stickers:[]}],picture:{widths:[1,1],faces:{U:'same',R:'same',F:'same',D:'same',L:'same',B:'same'}}};
  pending=true;const first=scene.setProjection(p);p.picture.widths[0]=2;sticker.picture.layerIndex[0]=1;release();assert.equal((await first).ok,true);frames.shift()(0);
  const before=rendered.getObjectByName('art').material.map;assert.ok(Math.abs(before.offset.x-.0325)<1e-9);
- const next=scene.setProjection(p);scene.cancel();assert.equal((await next).error.code,'Cancelled');release();await new Promise(r=>setImmediate(r));assert.equal(rendered.getObjectByName('art').material.map,before);
+ p.picture.widths[0]=1;sticker.picture.layerIndex[0]=0;const next=scene.setProjection(p);scene.cancel();assert.equal((await next).error.code,'Cancelled');release();await new Promise(r=>setImmediate(r));assert.equal(rendered.getObjectByName('art').material.map,before);
  scene.dispose();assert.deepEqual(closed,[]);
 });
 
@@ -424,9 +438,9 @@ test('removing projected picture restores per-sticker tile materials',async()=>{
  let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
  const base={id:'art',transform:t([0,0,.5]),size:[.87,.87],color:'#ff0000',imageId:'tile',sourceFace:{normal:[0,0,1],up:[0,1,0]}};
  const picture={widths:[1,1],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
- const p={pieces:[{id:'piece',transform:t(),stickers:[{...base,picture:{face:'F',layerIndex:[0,1,1]}}]}],appearance:{construction:'stickerless'},picture};
+ const p={pieces:[{id:'piece',transform:t([-.5,.5,.5]),stickers:[{...base,picture:{face:'F',layerIndex:[0,1,1]}}]},{id:'opposite',transform:t([.5,-.5,-.5]),stickers:[]}],appearance:{construction:'stickerless'},picture};
  assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0);const projected=rendered.getObjectByName('piece').children[0].material[4].map;assert.equal(projected.flipY,false);
- const restored={pieces:[{id:'piece',transform:t(),stickers:[base]}],appearance:{construction:'stickerless'}};assert.equal((await scene.setProjection(restored)).ok,true);frames.shift()(0);
+ const restored={pieces:[{id:'piece',transform:t([-.5,.5,.5]),stickers:[base]},{id:'opposite',transform:t([.5,-.5,-.5]),stickers:[]}],appearance:{construction:'stickerless'}};assert.equal((await scene.setProjection(restored)).ok,true);frames.shift()(0);
  const bodyMap=rendered.getObjectByName('piece').children[0].material[4].map, tileMap=rendered.getObjectByName('art').material.map;
  assert.notEqual(bodyMap,projected);assert.equal(bodyMap,tileMap);assert.equal(tileMap.flipY,true);scene.dispose();
 });
@@ -435,7 +449,7 @@ test('frame color changes plastic independently of stickerless cut and core colo
  let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
  const p={pieces:[{id:'piece',transform:t(),stickers:[]}],core:{center:[0,0,0],halfExtent:1},appearance:{construction:'stickered',frameColor:'#00aabb',bodyColor:'#abcdef',coreColor:'#ff0000'}};
  assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0);assert.equal(rendered.getObjectByName('piece').children[0].material.color.getHexString(),'00aabb');
- assert.equal(rendered.children.find(c=>c.isMesh && c.geometry.type==='SphereGeometry').material.color.getHexString(),'00aabb');scene.dispose();
+ assert.equal(coresIn(rendered)[0].material.color.getHexString(),'00aabb');scene.dispose();
 });
 
 test('live artwork changes during a turn survive cancel and update next source snapshot',async()=>{
@@ -462,9 +476,9 @@ test('pending live artwork allows active turn to finish and prevents competing o
 });
 
 test('live tile override retains projected surfaces until picture is removed',async()=>{
- let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ let rendered;const frames=[],assets=new Map();const scene=createSceneForTest({resolveAsset:async id=>({ok:true,value:assets.has(id)?assets.get(id):(assets.set(id,{}),assets.get(id))})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
  const sf={normal:[0,0,1],up:[0,1,0]},sp={face:'F',layerIndex:[0,1,1]},picture={widths:[1,1],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
- const p={pieces:[{id:'p',transform:t(),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff',imageId:'old',sourceFace:sf,picture:sp}]}],appearance:{construction:'stickerless'},picture};
+ const p={pieces:[{id:'p',transform:t([-.5,.5,.5]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff',imageId:'old',sourceFace:sf,picture:sp}]},{id:'opposite',transform:t([.5,-.5,-.5]),stickers:[]}],appearance:{construction:'stickerless'},picture};
  await scene.setProjection(p);frames.shift()(0);const stickerMap=rendered.getObjectByName('s').material.map,bodyMap=rendered.getObjectByName('p').children[0].material[4].map;let stickerDisposed=0,bodyDisposed=0;stickerMap.addEventListener('dispose',()=>stickerDisposed++);bodyMap.addEventListener('dispose',()=>bodyDisposed++);
  const replacement={appearance:p.appearance,picture,stickers:[{id:'s',color:'#ffffff',imageId:'new',sourceFace:{...sf,color:'#ff0000',edgeColors:{left:'#ffffff'}},picture:sp}]};assert.equal((await scene.setArtwork(replacement)).ok,true);frames.shift()(0);
  assert.equal(rendered.getObjectByName('s').material.map,stickerMap);assert.equal(rendered.getObjectByName('p').children[0].material[4].map,bodyMap);assert.equal(stickerDisposed,0);assert.equal(bodyDisposed,0);
@@ -560,7 +574,7 @@ test('live artwork while hidden waits to render and turn resumes without time ju
 test('live artwork preserves established source frames and picture reference across picture off and on',async()=>{
  const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}});
  const frame={normal:[0,0,1],up:[0,1,0]},mapping={face:'F',layerIndex:[0,1,1]},picture={widths:[1,1],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
- const s={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:frame,picture:mapping};await scene.setProjection({pieces:[{id:'p',transform:t(),stickers:[s]}],picture});
+ const s={id:'s',transform:t([0,0,.5]),size:[.8,.8],color:'#fff',sourceFace:frame,picture:mapping};await scene.setProjection({pieces:[{id:'p',transform:t([-.5,.5,.5]),stickers:[s]},{id:'opposite',transform:t([.5,-.5,-.5]),stickers:[]}],picture});
  assert.equal((await scene.setArtwork({stickers:[{id:'s',color:'#fff',sourceFace:frame}]})).ok,true);
  for(const invalid of [{stickers:[{id:'s',color:'#fff'}]},{stickers:[{id:'s',color:'#fff',sourceFace:{normal:[0,0,1],up:[1,0,0]}}]},{picture,stickers:[{id:'s',color:'#fff',sourceFace:frame,picture:{face:'F',layerIndex:[1,1,1]}}]},{picture:{...picture,widths:[1,2]},stickers:[{id:'s',color:'#fff',sourceFace:frame,picture:mapping}]}])assert.equal((await scene.setArtwork(invalid)).error.code,'InvalidProjection');
  assert.equal((await scene.setArtwork({picture,stickers:[{id:'s',color:'#fff',sourceFace:{...frame,edgeColors:{left:'#ffffff'}},picture:mapping}]})).ok,true);scene.dispose();
@@ -568,7 +582,7 @@ test('live artwork preserves established source frames and picture reference acr
 
 test('failed or canceled picture updates do not reserve construction references',async()=>{
  let release,mode='fail';const scene=createSceneForTest({resolveAsset:()=>mode==='fail'?Promise.resolve({ok:false}):mode==='pending'?new Promise(r=>{release=r}):Promise.resolve({ok:true,value:{}})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}});
- const sticker={id:'s',transform:t(),size:[.8,.8],color:'#fff'};await scene.setProjection({pieces:[{id:'p',transform:t(),stickers:[sticker]}]});
+ const sticker={id:'s',transform:t([0,0,.5]),size:[.8,.8],color:'#fff'};await scene.setProjection({pieces:[{id:'p',transform:t(),stickers:[sticker]}]});
  const frame={normal:[0,0,1],up:[0,1,0]},faces={U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'},entry={id:'s',color:'#fff',sourceFace:frame,picture:{face:'F',layerIndex:[0,0,0]}};
  assert.equal((await scene.setArtwork({picture:{widths:[1],faces},stickers:[entry]})).error.code,'UnresolvedAsset');
  mode='pending';const pending=scene.setArtwork({picture:{widths:[2],faces},stickers:[entry]});scene.cancel();assert.equal((await pending).error.code,'Cancelled');release({ok:true,value:{}});await new Promise(r=>setImmediate(r));
@@ -577,7 +591,7 @@ test('failed or canceled picture updates do not reserve construction references'
 
 test('successful setProjection starts new artwork construction references',async()=>{
  const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:()=>1,cancel(){}},{render(){},dispose(){}});
- const frame={normal:[0,0,1],up:[0,1,0]},faces={U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'},sticker={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:frame};
+ const frame={normal:[0,0,1],up:[0,1,0]},faces={U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'},sticker={id:'s',transform:t([0,0,.5]),size:[.8,.8],color:'#fff',sourceFace:frame};
  const make=width=>({pieces:[{id:'p',transform:t(),stickers:[{...sticker,picture:{face:'F',layerIndex:[0,0,0]}}]}],picture:{widths:[width],faces}});
  assert.equal((await scene.setProjection(make(1))).ok,true);assert.equal((await scene.setProjection(make(2))).ok,true);
  assert.equal((await scene.setArtwork({picture:{widths:[2],faces},stickers:[{id:'s',color:'#fff',sourceFace:frame,picture:{face:'F',layerIndex:[0,0,0]}}]})).ok,true);scene.dispose();
@@ -603,14 +617,14 @@ test('nonprojected planar UV uses the actual unequal body extent',async()=>{
 
 test('source annotated tile alpha matches source while legacy tile remains transparent',async()=>{
  let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
- const s={id:'s',transform:t(),size:[.8,.8],color:'#ffffff',imageId:'tile'};const p={pieces:[{id:'p',transform:t(),stickers:[s]}]};
+ const s={id:'s',transform:t([0,0,.5]),size:[.8,.8],color:'#ffffff',imageId:'tile'};const p={pieces:[{id:'p',transform:t(),stickers:[s]}]};
  await scene.setProjection(p);frames.shift()(0);assert.equal(rendered.getObjectByName('s').material.transparent,true);
  await scene.setProjection({pieces:[{...p.pieces[0],stickers:[{...s,sourceFace:{normal:[0,0,1],up:[0,1,0]}}]}]});frames.shift()(0);assert.equal(rendered.getObjectByName('s').material.transparent,false);scene.dispose();
 });
 
 test('same body geometry with different source up frames retains distinct artwork UVs',async()=>{
  const {createHash}=await import('node:crypto');let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
- const make=(id,up)=>({id,transform:t(),geometry:{cellSize:[1,1,1],outerSides:[[false,false],[false,true],[false,true]]},stickers:[{id:`${id}s`,transform:t(),size:[.8,.8],color:'#ffffff',sourceFace:{normal:[0,0,1],up}}]});
+ const make=(id,up)=>({id,transform:t(),geometry:{cellSize:[1,1,1],outerSides:[[false,false],[false,true],[false,true]]},stickers:[{id:`${id}s`,transform:t([0,0,.5],up[0]?[0,0,-Math.SQRT1_2,Math.SQRT1_2]:[0,0,0,1]),size:[.8,.8],color:'#ffffff',sourceFace:{normal:[0,0,1],up}}]});
  await scene.setProjection({pieces:[make('a',[0,1,0]),make('b',[1,0,0])]});frames.shift()(0);const a=rendered.getObjectByName('a').children[0].geometry,b=rendered.getObjectByName('b').children[0].geometry;
  const hash=g=>createHash('sha256').update(Buffer.from(g.attributes.uv.array.buffer)).digest('hex');assert.notEqual(hash(a),hash(b));let ad=0,bd=0;a.addEventListener('dispose',()=>ad++);b.addEventListener('dispose',()=>bd++);scene.dispose();assert.equal(ad,1);assert.equal(bd,1);
 });
@@ -627,8 +641,8 @@ test('source exterior frame order survives transition sticker reordering and liv
 test('projected planar UV uses source cell-share extent for unequal layers',async()=>{
  const {planarBodyUv}=await import('../dist/body-artwork.js'),{createTwoRadiusBody}=await import('../dist/two-radius-body.js');let rendered;const frames=[];
  const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
- const s={id:'s',transform:t([0,0,.4]),size:[.8,.8],color:'#ffffff',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[0,0,2]}};
- const p={pieces:[{id:'p',transform:t(),geometry:{cellSize:[1.4,1,.7],outerSides:[[false,true],[false,true],[false,true]]},stickers:[s]}],presentation:{size:3,nominalEdge:3},appearance:{construction:'stickerless'},picture:{widths:[1.4,1,.7],faces:{U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'}}};
+ const s={id:'s',transform:t([0,0,.4]),size:[.8,.8],color:'#ffffff',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[0,1,2]}};
+ const p={pieces:[{id:'p',transform:t([-.85,.35,1.2]),geometry:{cellSize:[1.4,1,.7],outerSides:[[false,true],[false,true],[false,true]]},stickers:[s]},{id:'bare1',transform:t([.35,-.85,-.85]),stickers:[]},{id:'bare2',transform:t([1.2,1.2,.35]),stickers:[]}],presentation:{size:3,nominalEdge:3},appearance:{construction:'stickerless'},picture:{widths:[1.4,1,.7],faces:{U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'}}};
  await scene.setProjection(p);frames.shift()(0);const actual=rendered.getObjectByName('p').children[0].geometry;
  const base=createTwoRadiusBody({size:[1.39,.99,.69],outer:[[false,true],[false,true],[false,true]],big:.055,small:.033,segments:3}),expected=planarBodyUv(base,[1.4*.99,.99,.7*.99],new Set([4]));
  assert.deepEqual([...actual.attributes.uv.array],[...expected.attributes.uv.array]);expected.dispose();base.dispose();scene.dispose();
@@ -642,4 +656,136 @@ test('live source face color changes cut faces without changing image tint or tu
  const before=rendered.getObjectByName('p').getWorldPosition(new THREE.Vector3());assert.equal((await scene.setArtwork({appearance:from.appearance,stickers:[{id:'s',color:'#ffffff',imageId:'tile',sourceFace:{...sf,color:'#0000ff'}}]})).ok,true);frames.shift()(now);
  const body=rendered.getObjectByName('p');assert.ok(body.getWorldPosition(new THREE.Vector3()).distanceTo(before)<1e-9);assert.equal(body.children[0].material[0].color.getHexString(),'0000ff');assert.equal(body.children[0].material[4].color.getHexString(),'ffffff');
  scene.cancel();assert.equal((await turning).error.code,'Cancelled');scene.dispose();
+});
+
+test('production scene renders canonical sticker IDs using native physical-scene metadata',async()=>{
+ let rendered;const clock={now:()=>0,request:cb=>{cb(0);return 1},cancel:()=>{}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const nativeProjection={pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff'}]}]};
+ assert.equal((await scene.setProjection(nativeProjection)).ok,true);
+ const nodes=[];rendered.traverse(o=>{if(o.userData.stickerId==='s')nodes.push(o)});
+ assert.equal(nodes.length,1);scene.dispose();
+});
+
+test('native render scene cancels a turn and restores canonical source pose',async()=>{
+ let now=0,frame,rendered;const clock={now:()=>now,request:cb=>{frame=cb;return 1},cancel:()=>{}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const from={pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff'}]}]};
+ assert.equal((await scene.setProjection(from)).ok,true);frame(0);
+ const to={pieces:[{...from.pieces[0],transform:t([0,1,0],[0,0,Math.SQRT1_2,Math.SQRT1_2])}]};
+ const pending=scene.transition({from,to,pieceIds:['a'],axis:[0,0,1],signedAngleRadians:Math.PI/2,pivot:[0,0,0],durationMs:100});now=50;frame(now);
+ assert.equal(scene.cancel().ok,true);assert.equal((await pending).error.code,'Cancelled');frame(now);rendered.updateMatrixWorld(true);
+ const point=rendered.getObjectByName('a').getWorldPosition(new (await import('three')).Vector3());assert.ok(Math.abs(point.x-1)<1e-8 && Math.abs(point.y)<1e-8);const second=scene.transition({from,to,pieceIds:['a'],axis:[0,0,1],signedAngleRadians:Math.PI/2,pivot:[0,0,0],durationMs:0});assert.equal((await second).ok,true);scene.dispose();
+});
+
+test('production turn uses the extracted native scene turn',async()=>{
+ const {PhysicalCubeScene}=await import('../dist/physical-scene.js');const original=PhysicalCubeScene.prototype.beginTurn;let calls=0;
+ PhysicalCubeScene.prototype.beginTurn=function(...args){calls++;return original.apply(this,args)};
+ try {
+  let frame;const clock={now:()=>0,request:cb=>{frame=cb;return 1},cancel:()=>{}};
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render(){},dispose(){}});
+  const from={pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff'}]}]};
+  assert.equal((await scene.setProjection(from)).ok,true);frame(0);
+  const to={pieces:[{...from.pieces[0],transform:t([0,1,0],[0,0,Math.SQRT1_2,Math.SQRT1_2])}]};
+  assert.equal((await scene.transition({from,to,pieceIds:['a'],axis:[0,0,1],signedAngleRadians:Math.PI/2,pivot:[0,0,0],durationMs:0})).ok,true);assert.equal(calls,1);scene.dispose();
+ } finally {PhysicalCubeScene.prototype.beginTurn=original;}
+});
+
+test('unsupported raw mesh profile returns Unavailable and retains the committed native scene',async()=>{
+ let frame,rendered;const clock={now:()=>0,request:cb=>{frame=cb;return 1},cancel:()=>{}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const valid={pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff'}]}]};
+ assert.equal((await scene.setProjection(valid)).ok,true);frame(0);const before=rendered.getObjectByName('s');
+ const unsupported={...valid,renderProfile:{kind:'cubeAssemblerV1',size:2,meshes:[{pieceId:'a',positions:[0,0,0,1,0,0,0,1,0],normals:[0,0,1,0,0,1,0,0,1],colors:[1,1,1,1,1,1,1,1,1],occlusion:[1,1,1],indices:[0,1,2],surfaces:[{role:'body',firstIndex:0,indexCount:3}]}]}};
+ const result=await scene.setProjection(unsupported);assert.equal(result.ok,false);assert.equal(result.error.code,'Unavailable');assert.equal(rendered.getObjectByName('s'),before);scene.dispose();
+});
+
+test('native production body uses the source geometry for explicit cell dimensions',async()=>{
+ const {presentationLayerProfile}=await import('../dist/presentation-preset.js');let frame,rendered;
+ const clock={now:()=>0,request:cb=>{frame=cb;return 1},cancel:()=>{}},scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const geometry={cellSize:[1.012,1.012,1.012],outerSides:[[true,false],[false,true],[false,true]]};
+ const p={pieces:[{id:'a',transform:t([-.506,.506,.506]),geometry,stickers:[{id:'s',transform:t([0,0,.508]),size:[.87,.87],color:'#ffffff'}]}]};
+ assert.equal((await scene.setProjection(p)).ok,true);frame(0);const body=rendered.getObjectByName('a').children[0].geometry;
+ const expected=presentationLayerProfile([1,1],undefined).body(geometry.cellSize,geometry.outerSides);
+ assert.deepEqual([...body.getAttribute('position').array],[...expected.getAttribute('position').array]);expected.dispose();scene.dispose();
+});
+
+test('production unequal picture grid preserves canonical body centers',async()=>{
+ let frame,rendered;const clock={now:()=>0,request:cb=>{frame=cb;return 1},cancel:()=>{}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{width:16,height:16}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const centers=[-.6,.5],pieces=[];for(const x of centers)for(const y of centers)for(const z of centers){const id=`p${pieces.length}`;pieces.push({id,transform:t([x,y,z]),stickers:[{id:`s${pieces.length}`,transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[centers.indexOf(x),centers.indexOf(y),centers.indexOf(z)]}}]});}
+ const faces={U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'},result=await scene.setProjection({pieces,picture:{widths:[1,1.2],faces}});assert.equal(result.ok,true);frame(0);
+ for(const piece of pieces){const actual=rendered.getObjectByName(piece.id).position.toArray();actual.forEach((value,i)=>assert.ok(Math.abs(value-piece.transform.position[i])<1e-8));}scene.dispose();
+});
+
+test('native production core is explicit, static and not a puzzle body',async()=>{
+ let frame,rendered;const clock={now:()=>0,request:cb=>{frame=cb;return 1},cancel:()=>{}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const p={pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff'}]}]};
+ assert.equal((await scene.setProjection(p)).ok,true);frame(0);let cores=[];rendered.traverse(o=>{if(o.userData.plasticCore)cores.push(o)});assert.equal(cores.length,0);
+ const explicit={...p,core:{center:[2,3,4],halfExtent:2}};assert.equal((await scene.setProjection(explicit)).ok,true);frame(0);cores=[];rendered.traverse(o=>{if(o.userData.plasticCore)cores.push(o)});assert.equal(cores.length,1);assert.deepEqual(cores[0].position.toArray(),[2,3,4]);assert.equal(cores[0].scale.x,1.6);scene.dispose();
+});
+
+test('native default geometry does not silently rescale canonical 3-layer body positions',async()=>{
+ let frame,rendered;const clock={now:()=>0,request:cb=>{frame=cb;return 1},cancel:()=>{}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const pieces=[];for(const x of [-1,0,1])for(const y of [-1,0,1])for(const z of [-1,0,1])pieces.push({id:`${x}/${y}/${z}`,transform:t([x,y,z]),stickers:[]});
+ assert.equal((await scene.setProjection({pieces})).ok,true);frame(0);
+ for(const piece of pieces)assert.deepEqual(rendered.getObjectByName(piece.id).position.toArray(),piece.transform.position);scene.dispose();
+});
+
+test('replacing a live tile releases the superseded viewer texture immediately once',async()=>{
+ let frame,rendered;const clock={now:()=>0,request:cb=>{frame=cb;return 1},cancel:()=>{}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{width:1,height:1}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const p={pieces:[{id:'a',transform:t(),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff'}]}]};
+ assert.equal((await scene.setProjection(p)).ok,true);frame(0);
+ assert.equal((await scene.setArtwork({stickers:[{id:'s',color:'#ffffff',imageId:'one'}]})).ok,true);frame(0);
+ const first=rendered.getObjectByName('s').material.map;let disposed=0;first.addEventListener('dispose',()=>disposed++);
+ assert.equal((await scene.setArtwork({stickers:[{id:'s',color:'#ffffff',imageId:'two'}]})).ok,true);assert.equal(disposed,1);scene.dispose();assert.equal(disposed,1);
+});
+
+test('failed native live artwork preserves the whole committed resource graph and active turn pose',async()=>{
+ const {PhysicalCubeScene}=await import('../dist/physical-scene.js');let now=0,frame,rendered;const clock={now:()=>now,request:cb=>{frame=cb;return 1},cancel:()=>{}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{width:1,height:1}})},clock,{render:s=>{rendered=s},dispose(){}});
+ const p={pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ff0000',imageId:'old'}]}]};
+ assert.equal((await scene.setProjection(p)).ok,true);frame(0);const to={pieces:[{...p.pieces[0],transform:t([0,1,0],[0,0,Math.SQRT1_2,Math.SQRT1_2])}]};
+ const pending=scene.transition({from:p,to,pieceIds:['a'],axis:[0,0,1],signedAngleRadians:Math.PI/2,pivot:[0,0,0],durationMs:100});now=50;frame(now);rendered.updateMatrixWorld(true);
+ const body=rendered.getObjectByName('a'),sticker=rendered.getObjectByName('s'),material=sticker.material,geometry=sticker.geometry,map=material.map,uv=[...geometry.getAttribute('uv').array],position=body.getWorldPosition(new (await import('three')).Vector3());let disposals=0;
+ for(const resource of [material,geometry,map])resource.addEventListener('dispose',()=>disposals++);
+ const original=PhysicalCubeScene.prototype.syncBodyPoses;PhysicalCubeScene.prototype.syncBodyPoses=function(){throw Error('source failure')};
+ try{const result=await scene.setArtwork({stickers:[{id:'s',color:'#00ff00',imageId:'new'}]});assert.equal(result.ok,false);}finally{PhysicalCubeScene.prototype.syncBodyPoses=original;}
+ rendered.updateMatrixWorld(true);assert.equal(rendered.getObjectByName('a'),body);assert.equal(sticker.material,material);assert.equal(sticker.geometry,geometry);assert.equal(material.map,map);assert.deepEqual([...geometry.getAttribute('uv').array],uv);assert.equal(material.color.getHexString(),'ff0000');assert.equal(disposals,0);assert.ok(body.getWorldPosition(new (await import('three')).Vector3()).distanceTo(position)<1e-9);
+ scene.cancel();assert.equal((await pending).error.code,'Cancelled');scene.dispose();
+});
+
+test('failed staged picture update preserves native UV, textures, materials and an active turn',async()=>{
+ const THREE=await import('three'),{PhysicalCubeScene}=await import('../dist/physical-scene.js');let now=0,frame,rendered,image={width:16,height:16};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:image})},{now:()=>now,request:cb=>{frame=cb;return 1},cancel:()=>{}},{render:s=>{rendered=s},dispose(){}});
+ const faces=[['R',[1,0,0],[0,1,0]],['L',[-1,0,0],[0,1,0]],['U',[0,1,0],[0,0,-1]],['D',[0,-1,0],[0,0,1]],['F',[0,0,1],[0,1,0]],['B',[0,0,-1],[0,1,0]]],pieces=[];let serial=0;
+ for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1]){const v=[x,y,z],index=v.map(c=>c<0?0:1),stickers=[];
+  for(const [face,n,up] of faces)if(n.reduce((sum,c,i)=>sum+c*v[i],0)===1){const q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(...up).cross(new THREE.Vector3(...n)),new THREE.Vector3(...up),new THREE.Vector3(...n)));stickers.push({id:`s${serial++}`,transform:t(n.map(c=>c*.508),q.toArray()),size:[.87,.87],color:'#ffffff',sourceFace:{normal:n,up},picture:{face,layerIndex:index}})}
+  pieces.push({id:`p${pieces.length}`,transform:t(v.map(c=>c*.506)),geometry:{cellSize:[1.012,1.012,1.012],outerSides:v.map(c=>[c<0,c>0])},stickers});}
+ const picture={widths:[1.012,1.012],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}},from={pieces,presentation:{size:2,nominalEdge:2},appearance:{construction:'stickerless'},picture};
+ assert.equal((await scene.setProjection(from)).ok,true);frame(0);const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2),ids=pieces.filter(p=>p.transform.position[0]>0).map(p=>p.id);
+ const to={...from,pieces:pieces.map(p=>ids.includes(p.id)?{...p,transform:t(new THREE.Vector3(...p.transform.position).applyQuaternion(q).toArray(),q.toArray())}:p)};
+ const pending=scene.transition({from,to,pieceIds:ids,axis:[1,0,0],signedAngleRadians:Math.PI/2,pivot:[0,0,0],durationMs:100});now=50;frame(now);rendered.updateMatrixWorld(true);
+ const bodies=pieces.map(p=>rendered.getObjectByName(p.id)),poses=bodies.map(body=>body.matrixWorld.clone()),resources=new Map(),graph=[];
+ for(const body of bodies)body.traverse(object=>{if(!object.isMesh)return;const materials=Array.isArray(object.material)?[...object.material]:[object.material];graph.push({object,geometry:object.geometry,materials,maps:materials.map(material=>material.map),colors:materials.map(material=>material.color?.getHexString())});for(const item of [object.geometry,...materials])if(item&&!resources.has(item)){resources.set(item,{disposed:0,uv:item.isBufferGeometry&&item.getAttribute('uv')?[...item.getAttribute('uv').array]:null});item.addEventListener('dispose',()=>resources.get(item).disposed++);if(item.map&&!resources.has(item.map)){const texture=item.map;resources.set(texture,{disposed:0,uv:null});texture.addEventListener('dispose',()=>resources.get(texture).disposed++);}}});
+ const original=PhysicalCubeScene.prototype.setPictureProjection;let called=false;PhysicalCubeScene.prototype.setPictureProjection=function(...args){called=true;original.apply(this,args);throw Error('after native picture preparation')};
+ const artwork={appearance:from.appearance,picture,stickers:pieces.flatMap(p=>p.stickers.map(s=>({id:s.id,color:s.color,sourceFace:s.sourceFace,picture:s.picture})))};
+ try{assert.equal((await scene.setArtwork(artwork)).ok,false);}finally{PhysicalCubeScene.prototype.setPictureProjection=original;}
+ assert.equal(called,true);rendered.updateMatrixWorld(true);for(let i=0;i<bodies.length;i++){assert.equal(rendered.getObjectByName(pieces[i].id),bodies[i]);assert.ok(bodies[i].matrixWorld.equals(poses[i]));}
+ for(const item of graph){assert.equal(item.object.geometry,item.geometry);const materials=Array.isArray(item.object.material)?item.object.material:[item.object.material];assert.deepEqual(materials,item.materials);assert.deepEqual(materials.map(material=>material.map),item.maps);assert.deepEqual(materials.map(material=>material.color?.getHexString()),item.colors);}
+ for(const [resource,state] of resources){assert.equal(state.disposed,0);if(state.uv)assert.deepEqual([...resource.getAttribute('uv').array],state.uv);}
+ const oldMaps=pieces.flatMap(p=>p.stickers.map(s=>rendered.getObjectByName(s.id).material.map)),version=oldMaps[0].version;
+ assert.equal((await scene.setArtwork(artwork)).ok,true);frame(now);
+ const mapsAfter=pieces.flatMap(p=>p.stickers.map(s=>rendered.getObjectByName(s.id).material.map));for(let i=0;i<oldMaps.length;i++)assert.equal(mapsAfter[i],oldMaps[i],'unchanged picture retains projected texture identities');
+ assert.ok(oldMaps[0].version>version,'same image object may contain updated pixels');
+ const reuse=PhysicalCubeScene.prototype.reuseProjectionTextures;PhysicalCubeScene.prototype.reuseProjectionTextures=function(previous){this.projectionTextures[0].flipY=!this.projectionTextures[0].flipY;return reuse.call(this,previous)};
+ try{assert.equal((await scene.setArtwork(artwork)).ok,true);}finally{PhysicalCubeScene.prototype.reuseProjectionTextures=reuse;}frame(now);
+ const samplerMap=rendered.getObjectByName(pieces[0].stickers[0].id).material.map;assert.notEqual(samplerMap,oldMaps[0],'changed sampler replaces texture');assert.equal(samplerMap.flipY,true);
+ let disposed=0;samplerMap.addEventListener('dispose',()=>disposed++);image={width:16,height:16};
+ assert.equal((await scene.setArtwork(artwork)).ok,true);frame(now);
+ assert.notEqual(rendered.getObjectByName(pieces[0].stickers[0].id).material.map,samplerMap,'changed source image replaces texture');assert.equal(disposed,1);
+ scene.cancel();assert.equal((await pending).error.code,'Cancelled');scene.dispose();assert.equal(disposed,1,'transferred texture is disposed exactly once');
 });
