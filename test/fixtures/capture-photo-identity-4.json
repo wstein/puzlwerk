@@ -1,0 +1,282 @@
+{
+  "provenance": {
+    "sourceRepository": "https://github.com/wstein/cube-assembler",
+    "sourceRevision": "91fc2144cbcf2734f84ee3a93c70b8ed503a5151",
+    "sourcePath": "test/fixtures/cube-4x4-2026-11-16T21-28-43/meta.json",
+    "metaSha256": "5c246ab802bead2279758cf3957cdfd3feedb4bfbfaf4701550dd103b73a1897",
+    "photos": "Hashes only; original photographs are not redistributed.",
+    "sourceStatus": "Owner-supplied local untracked capture; metadata subset derived without changing source bytes."
+  },
+  "capture": {
+    "captureId": "capture-21-28-43",
+    "revision": 0,
+    "size": 4,
+    "observations": [
+      {
+        "photoId": "capture-21-28-43/U",
+        "slot": "U",
+        "revision": 0,
+        "sourceGrid": [
+          [
+            "R",
+            "R",
+            "R",
+            "R"
+          ],
+          [
+            "R",
+            "R",
+            "R",
+            "R"
+          ],
+          [
+            "R",
+            "R",
+            "R",
+            "R"
+          ],
+          [
+            "R",
+            "R",
+            "R",
+            "R"
+          ]
+        ],
+        "sourceHash": "c6bff7628b20c08c27c0fd56163e62bf1c84e214cf03f61360df8c334b9a1486",
+        "guideProtocol": "right-back-left-front-up-down/v3",
+        "guideStep": 0,
+        "mirrored": true
+      },
+      {
+        "photoId": "capture-21-28-43/R",
+        "slot": "R",
+        "revision": 0,
+        "sourceGrid": [
+          [
+            "B",
+            "G",
+            "B",
+            "G"
+          ],
+          [
+            "G",
+            "B",
+            "G",
+            "B"
+          ],
+          [
+            "B",
+            "G",
+            "B",
+            "G"
+          ],
+          [
+            "G",
+            "B",
+            "G",
+            "B"
+          ]
+        ],
+        "sourceHash": "d0ecf1e7ce6c39598620048f9cc023540d77468488c12dc0fcfab5f1810d337c",
+        "guideProtocol": "right-back-left-front-up-down/v3",
+        "guideStep": 1,
+        "mirrored": true
+      },
+      {
+        "photoId": "capture-21-28-43/F",
+        "slot": "F",
+        "revision": 0,
+        "sourceGrid": [
+          [
+            "O",
+            "O",
+            "O",
+            "O"
+          ],
+          [
+            "O",
+            "O",
+            "O",
+            "O"
+          ],
+          [
+            "O",
+            "O",
+            "O",
+            "O"
+          ],
+          [
+            "O",
+            "O",
+            "O",
+            "O"
+          ]
+        ],
+        "sourceHash": "9c921e6c26d0d252e6be68fd577b417c6e2e105a6a037c5eb19c1208bce392d2",
+        "guideProtocol": "right-back-left-front-up-down/v3",
+        "guideStep": 2,
+        "mirrored": true
+      },
+      {
+        "photoId": "capture-21-28-43/D",
+        "slot": "D",
+        "revision": 0,
+        "sourceGrid": [
+          [
+            "G",
+            "B",
+            "G",
+            "B"
+          ],
+          [
+            "B",
+            "G",
+            "B",
+            "G"
+          ],
+          [
+            "G",
+            "B",
+            "G",
+            "B"
+          ],
+          [
+            "B",
+            "G",
+            "B",
+            "G"
+          ]
+        ],
+        "sourceHash": "f65cd694b8804a86f3a65f2f0f7ed1b6cc36998f6796130f5204c560290f4867",
+        "guideProtocol": "right-back-left-front-up-down/v3",
+        "guideStep": 3,
+        "mirrored": true
+      },
+      {
+        "photoId": "capture-21-28-43/L",
+        "slot": "L",
+        "revision": 0,
+        "sourceGrid": [
+          [
+            "Y",
+            "W",
+            "Y",
+            "W"
+          ],
+          [
+            "W",
+            "Y",
+            "W",
+            "Y"
+          ],
+          [
+            "Y",
+            "W",
+            "Y",
+            "W"
+          ],
+          [
+            "W",
+            "Y",
+            "W",
+            "Y"
+          ]
+        ],
+        "sourceHash": "771fcdd9ac0ced78645566a9684f8770b5804b0f6e100ffd96909a3bba078a0d",
+        "guideProtocol": "right-back-left-front-up-down/v3",
+        "guideStep": 4,
+        "mirrored": true
+      },
+      {
+        "photoId": "capture-21-28-43/B",
+        "slot": "B",
+        "revision": 0,
+        "sourceGrid": [
+          [
+            "W",
+            "Y",
+            "W",
+            "Y"
+          ],
+          [
+            "Y",
+            "W",
+            "Y",
+            "W"
+          ],
+          [
+            "W",
+            "Y",
+            "W",
+            "Y"
+          ],
+          [
+            "Y",
+            "W",
+            "Y",
+            "W"
+          ]
+        ],
+        "sourceHash": "88c3734370dd98e27a12db9f5e699b51299ae4bc5ca9e9e5b44d2874819d235b",
+        "guideProtocol": "right-back-left-front-up-down/v3",
+        "guideStep": 5,
+        "mirrored": true
+      }
+    ]
+  },
+  "candidate": {
+    "candidateId": "recorded-current-canonical",
+    "captureRevision": 0,
+    "mappingFrame": "canonical",
+    "canonicalTransform": [
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1
+    ],
+    "mapping": [
+      {
+        "photoId": "capture-21-28-43/L",
+        "observationRevision": 0,
+        "target": "U",
+        "quarterTurns": 0
+      },
+      {
+        "photoId": "capture-21-28-43/U",
+        "observationRevision": 0,
+        "target": "R",
+        "quarterTurns": 0
+      },
+      {
+        "photoId": "capture-21-28-43/D",
+        "observationRevision": 0,
+        "target": "F",
+        "quarterTurns": 0
+      },
+      {
+        "photoId": "capture-21-28-43/B",
+        "observationRevision": 0,
+        "target": "D",
+        "quarterTurns": 0
+      },
+      {
+        "photoId": "capture-21-28-43/F",
+        "observationRevision": 0,
+        "target": "L",
+        "quarterTurns": 0
+      },
+      {
+        "photoId": "capture-21-28-43/R",
+        "observationRevision": 0,
+        "target": "B",
+        "quarterTurns": 0
+      }
+    ]
+  },
+  "assembledURFDLB": "YWYWWYWYYWYWWYWY RRRRRRRRRRRRRRRR GBGBBGBGGBGBBGBG WYWYYWYWWYWYYWYW OOOOOOOOOOOOOOOO BGBGGBGBBGBGGBGB"
+}

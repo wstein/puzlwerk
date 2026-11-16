@@ -702,3 +702,37 @@ The [capture-recovery acceptance case](acceptance-matrix.md#cubeassembler-captur
 keeps all runtime, parity and owner results unestablished until exercised. This
 specification authorizes neither implementation nor activation, deployment or
 consumer replacement.
+
+### Authorized WI1/WI2 implementation boundary (2026-11-16)
+
+The owner explicitly started WI1 and WI2 with the instruction “logic in rescript
+puzlwerk”. This authorizes the bounded ReScript photo-identity/mapping and explicit
+constrained-search/wizard domain slices, their private package and thin
+CubeAssembler integration. It does not approve the proposed full exchange format,
+consumer viewer migration, publication, deployment or merge.
+
+The first local slice is `core/res/PwCapture.resi`, with compiler-generated
+`PwCapture.gen.ts`, distributed through private `@puzlwerk/capture-recovery`.
+Capture snapshots and candidate handles are distinct from `PwCodec.state`.
+The supported capture/mapping range is N=2..8, preserving existing CubeAssembler
+recovery scope; this does not certify complete reachability above N=3.
+Candidates require explicit canonical source-ID mappings. `createCandidateFromSlots`
+resolves producer-supplied slots against the immutable snapshot, never colors.
+`canonicalTransform` and the optional legacy transform index record provenance;
+they are not applied again to a mapping already in the canonical frame. Missing
+provenance stays unknown. Only an additional proper display matrix passed to
+`projectMapping` changes its presentation. Unknown association returns no photo.
+`replaceObservation` assigns core-owned revisions and retains prior raw source
+records; `invalidateCapture` invalidates drafts without altering observations.
+No photo bytes, recognition or color-correction engine is implemented here.
+
+The EUPL-1.2 core decision is SM11 in `specs/006-shared-model/plan.md`.
+Ported CubeAssembler decision logic retains its pinned MIT notice. Private local
+build/pack verification does not decide production licensing with the MIT
+application. The package includes its compiled import closure, generated types,
+ReScript source and source/runtime hashes; no solver or viewer is included.
+The transitional feasibility checker reuses named existing CubeAssembler
+ReScript checks with source revision and scope. It does not make those checks a
+PuzlWerk reachability proof. Future retirement of that bridge requires separately
+authorized canonical identity/conformance mappings and equivalent Core checks;
+no second permanent puzzle engine is introduced.
