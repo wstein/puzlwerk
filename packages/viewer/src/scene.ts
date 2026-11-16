@@ -13,7 +13,7 @@ type Pending = { controller: AbortController; finish(result: Result<void>): void
 const copy = <T>(x: T): T => structuredClone(x);
 const sameProjection = (a: CubeProjection, b: CubeProjection) => {
   const normalize = (p: CubeProjection) => [...p.pieces].sort((x,y) => x.id.localeCompare(y.id)).map(x => ({...x, stickers: [...x.stickers].sort((s,t) => s.id.localeCompare(t.id))}));
-  return sameValues(normalize(a), normalize(b));
+  return sameValues(normalize(a), normalize(b)) && sameValues(a.presentation,b.presentation) && sameValues(a.core,b.core);
 };
 
 export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend): CubeScene {
@@ -47,6 +47,15 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
   }
   function present(p: CubeProjection, assets: Map<string, CanvasImageSource>) {
     clear();
+    if (p.core) {
+      const geometry = new THREE.SphereGeometry(1,48,24);
+      const material = createPlasticMaterial('#1b2431');
+      resources.push(geometry,material);
+      const core = new THREE.Mesh(geometry,material);
+      core.position.set(...p.core.center); core.scale.setScalar(.8 * p.core.halfExtent);
+      core.castShadow = true; core.receiveShadow = true; scene.add(core);
+      resources.push({dispose() { core.removeFromParent(); }});
+    }
     for (const piece of p.pieces) {
       const body = new THREE.Group(); body.name = piece.id;
       body.position.set(...piece.transform.position); body.quaternion.set(...piece.transform.rotation);
@@ -61,13 +70,14 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const width = offsets.length ? Math.max(.94, Math.min(.99, Math.min(...offsets) * 2 - .002)) : .94;
       const geometry = profile.body(piece.geometry?.cellSize ?? [width+.01,width+.01,width+.01],piece.geometry?.outerSides ?? sides as OuterSides);
       const material = createPlasticMaterial('#1b2431'); resources.push(geometry, material);
-      const mesh = new THREE.Mesh(geometry, material); mesh.castShadow = true; body.add(mesh);
+      const mesh = new THREE.Mesh(geometry, material); mesh.castShadow = true; mesh.receiveShadow = true; body.add(mesh);
       for (const sticker of piece.stickers) {
         const geo = createStickerGeometry(...sticker.size, Math.min(.055, ...sticker.size.map(x => x / 2)));
         const texture = sticker.imageId ? new THREE.Texture(assets.get(sticker.imageId) as TexImageSource) : undefined;
         if (texture) { texture.colorSpace = THREE.SRGBColorSpace; texture.needsUpdate = true; resources.push(texture); }
         const mat = createStickerMaterial(texture ?? null, sticker.color); if (texture) mat.transparent = true; resources.push(geo, mat);
         const mesh = new THREE.Mesh(geo, mat); mesh.name = sticker.id;
+        mesh.castShadow = true; mesh.receiveShadow = true;
         mesh.position.set(...sticker.transform.position); mesh.quaternion.set(...sticker.transform.rotation); body.add(mesh);
       }
       root.add(body);

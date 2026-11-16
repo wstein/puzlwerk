@@ -269,3 +269,49 @@ test('source 2x2 profile preserves body and sticker poses and sticker up', async
   }
   scene.dispose();
 });
+
+test('explicit core stays static through nonzero-pivot turn and owns its resources', async () => {
+  let now=0,next=0,seen; const frames=new Map();
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>now,request:cb=>{frames.set(++next,cb);return next},cancel:id=>frames.delete(id)},{render:s=>{seen=s},dispose(){}});
+  const step=ms=>{now+=ms;const callbacks=[...frames.values()];frames.clear();callbacks.forEach(cb=>cb(now));};
+  const from={...projection,core:{center:[2,3,4],halfExtent:2}};
+  await scene.setProjection(from); step(0);
+  const core=seen.children.find(o=>o.isMesh && o.geometry.type==='SphereGeometry');
+  assert.ok(core); assert.deepEqual(core.position.toArray(),[2,3,4]); assert.equal(core.scale.x,1.6);
+  assert.equal(core.geometry.parameters.widthSegments,48); assert.equal(core.geometry.parameters.heightSegments,24);
+  assert.equal(core.castShadow,true); assert.equal(core.receiveShadow,true);
+  assert.equal(seen.getObjectByName('a').children[0].receiveShadow,true);
+  const sticker=seen.getObjectByName('s'); assert.equal(sticker.castShadow,true); assert.equal(sticker.receiveShadow,true);
+  let geometryDisposals=0, materialDisposals=0;
+  core.geometry.addEventListener('dispose',()=>geometryDisposals++); core.material.addEventListener('dispose',()=>materialDisposals++);
+  const motion=turn(Math.PI); motion.from=from; motion.to={...motion.to,core:structuredClone(from.core)}; motion.pivot=[.5,0,0]; motion.to.pieces[0].transform.position=[0,0,0];
+  const pending=scene.transition(motion); step(50); assert.deepEqual(core.getWorldPosition(core.position.clone()).toArray(),[2,3,4]);
+  scene.cancel(); assert.equal((await pending).error.code,'Cancelled'); step(0);
+  scene.dispose(); scene.dispose(); assert.equal(geometryDisposals,1); assert.equal(materialDisposals,1);
+});
+
+test('scene snapshots core and presentation while resolving caller assets', async () => {
+  let resolve,rendered; const frames=[];
+  const scene=createSceneForTest({resolveAsset:()=>new Promise(r=>resolve=r)},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  const input={presentation:{size:7,nominalEdge:7},core:{center:[1,2,3],halfExtent:3.5},pieces:[{...projection.pieces[0],stickers:[{...projection.pieces[0].stickers[0],imageId:'image'}]}]};
+  const snapshot=structuredClone(input); const pending=scene.setProjection(input);
+  input.core.center[0]=9; input.core.halfExtent=1; input.presentation.nominalEdge=9;
+  resolve({ok:true,value:{}}); assert.equal((await pending).ok,true); frames.shift()(0);
+  const core=rendered.children.find(o=>o.isMesh && o.geometry.type==='SphereGeometry');
+  assert.deepEqual(core.position.toArray(),[1,2,3]); assert.ok(Math.abs(core.scale.x-2.8)<1e-12);
+  assert.equal((await scene.transition({from:snapshot,to:snapshot,pieceIds:[],axis:[0,0,1],pivot:[0,0,0],signedAngleRadians:0,durationMs:0})).ok,true);
+  assert.equal((await scene.transition({from:input,to:input,pieceIds:[],axis:[0,0,1],pivot:[0,0,0],signedAngleRadians:0,durationMs:0})).error.code,'InvalidTransition');
+  scene.dispose();
+});
+
+test('empty and free projections do not infer a core or take caller image ownership', async () => {
+  let rendered,closed=0; const frames=[]; const image={close(){closed++}};
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:image})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  await scene.setProjection({pieces:[]}); frames.shift()(0);
+  assert.equal(rendered.children.some(o=>o.isMesh && o.geometry.type==='SphereGeometry'),false);
+  const free={pieces:[{...projection.pieces[0],stickers:[{...projection.pieces[0].stickers[0],imageId:'free'}]}]};
+  await scene.setProjection(free); frames.shift()(0);
+  assert.equal(rendered.children.some(o=>o.isMesh && o.geometry.type==='SphereGeometry'),false);
+  assert.equal(rendered.getObjectByName('s').material.transparent,true);
+  scene.dispose(); assert.equal(closed,0);
+});

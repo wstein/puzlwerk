@@ -95,8 +95,7 @@ profile and materials, comparing body and sticker transforms and sticker up;
 quarter, half and multiple-revolution turn behavior; cancellation and resource
 lifetime checks; targeted mutations of the new checks; and actual browser
 captures. Record source files and revisions in NOTICE. Multi-cube, picture UV,
-stickerless, unequal layers, sizes 3–7, and full HQ visual acceptance remain
-open until separately demonstrated; this slice does not migrate a consumer.
+stickerless, and full HQ visual acceptance remain open until separately demonstrated; this slice does not migrate a consumer.
 
 `PhysicalCubeScene` uses numeric IDs, discrete axis-aligned sticker frames, and
 axis-indexed turns about the origin. `CubeScene` permits string IDs, arbitrary
@@ -130,7 +129,34 @@ body geometry builder; it does not alter body or sticker poses, sticker sizes,
 state, legality, or identity. When absent the same builder uses the existing
 generic dimensions; no separate renderer or options-level ID map is introduced.
 
-The source reference includes a static core sphere and stickers casting and
-receiving shadows. Their fidelity is not established by this geometry-profile
-slice and remains open in Stage 1 alongside artwork, multi-cube and picture
-paths; do not infer full source parity from the 2×2 body comparison.
+The geometry-profile slice did not establish core or sticker shadows. The following
+model-profile slice addresses them; artwork, multi-cube and picture paths remain
+open, and no full source parity follows from the profile comparisons.
+
+## Stage 1 model profiles and core slice
+
+Optional projection-level `presentation: { size, nominalEdge }` selects the
+Cubistry size-dependent body and sticker radius rules. Size is an integer from
+2 through 7 and nominalEdge is a positive finite scalar supplied by the caller.
+Cubistry's default widened layers use nominalEdge equal to size; a custom layer
+profile may instead use its explicit edge. Do not infer a grid or edge from
+piece positions. Piece cell sizes and outer-side flags remain explicit.
+Caller-supplied piece and sticker poses and sticker sizes stay unchanged. The
+sticker radius is bounded by half the supplied size for existing generic
+small-sticker inputs; native source fixtures must not need that bound.
+
+Optional independent `core: { center, halfExtent }` specifies a finite center
+in projection scene coordinates and a positive finite scalar. The original
+Cubistry static sphere uses radius `0.8 * halfExtent`, source plastic material,
+and SphereGeometry(1, 48, 24); it remains fixed during arbitrary pivots and is
+viewer-owned. Sticker meshes cast and receive shadows as in the source. The
+metadata is validated, deep-snapshotted and invariant during transitions; no
+core is inferred for projections omitting it, including empty/free scenes.
+
+Compare actual source fixtures for default 2×2, 3×3 and 7×7 and an unequal
+profile with explicit nominal edge, including geometry, sticker radius and core
+bounds. Prove validation, snapshot, turn invariance, shadow flags, ownership and
+source formulas with targeted mutations. A public browser gallery captures the
+same source and adapter setups, stationary and midturn as applicable. Record
+settings, source revision and limits. Artwork, projected pictures, multiple
+cubes and full owner HQ acceptance remain open; no consumer migration is implied.
