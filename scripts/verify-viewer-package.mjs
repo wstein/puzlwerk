@@ -13,6 +13,9 @@ try {
   execFileSync('npm', ['install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', join(dir, packed.filename)], {cwd:dir, stdio:'pipe'});
   writeFileSync(join(dir, 'consumer.mjs'), "import {createCubeScene,createCubeStage,weightedFaceExposure} from '@puzlwerk/viewer'; if ([createCubeScene,createCubeStage,weightedFaceExposure].some(value => typeof value !== 'function')) throw Error('Missing viewer export'); console.log('Isolated viewer package PASS');\n");
   execFileSync(process.execPath, ['consumer.mjs'], {cwd:dir, stdio:'inherit'});
+  writeFileSync(join(dir, 'consumer.ts'), "import {createCubeStage, weightedFaceExposure, type StageOptions} from '@puzlwerk/viewer'; declare const host: HTMLElement, options: StageOptions; createCubeStage(host, options); weightedFaceExposure({ambient:1,hemispheres:[],directionals:[]}, [0,0,0,1], [0,0,1]);\n");
+  execFileSync(process.execPath, [join(process.cwd(), 'node_modules/typescript/bin/tsc'), '--noEmit', '--strict', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2022', 'consumer.ts'], {cwd:dir, stdio:'inherit'});
+  console.log('Isolated viewer TypeScript consumer PASS');
 } finally {
   rmSync(dir, {recursive:true, force:true});
 }
