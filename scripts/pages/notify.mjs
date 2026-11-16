@@ -12,7 +12,7 @@ export async function notifyOne(api,metadata,fresh) {
     const latest=latestCurrentBuild(pr,runs,true);
     return Boolean(latest && latest.id===run && latest.run_attempt===attempt);
   }
-  if (!await current()) return;
+  if (!await current()) { await clearStale(api,number); return; }
   const comments=await api.pages(`issues/${number}/comments`);
   const matches=comments.filter(c=>c.user?.login==='github-actions[bot]' && c.body?.includes(marker));
   if (matches.length>1) throw Error('Ambiguous preview comments');
@@ -45,11 +45,22 @@ export async function clearStale(api,number) {
  await api.request(`issues/comments/${matches[0].id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({body})});
 }
 
+export async function clearForBuild(api) {
+ const pulls=await api.pages('pulls?state=open');
+ if(pulls.length>400) throw Error('Preview inventory exceeds budget');
+ const errors=[];
+ for(const pr of pulls) if(eligible(pr)) {
+  try {await clearStale(api,pr.number);} catch(error) {errors.push({number:pr.number,message:String(error.message).slice(0,300)});}
+ }
+ if(errors.length) throw Error(`Stale notification checks failed: ${JSON.stringify(errors)}`);
+}
+
 async function cli() {
  const {mkdtemp,readdir,readFile,rm}=await import('node:fs/promises'); const {join}=await import('node:path'); const {tmpdir}=await import('node:os');
  const {GitHub}=await import('./api.mjs'); const {readVerifiedSnapshot,verifyLiveReceipt,readWriterLedger}=await import('./publication.mjs');
  const api=new GitHub();
  if(process.env.NOTIFY_MODE==='clear') {await clearStale(api,Number(process.env.PR_NUMBER)); return;}
+ if(process.env.NOTIFY_MODE==='clear-build') {await clearForBuild(api); return;}
  const bootstrap={run:Number(process.env.PAGES_BOOTSTRAP_RUN),attempt:Number(process.env.PAGES_BOOTSTRAP_ATTEMPT),nonce:process.env.PAGES_BOOTSTRAP_NONCE};
  const tmp=await mkdtemp(join(tmpdir(),'puzlwerk-notify-'));
  try {

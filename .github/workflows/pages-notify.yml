@@ -1,7 +1,7 @@
 name: Notify acceptance previews
 on:
   workflow_run:
-    workflows: [Reconcile acceptance previews]
+    workflows: [Reconcile acceptance previews, Acceptance preview build]
     types: [completed]
   pull_request_target:
     types: [synchronize, unlabeled, closed, reopened]
@@ -12,7 +12,7 @@ permissions:
   issues: write
 jobs:
   notify:
-    if: github.event_name == 'workflow_run' && vars.PAGES_PREVIEWS_ENABLED == 'true' && github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Reconcile acceptance previews' && vars.PAGES_PREVIEWS_ENABLED == 'true' && github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     concurrency:
       group: puzlwerk-pages-notify
@@ -53,3 +53,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NOTIFY_MODE: clear
           PR_NUMBER: ${{ github.event.pull_request.number }}
+  clear-build:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Acceptance preview build' && github.ref == 'refs/heads/main' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: puzlwerk-pages-notify
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - run: node scripts/pages/notify.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTIFY_MODE: clear-build
