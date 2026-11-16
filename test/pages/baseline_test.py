@@ -23,7 +23,6 @@ class BaselineTest(unittest.TestCase):
             (root/'index.html').write_text('root')
             (root/'link').symlink_to('index.html')
             with self.assertRaises(ValueError): baseline.digest(root)
-if __name__=='__main__': unittest.main()
 
 class ReceiptTest(unittest.TestCase):
     def test_receipt_binds_tree_to_dispatch_identity(self):
@@ -36,3 +35,5 @@ class ReceiptTest(unittest.TestCase):
             self.assertEqual(receipt['sha'],'a'*40)
             for args in [('bad',12,2,'b'*32),('a'*40,0,2,'b'*32),('a'*40,12,0,'b'*32),('a'*40,12,2,'bad')]:
                 with self.assertRaises(ValueError): baseline.make_receipt(root,*args)
+
+if __name__=='__main__': unittest.main()
