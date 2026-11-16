@@ -137,3 +137,25 @@ Each listed route is relative to one configured base and has its own checklist a
 | Activation | Not authorized | No workflow, publication, Pages setting or preview activation follows from this proposal. |
 
 Each case names source app and screen, exact original and prospective route, cube and definition/state, appearance, camera, actions, assets, source component and tests, production core/viewer/play references, license eligibility, normal and nested-base links, checklist, trace, evidence and separate statuses. Check each case independently; a success for one case does not approve another. Renderer diagnostics establish only the exercised renderer behavior, not application parity.
+
+## Native fixture execution plan
+
+The inventory above is not an executable comparison. The following families
+must use identical source-native inputs and actions on the original and adapted
+paths. Presentation, camera, lighting, layout, fonts, time and asset manifests
+are separate from the closed wire-v1 and appearance-v1 documents. A native
+application JSON file is not itself a wire or appearance document.
+
+| Family | Required evidence | Current fixture status |
+| --- | --- | --- |
+| NxN and moves | A production native factory and state with stable piece and sticker IDs, orientations, and an action-by-action trace; compare actual original component, core state and shared viewer. Cover other sizes with their own source evidence. | Cubistry Playground classic 2×2 native print, assets, target and R U R' U' trace are recorded under `acceptance/fixtures/cubistry-playground-classic-2/`. Original executable closure, source-to-wire mapping and paired view are blocked. No other size is established by this fixture. |
+| Picture | Original six distinct licensed faces, registry and all 54 tiles with crop and up orientation, including C1 behavior; record source bytes and rights. | Blocked: source extraction, mappings, original and adapted views not demonstrated. Private upload rights are unknown. |
+| Calendar 3 and 7 | Native JSON and fixed date; standard, names and names-any configurations, chain data and hashes; actual glyph generation, font files and licenses, metrics, palette, layout and banner geometry. Canvas runtime art is not an SVG atlas. | Blocked: reproducible source artwork, native configuration and paired views not packaged. |
+| Clock and timer | Native fixed-time state and original application configuration, two- and three-cube layouts and synchronized actions; compare each cube and scene. | Blocked: native frozen state and synchronized paired scenes not packaged. |
+| Regrip replay | Original GoCube and GAN JSONL, native replay actions, separate physical pose, virtual frame and presentation frame; identify replay UI as development-only. | Blocked: replay inputs, source execution and frame adapter not packaged; no live sensor claim. |
+
+For every family record source revision, complete executed dependency closure,
+asset hashes and applicable notices, fixture provenance, actual action trace,
+conversion evidence and per-case architecture, functional and visual results.
+Do not infer sticker identity from colors or infer full-family coverage from
+one case. Original hosting and visual acceptance remain separate gates.
