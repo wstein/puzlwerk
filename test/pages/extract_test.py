@@ -1,5 +1,5 @@
 import importlib.util
-import os
+import stat
 from pathlib import Path
 import tempfile
 import unittest
@@ -28,6 +28,17 @@ class ExtractionTest(unittest.TestCase):
         for path in ['../outside', 'pr-preview/pr-73/index.html', '.git/config', 'acceptance/%2e%2e/index.html', 'CNAME']:
             with self.subTest(path=path), self.assertRaises(ValueError): self.run_archive([('index.html',HTML),(path,'x')])
         with self.assertRaises(ValueError): self.run_archive([('index.html',HTML),('index.html',HTML)])
+    def test_symlink_and_special_modes_rejected(self):
+        for mode in [stat.S_IFLNK | 0o777, stat.S_IFIFO | 0o644]:
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as tmp:
+                archive = Path(tmp)/'artifact.zip'
+                with zipfile.ZipFile(archive, 'w') as z:
+                    z.writestr('index.html', HTML)
+                    entry = zipfile.ZipInfo('assets/link')
+                    entry.create_system = 3
+                    entry.external_attr = mode << 16
+                    z.writestr(entry, 'target')
+                with self.assertRaises(ValueError): extract.extract(archive, Path(tmp)/'out', 72, 'a'*40)
     def test_missing_index_rejected(self):
         with self.assertRaises(ValueError): self.run_archive([('acceptance/a/index.html',HTML)])
 if __name__ == '__main__': unittest.main()
