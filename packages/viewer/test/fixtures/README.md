@@ -46,3 +46,11 @@ node packages/viewer/test/fixtures/generate-cubistry-rotation.mjs /path/to/cubis
 ```
 
 The generator checks the source SHA-256 before executing the source controller.
+
+`cubistry-presentation-framing.json` records the source single-sphere fit,
+far plane and presentation rotation at portrait, landscape and narrow aspects.
+Regenerate against the hash-checked pinned checkout with:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-framing.mjs /path/to/cubistry
+```
