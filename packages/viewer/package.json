@@ -13,9 +13,7 @@
     "dev": "npm run build && node demo/server.mjs"
   },
   "dependencies": {
-    "three": "0.187.0"
-  },
-  "devDependencies": {
+    "three": "0.187.0",
     "@types/three": "0.187.0"
   },
   "files": [
