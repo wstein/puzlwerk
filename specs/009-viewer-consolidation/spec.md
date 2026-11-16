@@ -477,3 +477,61 @@ reports the error once and does not cause an error-driven RAF loop. A later
 input or invalidation retries from a coherent candidate. `onViewChanged` runs
 only after a successful commit; it observes a copy and does not own the frame.
 The callback cannot mutate a candidate being evaluated.
+
+### Source body and sticker shape extension for Stage 1 (review candidate)
+
+The pinned Calendar7 source has two additional render-only geometry paths. Its
+Names `layerProfileFor` uses widths [1.6,1,1,1,1,1,1.6] (edge 8.2), subtracts
+`0.01 / (66.5 / 8.2)` scene units from each cell extent, and calls the same
+source two-radius builder with outer radius `.055 * 8.2 / 3`, inner radius
+`0.6 * outer`, and two bevel segments. Its source profile has no sticker
+factory: the default N=3 sticker geometry (.87 square, corner radius .055,
+curve segments 4) is independently scaled in its local right/up axes by the
+corresponding cell extents, and offset is `.502 - .5 + normalCell / 2`.
+The standard Calendar7 fallback instead uses the source Three.js
+`RoundedBoxGeometry(.99,.99,.99,1,.055)`. Names uses the existing miter and
+planar-face-UV artwork options. Those source calls are distinct from the
+current default preset and cannot be represented exactly by changing N alone.
+
+Proposed minimal optional render data, independent of puzzle state:
+
+```ts
+type BodyProfile =
+  | Readonly<{ kind:'twoRadius'; gap:number; bevelSegments:number }>
+  | Readonly<{ kind:'roundedBox'; gap:number; radius:number; bevelSegments:number }>;
+// CubeProjection gains optional geometryProfile: { body: BodyProfile }.
+// Sticker gains optional geometry: { referenceSize: readonly [number, number]; cornerRadius:number }.
+```
+
+For either body profile each piece supplies its existing explicit cell geometry
+and outer sides, and body size is `cellSize - gap`. The `twoRadius` variant also
+requires explicit projection `presentation`; it uses its existing size and
+nominal-edge source radius rules and passes both radii and bevel segments to the
+same source builder. The `roundedBox` variant uses Three.js's source
+RoundedBoxGeometry with the explicit radius and bevel segments. Gap is finite
+and nonnegative; each cell extent exceeds it. Radius is finite and positive;
+segments is a positive safe integer. Empty projections remain valid. Profiles
+are opt-in: without them all current inputs and geometry behavior remain valid,
+with no grid or core inference and no change to caller piece transforms.
+
+Sticker `geometry` describes a source base rounded sticker, not final pose or
+size: `referenceSize` is a pair of positive finite extents and `cornerRadius`
+is finite, nonnegative and at most half its smaller extent. Build the source
+rounded geometry with four curve segments and scale the mesh locally by
+`sticker.size / referenceSize`. This preserves explicit caller size and pose,
+source anisotropic corner scaling and source UVs. Without `geometry`, the
+current preset sticker radius and geometry behavior remain unchanged. The
+application supplies source offsets and final sticker sizes; the viewer never
+reconstructs them from free projections. Profile and shape data are validated,
+deep-snapshotted and invariant across transitions, including live artwork
+updates and cancellation. Existing `appearance.planarFaceUv` and miter options
+remain the only associated UV and cut-face controls.
+
+Before claiming source parity, compare actual pinned source position, normal,
+UV and index buffers for Names two-radius bodies and standard rounded boxes;
+compare visible non-square sticker geometry, local scale, offsets and UVs from
+the real PhysicalCubeScene. Include caller-owned assets, planar/miter artwork,
+rest and mid-turn desktop/mobile views, invalid data, default-path regressions,
+resource lifetime and targeted mutations of each profile field. Stage lighting
+captures with the old preset profile demonstrate lighting only, not Names
+geometry parity. Consumer migration and full owner HQ acceptance remain open.
