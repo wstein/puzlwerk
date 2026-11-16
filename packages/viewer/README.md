@@ -30,3 +30,15 @@ results after cancellation. Context loss requires disposal and recreation. The
 host size is observed when ResizeObserver is available; `invalidate` requests
 one coalesced frame. No continuous frames run while idle. See NOTICE for source
 and license provenance. When the document is hidden, rendering and animation time pause; on return the transition resumes without a jump. This does not change Cubistry TimerController behavior; consumer synchronization remains a separate migration concern.
+
+
+The pilot uses Cubistry's 2×2 presentation values: a maximum body width of
+0.99, outer bevel radius 0.03, inner radius 0.018 (60%), three bevel
+segments, and rounded sticker corners with radius 0.055 and four curve segments.
+Body width is limited to preserve the pilot's earlier 0.471 sticker offset;
+the demo uses Cubistry's 0.502 offset and 0.87 sticker width. The plastic
+uses the Classic palette's #1b2431, roughness 0.45 and clearcoat 0.18;
+stickers use roughness 0.65 and clearcoat 0.12. The studio uses Cubistry's
+ambient, hemisphere, key, fill, rim and shadow-fill lights, two 1024-pixel
+shadow maps and the contact shadow. Renderer output uses sRGB, neutral tone
+mapping and a device pixel ratio capped at 2. See NOTICE for pinned sources.

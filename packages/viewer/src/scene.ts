@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Pivot grouping adapted from Cubistry physical-scene.ts; see NOTICE.
 import * as THREE from 'three';
+import { createTwoRadiusBody, type OuterSides } from './two-radius-body.js';
+import { createStickerGeometry, createPlasticMaterial, createStickerMaterial } from './presentation-preset.js';
+import { createPresentationStudio } from './studio.js';
 import { fail, ok, sameValues, validateProjection, validateTransition } from './contract.js';
 import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
 
@@ -16,7 +19,7 @@ const sameProjection = (a: CubeProjection, b: CubeProjection) => {
 export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend): CubeScene {
   const scene = new THREE.Scene();
   const root = new THREE.Group(); scene.add(root);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x555555, 2));
+  const studio = createPresentationStudio(scene);
   let projection: CubeProjection | undefined, pending: Pending | undefined, disposed = false, lost = false;
   let frame: number | undefined, animation: ((now: number) => boolean) | undefined;
   let pausedAt: number | undefined, pausedDuration = 0, dirty = false;
@@ -46,12 +49,23 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     for (const piece of p.pieces) {
       const body = new THREE.Group(); body.name = piece.id;
       body.position.set(...piece.transform.position); body.quaternion.set(...piece.transform.rotation);
-      const geometry = new THREE.BoxGeometry(.94,.94,.94); const material = new THREE.MeshLambertMaterial({color: 0x222222}); resources.push(geometry, material); body.add(new THREE.Mesh(geometry, material));
+      const sides: [[boolean, boolean], [boolean, boolean], [boolean, boolean]] = [[false,false],[false,false],[false,false]];
       for (const sticker of piece.stickers) {
-        const geo = new THREE.PlaneGeometry(...sticker.size);
+        const n = new THREE.Vector3(0,0,1).applyQuaternion(new THREE.Quaternion(...sticker.transform.rotation));
+        const axis = [Math.abs(n.x), Math.abs(n.y), Math.abs(n.z)].indexOf(Math.max(Math.abs(n.x), Math.abs(n.y), Math.abs(n.z)));
+        const component = [n.x,n.y,n.z][axis];
+        if (Math.abs(component) > .999) sides[axis][component > 0 ? 1 : 0] = true;
+      }
+      const offsets = piece.stickers.map(s => Math.hypot(...s.transform.position)).filter(n => n > .1);
+      const width = offsets.length ? Math.max(.94, Math.min(.99, Math.min(...offsets) * 2 - .002)) : .94;
+      const geometry = createTwoRadiusBody({size:[width,width,width],outer:sides as OuterSides,big:.03,small:.018,segments:3});
+      const material = createPlasticMaterial('#1b2431'); resources.push(geometry, material);
+      const mesh = new THREE.Mesh(geometry, material); mesh.castShadow = true; body.add(mesh);
+      for (const sticker of piece.stickers) {
+        const geo = createStickerGeometry(...sticker.size, Math.min(.055, ...sticker.size.map(x => x / 2)));
         const texture = sticker.imageId ? new THREE.Texture(assets.get(sticker.imageId) as TexImageSource) : undefined;
         if (texture) { texture.colorSpace = THREE.SRGBColorSpace; texture.needsUpdate = true; resources.push(texture); }
-        const mat = new THREE.MeshLambertMaterial({color: sticker.color, ...(texture ? {map: texture, transparent: true} : {})}); resources.push(geo, mat);
+        const mat = createStickerMaterial(texture ?? null, sticker.color); if (texture) mat.transparent = true; resources.push(geo, mat);
         const mesh = new THREE.Mesh(geo, mat); mesh.name = sticker.id;
         mesh.position.set(...sticker.transform.position); mesh.quaternion.set(...sticker.transform.rotation); body.add(mesh);
       }
@@ -129,7 +143,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       return ok(undefined);
     },
     invalidate() { const s = disposed ? fail('Disposed','Scene disposed') : lost ? fail('ContextLost','Context lost') : ok(undefined); if (s.ok) draw(); return s; },
-    dispose() { if (disposed) return; api.cancel(); disposed = true; unsubscribe?.(); if (frame !== undefined) clock.cancel(frame); frame = undefined; clear(); backend.dispose(); },
+    dispose() { if (disposed) return; api.cancel(); disposed = true; unsubscribe?.(); if (frame !== undefined) clock.cancel(frame); frame = undefined; clear(); studio.dispose(); backend.dispose(); },
   };
   // Context loss is wired by the browser host; kept private to the implementation.
   Object.assign(api, {contextLost() { if (disposed || lost) return; const op = pending; if (op) { const finishOriginal = op.finish; op.finish = () => finishOriginal(fail('ContextLost','Context lost')); api.cancel(); } lost = true; if (frame !== undefined) clock.cancel(frame); frame = undefined; }});

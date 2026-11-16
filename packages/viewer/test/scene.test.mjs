@@ -131,3 +131,19 @@ test('piece and sticker frames retain their world up and normal through a turn',
   near(draws.at(-1).sticker.up,coreAxis({x:0,y:0,z:1})); near(draws.at(-1).sticker.normal,coreAxis({x:0,y:-1,z:0}));
   scene.dispose();
 });
+
+test('presentation uses rounded physical pieces, rounded stickers and a shadow studio', async () => {
+  let rendered; const frames=[];
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  await scene.setProjection(projection); frames.shift()(0);
+  const piece=rendered.getObjectByName('a'), sticker=rendered.getObjectByName('s');
+  const body=piece.children.find(c=>c!==sticker);
+  assert.equal(body.material.type,'MeshPhysicalMaterial');
+  assert.ok(body.geometry.getAttribute('position').count>24);
+  assert.equal(body.castShadow,true);
+  assert.equal(sticker.material.type,'MeshPhysicalMaterial');
+  assert.ok(sticker.geometry.getAttribute('position').count>4);
+  assert.ok(rendered.getObjectByName('studio-shadow-receiver').receiveShadow);
+  assert.equal(rendered.children.filter(c=>c.isDirectionalLight && c.castShadow).length,2);
+  scene.dispose();
+});
