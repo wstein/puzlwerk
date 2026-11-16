@@ -41,6 +41,8 @@ test('player commits only completed turns and rejects overlap', async () => {
   const scene = {transition: t => { assert.equal(validateTransition(t).ok,true); return new Promise(resolve => {finish=resolve;}); }, cancel: () => ({ok:true}), dispose(){}};
   const player = createPlayer(definition,state,appearance,{palette:{white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'},defaultColor:'#ffffff'},scene).value;
   assert.equal((await player.turn('bad',[1],-1,0)).ok,false);
+  const illegal = await player.turn('X',[0,1],1,0);
+  assert.equal(illegal.ok,false); assert.equal(illegal.error.code,'IllegalMove');
   const turn = player.turn('X',[1],-1,0);
   assert.equal(player.state(),state);
   assert.equal((await player.turn('Y',[1],1,0)).ok,false);

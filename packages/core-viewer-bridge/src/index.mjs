@@ -19,7 +19,7 @@ const stickerRotation = (normal, up) => {
   const z = new Vector3(...normal), y = new Vector3(...up), x = y.clone().cross(z);
   return new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(x,y,z)).toArray();
 };
-const error = value => ({ok:false,error:value});
+const error = value => ({ok:false,error:typeof value === 'string' ? {code:value} : value?.TAG ? {code:value.TAG,detail:value._0} : value});
 export function open(definitionText,stateText,appearanceText,options) {
   const definition = Codec.decodeDefinition(definitionText);
   if (definition.TAG !== 'Ok') return error(definition._0);
