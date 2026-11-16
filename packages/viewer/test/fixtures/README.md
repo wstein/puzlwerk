@@ -31,3 +31,8 @@ node packages/viewer/test/fixtures/generate-cubistry-artwork.mjs /path/to/cubist
 ```
 
 The generator checks each direct viewer source hash before evaluating it.
+
+`cubistry-stickerless-miter.json` and `cubistry-picture-windows.json` are
+produced by `generate-cubistry-stickerless.mjs` and
+`generate-cubistry-picture.mjs`, each accepting the pinned Cubistry checkout
+path. They execute the actual PhysicalCubeScene with hash-checked source files.

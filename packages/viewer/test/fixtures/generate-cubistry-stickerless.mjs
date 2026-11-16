@@ -1,0 +1,17 @@
+import {createHash} from 'node:crypto';
+import {readFile,writeFile} from 'node:fs/promises';
+import {resolve,join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+if(!process.argv[2]) throw Error('Pass the pinned Cubistry checkout path');
+const root=resolve(process.argv[2]),dir=join(root,'packages/cube-viewer/src');
+for(const [name,expected] of Object.entries({'physical-scene.ts':'73c9882b48c107b43513600e3dafbf1c2f9be1b1b44b30fcc1c2ebaf29c7c79f','body-artwork.ts':'ed67b4f913b50e142b3262a4b81ac5ba19748921b424fdda57bf3661c906b5c5','cut-faces.ts':'b77409426386d2409b367350641c5e63fc04a327f26443df433724aff2b89fb1','projected-uv.ts':'f30ca569a5cbe84a3369ecee03134ce67006d755db6d64b93479460af1584397','presentation-preset.ts':'6ae77f5c4579689272106d21de91a1de23ed9dcfa762e30ad9e36944f784466b','two-radius-body.ts':'d0a822c0fbc2e0b84b73944bb17831872f5d2cbfa3ed72e0e83403b2b6220c38','layer-widths.ts':'0977d80f09a4e939d471b74c867c6e7a76a19dbdfc8cc1243cafed4ba7ff7416'})) if(createHash('sha256').update(await readFile(join(dir,name))).digest('hex')!==expected) throw Error(`Source hash mismatch: ${name}`);
+const THREE=await import(pathToFileURL(join(root,'node_modules/three/build/three.module.js')));
+const {PhysicalCubeScene}=await import(pathToFileURL(join(dir,'physical-scene.ts')));
+const {createTwoRadiusBody}=await import(pathToFileURL(join(dir,'two-radius-body.ts')));
+const {createStickerGeometry,createPlasticMaterial,createStickerMaterial}=await import(pathToFileURL(join(dir,'presentation-preset.ts')));
+const frames=[{id:0,cubie:0,p:[0,0,0],n:[0,0,1],up:[0,1,0]},{id:1,cubie:0,p:[0,0,0],n:[0,1,0],up:[0,0,-1]}], colors=new Map([[0,'#ff0000'],[1,'#ffffff']]);
+const edges=new Map([[0,{left:[{to:.3,color:'#ffffff'},{to:1,color:'#ff0000'}]}]]), materials=new Map(frames.map(f=>[f.id,createStickerMaterial(null,colors.get(f.id))]));
+const geometry={body:createTwoRadiusBody({size:[.99,.99,.99],outer:[[false,false],[false,true],[false,true]],big:.03,small:.018,segments:3}),sticker:createStickerGeometry(.87,.87,.055),stickerOffset:.502};
+const parent=new THREE.Group(), scene=new PhysicalCubeScene(parent,frames,materials,createPlasticMaterial('#1b2431'),1,geometry,colors,{miterCutFaces:true,faceEdgeColors:edges});scene.setConstruction('stickerless');
+const shell=parent.children[0].children[0], hash=a=>createHash('sha256').update(a).digest('hex');
+await writeFile(new URL('./cubistry-stickerless-miter.json',import.meta.url),JSON.stringify(shell.material.map(m=>({color:m.color.getHexString(),texture:m.map?hash(m.map.image.data):null})),null,2)+'\n');scene.dispose();
