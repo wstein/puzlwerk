@@ -1,0 +1,193 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Layout } from "./layout.ts";
+
+/**
+ * Body geometry of the cubies. The scene has no physical unit: the standard layout has a cubie pitch (center to center) of
+ * 1 scene unit and keeps the shipped body width .99 (PRESENTATION_PRESET.bodyWidth, a gap of .01 units). The names layout
+ * uses the layer-width profile below (thicker outer layers); its unit is the width of an inner layer. It sets the gap
+ * between cubies to 0.01 mm (never 0: no overlap, no z-fighting).
+ */
+export const STANDARD_BODY_WIDTH = 0.99;
+
+/**
+ * Width of the two outer layers of an N-cube relative to an inner layer (1): real big cubes have thicker outer layers
+ * (the corners must keep contact at 45 degree turns). Estimates, to be replaced by caliper measurements of real cubes:
+ * N = 2, 3, 4: 1.0 (owner decision 2026-11-10); N = 5: 1.1, N = 6: 1.3 and N = 7: 1.6 (owner decision 2026-11-11).
+ * This is the one table; change a value here only.
+ */
+export const OUTER_LAYER_WIDTH: Readonly<Record<number, number>> = Object.freeze({ 2: 1, 3: 1, 4: 1, 5: 1.1, 6: 1.3, 7: 1.6 });
+/**
+ * Local look at another outer layer factor of the 7x7: the URL parameter `outer` (for example `?outer=1.8`, from 1.2 to 2.4) replaces
+ * the table value of N = 7 for this page load; without it, and outside a browser, the table is used. The names layout derives
+ * the cube edge and the cell grid from it; the month banner stays at its fixed unit-grid constants.
+ */
+const outerOverride = (): number | undefined => {
+  try {
+    const raw = new URLSearchParams((globalThis as { location?: { search?: string } }).location?.search ?? "").get("outer");
+    const v = raw === null ? NaN : Number(raw);
+    return Number.isFinite(v) && v >= 1.2 && v <= 2.4 ? v : undefined;
+  } catch { return undefined; }
+};
+const OUTER_7X7_OVERRIDE = outerOverride();
+export const outerLayerWidth = (n: number): number => {
+  if (n === 7 && OUTER_7X7_OVERRIDE !== undefined) return OUTER_7X7_OVERRIDE;
+  const f = OUTER_LAYER_WIDTH[n];
+  if (f === undefined) throw new Error(`No outer layer width for N = ${n}`);
+  return f;
+};
+/** Layer widths of an N-cube, in units of an inner layer: [f, 1, ..., 1, f]. */
+export const layerWidthsFor = (n: number): number[] =>
+  Array.from({ length: n }, (_, i) => (i === 0 || i === n - 1 ? outerLayerWidth(n) : 1));
+/** Bevel radius of the body geometry: PRESENTATION_PRESET.bodyRadius (tests/calendar7-layer-widths.test.mjs compares them; this module stays free of three.js, the 2D sheet imports it). */
+export const BODY_RADIUS = 0.055;
+/** The Calendar7 cube is a 7x7. */
+export const CALENDAR7_SIZE = 7;
+/** Total edge of the 7x7 in units of an inner layer: (N - 2) + 2 f = 5 + 2 * 1.6 = 8.2. */
+export const NAMES_CUBE_EDGE = layerWidthsFor(CALENDAR7_SIZE).reduce((sum, w) => sum + w, 0);
+/**
+ * Bevel radius of the 12 cube edges of the names layout (owner decision 2026-11-14, two radii; every other edge has `NAMES_INNER_RADIUS`): the millimeter radius of a 3x3 at the
+ * same cube edge, BODY_RADIUS * edge / 3 = 0.055 * 8.2 / 3 = 0.1503 inner layers (the shared viewer's `bodyRadiusFor`, which
+ * tests/calendar7-layer-widths.test.mjs compares). The standard layout keeps BODY_RADIUS.
+ */
+export const NAMES_BODY_RADIUS = BODY_RADIUS * NAMES_CUBE_EDGE / 3;
+/**
+ * Radius of every other edge of a cubie of the names layout (two-radius model, owner decision 2026-11-14): 0.6 of the radius of
+ * the 12 cube edges. A seam between two cubies, and so the grooves of the tiles on a face, has this radius; only the edges on the
+ * cube edges have `NAMES_BODY_RADIUS`. tests/calendar7-layer-widths.test.mjs compares both with the shared viewer.
+ */
+export const NAMES_INNER_RADIUS = 0.6 * NAMES_BODY_RADIUS;
+/** Distance (inner layers) from the texture edge of a face to the end of its visible part at a seam: where the bevel is 45 degrees steep, r (1 - cos 45) of the inner radius. */
+export const NAMES_EDGE_INSET = (1 - Math.SQRT1_2) * NAMES_INNER_RADIUS;
+/** Bevel segments of a body of the names layout: the radius of the cube edges is 2.7 times larger than the preset, one segment would be a visible chamfer. */
+export const NAMES_BEVEL_SEGMENTS = 2;
+/**
+ * Physical edge of the 7x7 in mm: the middle of the 61.5 to 70 mm range of common 7x7 cubes (an assumption, not measured on
+ * the owner's cube). The names layout states its gap in mm with it.
+ */
+export const CUBE_EDGE_MM_7X7 = 66.5;
+/** Edge of an inner cubie in mm: 66.5 / (5 + 2 f) = 66.5 / 8.2 = 8.1098 mm. */
+export const INNER_CUBIE_EDGE_MM = CUBE_EDGE_MM_7X7 / NAMES_CUBE_EDGE;
+/** Gap between neighboring cubies of the names layout in mm. */
+export const NAMES_GAP_MM = 0.01;
+/** The same gap in scene units (inner layer = 1): 0.01 mm / 8.1098 mm = 0.0012331. */
+export const NAMES_GAP = NAMES_GAP_MM / INNER_CUBIE_EDGE_MM;
+/** Body width of an inner cubie of the names layout: the width 1 minus the gap. */
+export const NAMES_BODY_WIDTH = 1 - NAMES_GAP;
+/** Body size of a names-layout cubie with the layer widths `cell`: every width minus the gap. */
+export const namesBodySize = (cell: readonly number[]): [number, number, number] => cell.map(w => w - NAMES_GAP) as [number, number, number];
+/** Bevel radius at a seam of a body of the names layout (`NAMES_INNER_RADIUS`, but never more than half of the thinnest side). */
+export const bevelRadius = (width: number): number => Math.min(NAMES_INNER_RADIUS, width / 2);
+/**
+ * Texture pixels per scene unit of a body face of an extent `w` (in inner layers) whose texture is `pixels` wide. The names layout
+ * maps its face textures planar (PhysicalSceneOptions.planarFaceUv: u = position / body width + 0.5), so the scale is the same on the
+ * flat part and on the bevel: pixels / L with L = w - gap, and a cell edge lies where the cell edge is.
+ * tests/calendar7-layer-widths.test.mjs measures it on the real geometry.
+ */
+export const facePixelsPerUnit = (w: number, pixels: number): number => pixels / (w - NAMES_GAP);
+/** Share of the texture (along one axis) that is the flat part of the face: (L - 2 r) / L. */
+export const faceFlatShare = (w: number): number => {
+  const length = w - NAMES_GAP;
+  return (length - 2 * bevelRadius(length)) / length;
+};
+/** Share of the texture (along one axis) that is visible: up to where the bevel is 45 degrees steep, (L - 2 inset) / L. */
+export const faceVisibleShare = (w: number): number => {
+  const length = w - NAMES_GAP;
+  return (length - 2 * Math.min(NAMES_EDGE_INSET, length / 2)) / length;
+};
+/** Texture pixels of a 1 x 1 face of the names layout: 192 / L = 192.2. */
+export const NAMES_FACE_PX_PER_UNIT = facePixelsPerUnit(1, 192);
+
+/**
+ * Size of the face of a sticker on its cubie, in inner layers: `w` along the sticker's right axis (up x normal) and `h`
+ * along its up axis, each the width of the layer the cubie sits in on that axis (`pos`, `normal`, `up`: the sticker's
+ * three integer vectors at the pose the cube is built from; the layer coordinate p is -3..3 for the 7x7).
+ */
+export function faceTileOf(pos: ArrayLike<number>, normal: ArrayLike<number>, up: ArrayLike<number>, widths: readonly number[]): { w: number; h: number } {
+  const right = [up[1] * normal[2] - up[2] * normal[1], up[2] * normal[0] - up[0] * normal[2], up[0] * normal[1] - up[1] * normal[0]];
+  const widthAlong = (v: ArrayLike<number>): number => {
+    const axis = [0, 1, 2].find(a => v[a] !== 0);
+    const index = axis === undefined ? NaN : pos[axis] + (widths.length - 1) / 2;
+    if (!Number.isInteger(index) || index < 0 || index >= widths.length) throw new Error("Sticker outside the layer profile");
+    return widths[index];
+  };
+  return { w: widthAlong(right), h: widthAlong(up) };
+}
+
+/**
+ * Unit grid of the content (owner decision of 2026-11-11): the printed content of the names layout is a uniform 7 x 7 grid of
+ * cells of the size of an inner cubie (1 unit). A cubie on a thick outer layer (width w) carries exactly one unit cell on its
+ * INNER side and a band of `w - 1` on its outer side. The band of a face tile, per side, in units (0 where the cubie is not
+ * on that outer layer): `l`/`r` along the sticker's right axis, `t`/`b` along its up axis.
+ */
+export interface FaceBands { readonly l: number; readonly r: number; readonly t: number; readonly b: number }
+/** Bands of the face of a sticker (`pos`, `normal`, `up` as for `faceTileOf`): the side of the outer layer decides which band the cubie has. */
+export function faceBandsOf(pos: ArrayLike<number>, normal: ArrayLike<number>, up: ArrayLike<number>, widths: readonly number[]): FaceBands {
+  const n = widths.length, right = [up[1] * normal[2] - up[2] * normal[1], up[2] * normal[0] - up[0] * normal[2], up[0] * normal[1] - up[1] * normal[0]];
+  const bandAt = (v: ArrayLike<number>): { low: number; high: number } => {
+    const axis = [0, 1, 2].find(a => v[a] !== 0);
+    const index = axis === undefined ? NaN : v[axis] * pos[axis] + (n - 1) / 2; // layer index counted in the direction of v
+    if (!Number.isInteger(index) || index < 0 || index >= n) throw new Error("Sticker outside the layer profile");
+    return { low: index === 0 ? widths[index] - 1 : 0, high: index === n - 1 ? widths[index] - 1 : 0 };
+  };
+  const x = bandAt(right), y = bandAt(up);
+  return { l: x.low, r: x.high, t: y.high, b: y.low };
+}
+/** Tile of a face with its bands: what the art of the names layout draws on. */
+export const unitGridTileOf = (pos: ArrayLike<number>, normal: ArrayLike<number>, up: ArrayLike<number>, widths: readonly number[]): { w: number; h: number; band: FaceBands } =>
+  ({ ...faceTileOf(pos, normal, up, widths), band: faceBandsOf(pos, normal, up, widths) });
+
+/**
+ * The red banner of the month row in FIXED unit-grid coordinates (cube center origin, cell pitch 1), like the digits and the
+ * lines, so the print is the same at every outer layer factor f (owner decision of 2026-11-11): y 2.9 .. 3.9 (the cell row of
+ * the month row is 2.5 .. 3.5), x -3.8 .. 3.8 (0.3 beyond the cell grid edges at +-3.5), corner radius 0.3. Where the outer cubie is
+ * too small for it (the top edge of the face is at 2.5 + f: clipped for f < 1.4, the side edge likewise for f < 1.3) the art
+ * continues beyond the face and is clipped at the texture edge, as every other part of the print.
+ */
+/** Banner height in units. */
+export const NAMES_BANNER_HEIGHT = 1.0;
+/** Offset of the bottom edge of the banner above the lower edge of the cell row of the month row, in units: y = 2.5 + 0.4 = 2.9. */
+export const NAMES_BANNER_BOTTOM_OFFSET = 0.4;
+/** How far the banner reaches beyond the left and right edge of the cell grid, in units: 3.5 + 0.3 = 3.8. */
+export const NAMES_BANNER_OVERHANG = 0.3;
+/** Corner radius of the banner in units (0 is square: the name then sits 2:1 above to below). */
+export const NAMES_BANNER_RADIUS = 0.3;
+/**
+ * Banner margin from the top edge of a tile that is not in the thick month row (the tiles of the print on other faces, which
+ * carry the red banner class too; as before the unit grid banner, it is a margin from the tile edge).
+ */
+export const NAMES_BANNER_THIN_TILE_TOP = 0.4;
+/** Weekday words (SUN to SAT) sit this far below the center of their unit cell, in units (owner decision of 2026-11-11). */
+export const NAMES_WEEKDAY_DOWN = 0.08;
+/** Share of the free height of the banner that is above the month name with square corners: 2/3 (2:1 above to below, owner decision of 2026-11-11). */
+export const NAME_ABOVE_SHARE = 2 / 3;
+/** With rounded banner corners (`NAMES_BANNER_RADIUS` > 0) the ink of the name is centered in the banner: 1/2 (owner decision of 2026-11-11). */
+export const NAME_ABOVE_SHARE_ROUNDED = 1 / 2;
+/** The share above the name for a banner corner radius: centered when rounded, 2:1 when square. */
+export const nameAboveShare = (radius: number = NAMES_BANNER_RADIUS): number => (radius > 0 ? NAME_ABOVE_SHARE_ROUNDED : NAME_ABOVE_SHARE);
+/** The red banner of the month row relative to the unit cell center of a row 1 cubie, in units (y up): bottom and top edge. The same at every f. */
+export function monthBanner(): { bottom: number; top: number; height: number } {
+  const bottom = NAMES_BANNER_BOTTOM_OFFSET - 0.5;
+  return { bottom, top: bottom + NAMES_BANNER_HEIGHT, height: NAMES_BANNER_HEIGHT };
+}
+
+export const bodyWidthFor = (layout: Layout): number => (layout === "names" ? NAMES_BODY_WIDTH : STANDARD_BODY_WIDTH);
+/** Layer widths of the Calendar7 cube per layout: the standard layout has none (unit pitch), the names layout the thick outer layers. */
+export const layerWidthsOf = (layout: Layout): number[] | null => (layout === "names" ? layerWidthsFor(CALENDAR7_SIZE) : null);
+/** Half the edge of the cube in scene units (camera, studio): 3.5 in the standard layout, 4.1 in the names layout. */
+export const halfEdgeOf = (layout: Layout): number => (layout === "names" ? NAMES_CUBE_EDGE / 2 : CALENDAR7_SIZE / 2);
+
+/**
+ * Tone mapping of the renderer. The standard layout and every other app keep the shared presentation value (Neutral tone
+ * mapping, exposure 1). The names layout reproduces its color tokens on screen, with the paper white as the reference:
+ * - Linear tone mapping (the exposure scales the linear color, clipped at 1; three.js ignores the exposure without any tone
+ *   mapping). Neutral compresses every channel above 0.76 and then mixes the color toward white, so a saturated red at the
+ *   raised exposure that makes white read white came out as #f85759 instead of #e0282c;
+ * - the exposure follows the face that looks at the camera (names-exposure.ts): the inverse of the radiance a white diffuse
+ *   surface gets there, 1.217 head on at the shared presentation lights;
+ * - the shared plastic (specular 1, clearcoat 0.18) adds about 1.3% linear white to every color (#e0282c rendered #e1373a), so
+ *   the names layout has its own shading: plasticity (names-plasticity.ts, default 0.6) scales specular and face
+ *   shadows from none up (every cube material has roughness 0.65 and clearcoat 0.01 at any plasticity), the lights are one global rig
+ *   (names-light.ts), and the exposure gives back what the shading takes. The standard layout keeps
+ *   its gloss.
+ */
+export const STANDARD_EXPOSURE = 1;
