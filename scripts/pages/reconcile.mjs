@@ -10,6 +10,19 @@ export function decide(pr,runs,complete) {
   return run ? {action:'update',number:pr.number,run:run.id,attempt:run.run_attempt,sha:pr.head.sha} : {action:'retain',number:pr.number};
 }
 
+async function decisionFor(api,number) {
+  const pr=await api.request(`pulls/${number}`);
+  if (!pr || pr.number!==number) throw Error('Missing current PR');
+  const runs=eligible(pr)?await api.pages(`actions/workflows/acceptance-preview.yml/runs?event=pull_request&head_sha=${pr.head.sha}`,'workflow_runs'):[];
+  const decision=decide(pr,runs,true); if (!decision) throw Error('Invalid current PR'); return decision;
+}
+export async function validateChanges(api,changed) {
+  if (!Array.isArray(changed) || changed.length>400) throw Error('Invalid change list');
+  for (const decision of changed) {
+    if (!decision || !['update','remove'].includes(decision.action) || !Number.isSafeInteger(decision.number) || decision.number<1 || JSON.stringify(await decisionFor(api,decision.number))!==JSON.stringify(decision)) throw Error('PR changed before publication');
+  }
+}
+
 // Operate only on an isolated verified snapshot; returned check runs just before publish.
 export async function reconcile(api,root,{stage}) {
   const {readdir,mkdir,mkdtemp,rm,rename} = await import('node:fs/promises');
@@ -25,12 +38,7 @@ export async function reconcile(api,root,{stage}) {
   for (const pr of open) if (eligible(pr)) numbers.add(pr.number);
   if (numbers.size>400) throw Error('Preview inventory exceeds budget');
   const changed=[], errors=[];
-  async function state(number) {
-    const pr=await api.request(`pulls/${number}`);
-    if (!pr || pr.number!==number) throw Error('Missing current PR');
-    const runs=eligible(pr)?await api.pages(`actions/workflows/acceptance-preview.yml/runs?event=pull_request&head_sha=${pr.head.sha}`,'workflow_runs'):[];
-    const decision=decide(pr,runs,true); if (!decision) throw Error('Invalid current PR'); return decision;
-  }
+  const state=number=>decisionFor(api,number);
   for (const number of [...numbers].sort((a,b)=>a-b)) {
     let mutationStarted=false;
     try {
@@ -48,6 +56,6 @@ export async function reconcile(api,root,{stage}) {
       }
     } catch(error) { if (mutationStarted) throw error; errors.push({number,message:String(error.message).slice(0,300)}); }
   }
-  const check=async()=>{for (const decision of changed) if (JSON.stringify(await state(decision.number))!==JSON.stringify(decision)) throw Error('PR changed before publication');};
+  const check=()=>validateChanges(api,changed);
   check.errors=errors; check.changed=changed; return check;
 }
