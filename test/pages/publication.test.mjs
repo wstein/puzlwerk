@@ -117,7 +117,76 @@ test('bounded receipt confirmation tolerates only the exact previous receipt and
  const sequence=[new Response(JSON.stringify(prior),{status:200}),new Response('',{status:503}),new Response('',{status:404}),new Response(JSON.stringify(next),{status:200})];
  let waits=0; const got=await waitForLiveReceipt(next,{previous:prior,fetch:async()=>sequence.shift(),sleep:async()=>{waits++;},attempts:4});
  assert.deepEqual(got,next); assert.equal(waits,3);
- await assert.rejects(waitForLiveReceipt(next,{previous:prior,fetch:async()=>new Response(JSON.stringify({...prior,nonce:'f'.repeat(32)})),sleep:async()=>{},attempts:4}),/mismatch/);
+ let foreignCalls=0; await assert.rejects(waitForLiveReceipt(next,{previous:prior,fetch:async()=>{foreignCalls++;return new Response(JSON.stringify({...prior,nonce:'f'.repeat(32)}));},sleep:async()=>{},attempts:4}),/mismatch/); assert.equal(foreignCalls,1);
  let calls=0; await assert.rejects(waitForLiveReceipt(next,{previous:prior,fetch:async()=>{calls++;return new Response('',{status:503});},sleep:async()=>{},attempts:3}),/exhausted/); assert.equal(calls,3);
  await assert.rejects(waitForLiveReceipt(next,{previous:prior,fetch:async()=>new Response('',{status:403}),sleep:async()=>{},attempts:3}),/failed/);
+});
+
+test('actual failed writer metadata distinguishes a deployed snapshot from a skipped deployment',async()=>{
+ const {readFile}=await import('node:fs/promises'); const {classifyFailedWriter}=await import('../../scripts/pages/publication.mjs');
+ const fixture=async name=>JSON.parse(await readFile(`test/pages/fixtures/receipt-recovery/${name}.json`));
+ const run=await fixture('deployed-run'); const deployed=(await fixture('deployed-jobs')).find(j=>j.name==='Publish preview snapshot');
+ const skipped=(await fixture('predeploy-failed-jobs')).find(j=>j.name==='Publish preview snapshot');
+ const blob='757cc0f56c8edb67cf62306da379c018b5902c65';
+ assert.equal(classifyFailedWriter(run,deployed,blob,1),'recover');
+ assert.equal(classifyFailedWriter(run,skipped,blob,1),'not-deployed');
+ for(const variant of [{...run,head_branch:'other'},{...run,run_attempt:2},{...run,event:'push'},{...run,head_repository:{full_name:'fork/puzlwerk'}},{...run,status:'in_progress'}]) assert.equal(classifyFailedWriter(variant,deployed,blob,1),null);
+ assert.equal(classifyFailedWriter(run,deployed,'f'.repeat(40),1),null);
+ assert.equal(classifyFailedWriter(run,{...deployed,steps:deployed.steps.filter(s=>s.name!=='Deploy combined snapshot')},blob,1),null);
+ assert.equal(classifyFailedWriter(run,{...deployed,steps:[...deployed.steps,deployed.steps.find(s=>s.name==='Deploy combined snapshot')]},blob,1),null);
+ assert.equal(classifyFailedWriter(run,{...deployed,steps:deployed.steps.map(s=>s.name==='Run node scripts/pages/writer.mjs finish'?{...s,conclusion:'success'}:s)},blob,1),null);
+});
+
+test('deployed failed writer recovery binds the verified snapshot to the actual start and run',async()=>{
+ const {readFile}=await import('node:fs/promises'); const {recoverFailedWriter}=await import('../../scripts/pages/publication.mjs');
+ const fixture=async name=>JSON.parse(await readFile(`test/pages/fixtures/receipt-recovery/${name}.json`));
+ const run=await fixture('deployed-run'), r=await fixture('public-receipt');
+ const job=(await fixture('deployed-jobs')).find(j=>j.name==='Publish preview snapshot');
+ const before=(await fixture('predeploy-failed-jobs')).find(j=>j.name==='Publish preview snapshot');
+ const start={schema:1,run:run.id,attempt:1,sha:run.head_sha,previous:r.previous};
+ const api={request:async()=>({sha:'757cc0f56c8edb67cf62306da379c018b5902c65'})};
+ const result=await recoverFailedWriter(api,run,job,start,1,{snapshotReader:async()=>r});
+ assert.deepEqual(result,{start,commit:{...start,receipt:r}});
+ assert.equal(await recoverFailedWriter(api,run,before,start,1,{snapshotReader:async()=>{throw Error('must not read')}}),null);
+ for(const altered of [{...r,run:99},{...r,attempt:2},{...r,previous:'f'.repeat(32)},{...r,sha:'f'.repeat(40)}]) await assert.rejects(recoverFailedWriter(api,run,job,start,1,{snapshotReader:async()=>altered}));
+ await assert.rejects(recoverFailedWriter({...api,request:async()=>({sha:'f'.repeat(40)})},run,job,start,1,{snapshotReader:async()=>r}));
+});
+
+test('actual failed-deploy shape is recovered in the ledger and later skipped-deploy writers are ignored',async()=>{
+ const {mkdtemp,mkdir,readFile,rm}=await import('node:fs/promises'); const {tmpdir}=await import('node:os'); const {join}=await import('node:path'); const {execFileSync}=await import('node:child_process');
+ const {readVerifiedSnapshot}=await import('../../scripts/pages/publication.mjs');
+ const fixture=async name=>JSON.parse(await readFile(`test/pages/fixtures/receipt-recovery/${name}.json`));
+ const failed=await fixture('deployed-run'), actual=await fixture('public-receipt');
+ const deployedJobs=await fixture('deployed-jobs'), skippedJobs=await fixture('predeploy-failed-jobs');
+ const tmp=await mkdtemp(join(tmpdir(),'recovery-test-'));
+ try {
+  const source=join(tmp,'source'); await mkdir(source); const archive=join(tmp,'snapshot.zip');
+  const makeSnapshot=`import json,sys,zipfile\nfrom pathlib import Path\nsys.path.insert(0,'scripts/pages')\nfrom baseline import make_receipt\nr=Path(sys.argv[1]); (r/'index.html').write_text('root'); v=make_receipt(r,sys.argv[3],int(sys.argv[4]),1,sys.argv[5],previous=sys.argv[6]); (r/'.puzlwerk-publication.json').write_text(json.dumps(v))\nwith zipfile.ZipFile(sys.argv[2],'w') as z:\n for p in r.rglob('*'):\n  if p.is_file():z.write(p,p.relative_to(r).as_posix())\nprint(json.dumps(v))`;
+  const current=JSON.parse(execFileSync('python3',['-B','-c',makeSnapshot,source,archive,failed.head_sha,String(failed.id),actual.nonce,actual.previous],{encoding:'utf8'}));
+  const anchor={...current,run:10,sha:'d'.repeat(40),nonce:actual.previous,previous:null};
+  const start=r=>({schema:1,run:r.run,attempt:r.attempt,sha:r.sha,previous:r.previous});
+  const zip=async(name,value)=>{const file=join(tmp,name);execFileSync('python3',['-B','-c',"import sys,zipfile\nwith zipfile.ZipFile(sys.argv[1],'w') as z:z.writestr('ledger.json',sys.argv[2])",file,JSON.stringify(value)]);return readFile(file);};
+  const blobs={1:await zip('anchor-start.zip',start(anchor)),2:await zip('anchor-commit.zip',{...start(anchor),receipt:anchor}),3:await zip('failed-start.zip',start(current)),4:await readFile(archive)};
+  const repo={full_name:'wstein/puzlwerk'}; const anchorRun={id:10,run_attempt:1,event:'workflow_dispatch',status:'completed',conclusion:'success',head_sha:anchor.sha,head_branch:'main',path:'.github/workflows/documentation.yml',created_at:'2026-11-16T11:00:00Z',repository:repo,head_repository:repo};
+  const skipped={...failed,id:43875644347,created_at:'2026-11-16T13:25:00Z'};
+  const art=(id,name,run)=>({id,name,expired:false,size_in_bytes:blobs[id].length,workflow_run:{id:run}});
+  const items={10:[art(1,'pages-writer-start-1',10),art(2,'pages-writer-commit-1',10)],[failed.id]:[art(3,'pages-writer-start-1',failed.id),art(4,'pages-published-snapshot-1',failed.id)],[skipped.id]:[]};
+  const api={request:async path=>path.startsWith('contents/')?{sha:'757cc0f56c8edb67cf62306da379c018b5902c65'}:path.endsWith('/10')?anchorRun:failed,pages:async path=>{if(path.includes('/artifacts'))return items[Number(path.match(/runs\/(\d+)/)[1])];if(path.includes('/jobs')){const id=Number(path.match(/runs\/(\d+)/)[1]);return id===10?[{name:'Deploy production snapshot',status:'completed',conclusion:'success'}]:id===failed.id?deployedJobs:skippedJobs;}return path.includes('documentation.yml')?[anchorRun]:[failed,skipped];},zip:async id=>blobs[id]};
+  const fetch=async()=>new Response(JSON.stringify(current));
+  const got=await readVerifiedSnapshot(api,{destination:join(tmp,'out'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}});
+  assert.deepEqual(got,current);
+  await assert.rejects(readVerifiedSnapshot({...api,zip:async id=>id===4?Buffer.from('corrupt'):blobs[id]},{destination:join(tmp,'corrupt'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}));
+  await assert.rejects(readVerifiedSnapshot({...api,request:async path=>path.startsWith('contents/')?{sha:'f'.repeat(40)}:api.request(path)},{destination:join(tmp,'wrong-workflow'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}));
+  await assert.rejects(readVerifiedSnapshot({...api,pages:async path=>path.includes(`/runs/${failed.id}/artifacts`)?items[failed.id].filter(x=>!x.name.startsWith('pages-writer-start-')):api.pages(path)},{destination:join(tmp,'missing-start'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}));
+  await assert.rejects(readVerifiedSnapshot({...api,pages:async path=>path.includes(`/runs/${failed.id}/attempts/`)?deployedJobs.map(job=>job.name==='Publish preview snapshot'?{...job,steps:job.steps.map(step=>step.name==='Deploy combined snapshot'?{...step,conclusion:'skipped'}:step)}:job):api.pages(path)},{destination:join(tmp,'not-deployed'),fetch,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}));
+  let reads=0; const changed=async()=>new Response(JSON.stringify(++reads===1?current:{...current,nonce:'f'.repeat(32)}));
+  await assert.rejects(readVerifiedSnapshot(api,{destination:join(tmp,'changed-live'),fetch:changed,bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}));
+  const source2=join(tmp,'source2'); await mkdir(source2); const archive2=join(tmp,'next-snapshot.zip');
+  const next=JSON.parse(execFileSync('python3',['-B','-c',makeSnapshot,source2,archive2,failed.head_sha,'50','9'.repeat(32),current.nonce],{encoding:'utf8'}));
+  blobs[5]=await readFile(archive2); blobs[6]=await zip('next-start.zip',start(next)); blobs[7]=await zip('next-commit.zip',{...start(next),receipt:next});
+  const success={...failed,id:50,created_at:'2026-11-16T13:30:00Z',status:'completed',conclusion:'success'};
+  items[50]=[art(5,'pages-published-snapshot-1',50),art(6,'pages-writer-start-1',50),art(7,'pages-writer-commit-1',50)];
+  const later={...api,request:async path=>path.endsWith('/50')?success:api.request(path),pages:async path=>{if(path.includes('/runs/50/artifacts'))return items[50];if(path.includes('/runs/50/attempts/'))return [{name:'Publish preview snapshot',status:'completed',conclusion:'success'}];if(path.includes('pages-publish.yml/runs'))return [failed,skipped,success];return api.pages(path);}};
+  assert.deepEqual(await readVerifiedSnapshot(later,{destination:join(tmp,'later'),fetch:async()=>new Response(JSON.stringify(next)),bootstrap:{run:10,attempt:1,nonce:anchor.nonce}}),next);
+ } finally {await rm(tmp,{recursive:true,force:true});}
 });

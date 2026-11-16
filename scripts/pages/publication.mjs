@@ -40,7 +40,7 @@ export async function waitForLiveReceipt(receipt,{previous=null,fetch:request=fe
  for(let i=0;i<attempts;i++) {
   let live;
   try { live=await readPublication({fetch:request}); }
-  catch(error) { if(![500,502,503,504].includes(error.status)) throw error; live=null; }
+  catch(error) { if(!Number.isInteger(error.status) || error.status<500 || error.status>599) throw error; live=null; }
   if(samePublication(live,receipt)) return live;
   if(live!==null && !samePublication(live,previous)) throw Error('Live publication receipt mismatch');
   if(i+1<attempts) await sleep(2000);
@@ -52,6 +52,27 @@ export function trustedPublisher(run,receipt,{context}={}) {
  const workflow=run?.path;
  const event=workflow==='.github/workflows/documentation.yml' ? run?.event==='workflow_dispatch' : workflow==='.github/workflows/pages-publish.yml' && ['workflow_dispatch','workflow_run'].includes(run?.event);
  return Boolean(run && run.id===receipt.run && run.run_attempt===receipt.attempt && run.head_sha===receipt.sha && run.head_branch==='main' && run.repository?.full_name===REPOSITORY && run.head_repository?.full_name===REPOSITORY && event && ((run.status==='completed' && run.conclusion==='success') || own));
+}
+
+// Failure is recoverable only under this audited publisher workflow contract.
+export function classifyFailedWriter(run,job,workflowBlob,attempt) {
+ if(!run || run.path!=='.github/workflows/pages-publish.yml' || !['workflow_dispatch','workflow_run'].includes(run.event) || run.head_branch!=='main' || run.repository?.full_name!==REPOSITORY || run.head_repository?.full_name!==REPOSITORY || !hex(run.head_sha,40) || run.status!=='completed' || !['failure','cancelled'].includes(run.conclusion) || run.run_attempt!==attempt || workflowBlob!=='757cc0f56c8edb67cf62306da379c018b5902c65' || job?.name!=='Publish preview snapshot' || job.status!=='completed' || !['failure','cancelled'].includes(job.conclusion) || !Array.isArray(job.steps)) return null;
+ const step=name=>{const matches=job.steps.filter(x=>x?.name===name);return matches.length===1 && matches[0].status==='completed'?matches[0].conclusion:null;};
+ const deploy=step('Deploy combined snapshot');
+ if(deploy==='skipped') return 'not-deployed';
+ if(deploy==='success' && step('Run node scripts/pages/writer.mjs finish')==='failure') return 'recover';
+ return null;
+}
+
+export async function recoverFailedWriter(api,run,job,start,attempt,{snapshotReader=readRecoverySnapshot}={}) {
+ const blob=await api.request(`contents/${run.path}?ref=${run.head_sha}`);
+ const classification=classifyFailedWriter(run,job,blob?.sha,attempt);
+ if(!classification) throw Error('Unverifiable failed writer');
+ if(!start || Object.keys(start).sort().join(',')!=='attempt,previous,run,schema,sha' || start.schema!==1 || start.run!==run.id || start.attempt!==attempt || start.sha!==run.head_sha || !(start.previous===null || hex(start.previous,32))) throw Error('Invalid failed writer start');
+ if(classification==='not-deployed') return null;
+ const receipt=parsePublication(JSON.stringify(await snapshotReader(api,run,attempt)));
+ if(receipt.run!==start.run || receipt.attempt!==start.attempt || receipt.sha!==start.sha || receipt.previous!==start.previous) throw Error('Recovered receipt does not match writer start');
+ return {start,commit:{...start,receipt}};
 }
 
 export function verifyWriterLedger(records,receipt,{bootstrap,context}={}) {
@@ -117,9 +138,19 @@ export async function readWriterLedger(api,receipt,{bootstrap,context}={}) {
      if(!Buffer.isBuffer(bytes) || !bytes.length || bytes.length>65536) throw Error('Invalid writer archive');
      return readLedgerArchive(bytes);
     };
+    const own=context && context.run===run.id && context.attempt===attempt && context.sha===run.head_sha;
+    if(!own && run.status==='completed' && ['failure','cancelled'].includes(run.conclusion)) {
+     const blob=await api.request(`contents/${run.path}?ref=${run.head_sha}`);
+     const classification=classifyFailedWriter(run,selected[0],blob?.sha,attempt);
+     if(!classification) throw Error('Unverifiable failed writer');
+     if(artifacts.some(a=>a.name===`pages-writer-commit-${attempt}`)) throw Error('Unexpected failed writer commit');
+     if(classification==='not-deployed') continue;
+     const start=await load('start');
+     records.push(await recoverFailedWriter(api,run,selected[0],start,attempt));
+     continue;
+    }
     const start=await load('start');
     let commit=null;
-    const own=context && context.run===run.id && context.attempt===attempt && context.sha===run.head_sha;
     if(!own || artifacts.some(a=>a.name===`pages-writer-commit-${attempt}`)) commit=await load('commit');
     if(start.run!==run.id || start.attempt!==attempt || start.sha!==run.head_sha || (commit && (run.status!=='completed' || run.conclusion!=='success'))) throw Error('Untrusted writer identity');
     records.push({start,commit});
@@ -160,30 +191,46 @@ with zipfile.ZipFile(archive) as z:
   path=root/i.filename
   if i.is_dir(): path.mkdir(parents=True,exist_ok=True); continue
   path.parent.mkdir(parents=True,exist_ok=True); path.write_bytes(z.read(i))
- receipt=json.loads((root/'.puzlwerk-publication.json').read_text(encoding='utf-8'))
- if receipt!=json.loads(expected) or digest(root)!=receipt['root'] or digest(root,include_previews=True)!=receipt['snapshot']: raise ValueError('Snapshot receipt or digest mismatch')
+ receipt_file=root/'.puzlwerk-publication.json'
+ if receipt_file.stat().st_size>32768: raise ValueError('Snapshot receipt exceeds budget')
+ receipt=json.loads(receipt_file.read_text(encoding='utf-8'))
+ expected_value=json.loads(expected)
+ if (expected_value is not None and receipt!=expected_value) or digest(root)!=receipt['root'] or digest(root,include_previews=True)!=receipt['snapshot']: raise ValueError('Snapshot receipt or digest mismatch')
+ print(json.dumps(receipt,separators=(',',':')))
 `;
+async function extractSnapshotArtifact(api,run,attempt,destination,expected=null) {
+ const artifacts=await api.pages(`actions/runs/${run.id}/artifacts`,'artifacts');
+ const matches=artifacts.filter(a=>a.name===`pages-published-snapshot-${attempt}` && !a.expired && a.workflow_run?.id===run.id);
+ if(matches.length!==1 || !positive(matches[0].id) || !positive(matches[0].size_in_bytes) || matches[0].size_in_bytes>33554432) throw Error('Invalid publication artifact');
+ const bytes=await api.zip(matches[0].id);
+ if(!Buffer.isBuffer(bytes) || bytes.length===0 || bytes.length>33554432) throw Error('Invalid snapshot archive');
+ const temp=await mkdtemp(join(tmpdir(),'puzlwerk-snapshot-')); let created=false;
+ try {
+  await mkdir(destination); created=true;
+  const zip=join(temp,'snapshot.zip'); await writeFile(zip,bytes);
+  const {stdout}=await promisify(execFile)('python3',['-c',verifier,zip,destination,JSON.stringify(expected),dirname(fileURLToPath(import.meta.url))],{timeout:30000,maxBuffer:65536});
+  return parsePublication(stdout);
+ } catch(error) { if(created) await rm(destination,{recursive:true,force:true}); throw error; }
+ finally { await rm(temp,{recursive:true,force:true}); }
+}
+async function readRecoverySnapshot(api,run,attempt) {
+ const temp=await mkdtemp(join(tmpdir(),'puzlwerk-recovered-'));
+ try { return await extractSnapshotArtifact(api,run,attempt,join(temp,'snapshot')); }
+ finally { await rm(temp,{recursive:true,force:true}); }
+}
 export async function readVerifiedSnapshot(api,{destination,fetch:request=fetch,context,bootstrap}={}) {
  if(typeof destination!=='string' || !destination) throw Error('Missing snapshot destination');
  const receipt=await readPublication({fetch:request});
  if(!receipt) return null;
  const run=await api.request(`actions/runs/${receipt.run}`);
- if(!trustedPublisher(run,receipt,{context})) throw Error('Untrusted publication run');
+ const failedCandidate=Boolean(run && run.id===receipt.run && run.run_attempt===receipt.attempt && run.head_sha===receipt.sha && run.head_branch==='main' && run.repository?.full_name===REPOSITORY && run.head_repository?.full_name===REPOSITORY && run.path==='.github/workflows/pages-publish.yml' && ['workflow_dispatch','workflow_run'].includes(run.event) && run.status==='completed' && run.conclusion==='failure');
+ if(!trustedPublisher(run,receipt,{context}) && !failedCandidate) throw Error('Untrusted publication run');
  await readWriterLedger(api,receipt,{bootstrap,context});
- const artifacts=await api.pages(`actions/runs/${receipt.run}/artifacts`,'artifacts');
- const matches=artifacts.filter(a=>a.name===`pages-published-snapshot-${receipt.attempt}` && !a.expired && a.workflow_run?.id===receipt.run);
- if(matches.length!==1 || !positive(matches[0].id) || !positive(matches[0].size_in_bytes) || matches[0].size_in_bytes>33554432) throw Error('Invalid publication artifact');
- const bytes=await api.zip(matches[0].id);
- if(!Buffer.isBuffer(bytes) || bytes.length===0 || bytes.length>33554432) throw Error('Invalid snapshot archive');
- const temp=await mkdtemp(join(tmpdir(),'puzlwerk-snapshot-'));
- let created=false;
+ const recovered=await extractSnapshotArtifact(api,run,receipt.attempt,destination,receipt);
+ if(!samePublication(recovered,receipt)) throw Error('Snapshot receipt mismatch');
  try {
-  await mkdir(destination); created=true;
-  const zip=join(temp,'snapshot.zip'); await writeFile(zip,bytes);
-  await promisify(execFile)('python3',['-c',verifier,zip,destination,JSON.stringify(receipt),dirname(fileURLToPath(import.meta.url))],{timeout:30000,maxBuffer:65536});
   await verifyLiveReceipt(receipt,{fetch:request});
   await readWriterLedger(api,receipt,{bootstrap,context});
   return receipt;
- } catch(error) { if(created) await rm(destination,{recursive:true,force:true}); throw error; }
- finally { await rm(temp,{recursive:true,force:true}); }
+ } catch(error) { await rm(destination,{recursive:true,force:true}); throw error; }
 }
