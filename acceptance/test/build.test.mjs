@@ -17,3 +17,11 @@ test('classic source comparison is mounted from the manifest at nested base',()=
  assert.ok(html.includes('/puzlwerk/pr-preview/pr-77/assets/runtime/classic.mjs'));
  assert.ok(html.includes('"three/examples/":"/puzlwerk/pr-preview/pr-77/assets/three/examples/"'));
 });
+test('CubeAssembler native comparison is a distinct manifest route',()=>{
+ const c=manifest.cases.find(c=>c.id==='cube-assembler-solved-2');
+ assert.ok(c);
+ const html=renderCase(c,'/puzlwerk/pr-preview/pr-77/');
+ assert.ok(html.includes('id="cube-assembler-case"'));
+ assert.ok(html.includes('/puzlwerk/pr-preview/pr-77/assets/runtime/cube-assembler.mjs'));
+ assert.ok(html.includes('/puzlwerk/pr-preview/pr-77/assets/reference-cube-assembler/original.css'));
+});

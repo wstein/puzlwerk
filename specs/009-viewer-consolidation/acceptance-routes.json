@@ -7546,6 +7546,85 @@
         "result": "not run"
       },
       "runtime": "classic"
+    },
+    {
+      "id": "cube-assembler-solved-2",
+      "route": "acceptance/cube-assembler-solved-2/",
+      "sourceApp": "CubeAssembler",
+      "screen": "Solved 2\u00d72 with native move trace",
+      "sourceRoute": "/",
+      "sourceRevision": "1b7387b3acd40d817ebff820ae3cfcff8b7b1dc2",
+      "sourceComponent": "src/client/view3d/cubeView3D.tsx",
+      "sourceSymbol": "CubeView3D",
+      "sourceTests": [
+        "e2e/cubeView3D-view.spec.ts",
+        "e2e/cubeView3D-controls.spec.ts"
+      ],
+      "sourceReference": "https://github.com/wstein/cube-assembler/blob/1b7387b3acd40d817ebff820ae3cfcff8b7b1dc2/src/client/view3d/cubeView3D.tsx",
+      "sourceFixture": "createSolvedCube(2); native R U R' U' move trace",
+      "sourceDefault": "Known solved state; six native colors; stickered",
+      "cube": "one 2\u00d72 cube",
+      "camera": "Source useCubeCamera initializes ISOMETRIC_PITCH, ISOMETRIC_YAW and getDefaultZoom(puzzleSize); src/client/view3d/useCubeCamera.ts. Applicable 3D cases record actual viewport.",
+      "actions": "R U R' U'",
+      "assets": "Native palette; CubeAssembler MIT, Preact MIT and ReScript runtime MIT notices",
+      "wireFixture": "Candidate home-slot IDs only; no native physical identities in color-only CubeState.",
+      "appearanceFixture": "Native color tokens and C4 display symmetry; no goal assertion.",
+      "coreContract": [
+        "specs/001-core-foundation/contracts/wire-v1.md",
+        "specs/001-core-foundation/contracts/appearance-v1.md",
+        "core/res/PwCodec.resi",
+        "core/res/PwMove.resi"
+      ],
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/index.ts#createCubeStage"
+      ],
+      "productionPlay": "Core candidate trace compared to native facelets; browser integration pending.",
+      "referenceEligibility": "Pinned CubeAssembler production component and dependency source packaged; independent review pending.",
+      "originalReference": "https://github.com/wstein/cube-assembler/blob/1b7387b3acd40d817ebff820ae3cfcff8b7b1dc2/src/client/view3d/cubeView3D.tsx",
+      "normalBase": "/puzlwerk/acceptance/cube-assembler-solved-2/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-77/acceptance/cube-assembler-solved-2/",
+      "checklist": [
+        "Compare native and candidate visible facelets after each recorded action.",
+        "Record separate browser, visual and owner results; native facelets do not establish physical identity."
+      ],
+      "trace": null,
+      "evidence": [],
+      "status": {
+        "architecture": "not tested",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      },
+      "kind": "application",
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      },
+      "nativeScenario": {
+        "setup": "Select Cube size, click Solved cube, 3D View, Front (F); with layer moves enabled explicitly, hold mouse at canvas center x-38,y and drag upward 40% of projected quarter turn using formula e2e/cubeView3D-view.spec.ts:169-176; capture held frame before mouseup. Use same viewport and wait for data-idle before still frames. Select 2\u00d72; fresh default palette, solved source cube; source captures as-built camera and assets.",
+        "actionExpected": [
+          "2D Net \u2192 U face has 4 cells; select 3D View and Front (F) \u2192 source canvas visible.",
+          "Toggle stickerless/stickered and orbit; compare captured native source frames under same viewport and stable camera.",
+          "Hold partial drag using canonical formula then capture cut before release; release \u2192 settle; record notation/history. Only N=2 and N=5 have existing mid-turn screenshots; others are proposed checks, not existing baselines."
+        ],
+        "sourceEvidence": [
+          "projects/cube-assembler/e2e/cubeNet.spec.ts:8-27",
+          "projects/cube-assembler/e2e/cubeView3D-view.spec.ts:147-181",
+          "projects/cube-assembler/src/client/view3d/cubeView3D.tsx:23-56"
+        ],
+        "result": "not run"
+      },
+      "runtime": "cube-assembler"
     }
   ],
   "manifestContract": {

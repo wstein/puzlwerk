@@ -159,3 +159,17 @@ asset hashes and applicable notices, fixture provenance, actual action trace,
 conversion evidence and per-case architecture, functional and visual results.
 Do not infer sticker identity from colors or infer full-family coverage from
 one case. Original hosting and visual acceptance remain separate gates.
+
+### CubeAssembler native 2×2 comparison
+
+The bounded case `cube-assembler-solved-2` starts from the pinned production
+`createSolvedCube(2)` and applies the native R U R' U' trace. Its original side
+uses the pinned `CubeView3D` component, Preact, its native hooks and CSS. The
+fixture's candidate wire IDs label known solved home slots; CubeAssembler's
+color-only `CubeState` supplies no physical piece IDs, sticker IDs or sticker
+orientations. The visible facelet projection follows the pinned native face
+indexing. A local Core test compares the 24 visible colors after each action;
+it does not establish hidden physical identity or scan-to-view parity. Cookie
+preferences must be fixed for reproducible browser comparison. Original and
+candidate rendering, touch, visual acceptance and independent review remain
+open. The 7×7 orientation-recovery workflow is outside this case.
