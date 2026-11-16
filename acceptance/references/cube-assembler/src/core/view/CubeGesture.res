@@ -1,0 +1,628 @@
+// The 3D cube's touch and mouse math: which sticker a pointer is on, which
+// layer a swipe turns and how far, and what a drag, pinch or wheel does.
+type vec = (float, float, float)
+
+type camera = {
+  width: float,
+  height: float,
+  zoom: float,
+  pitch: float,
+  yaw: float,
+  size: float,
+}
+
+type surfaceHit = {face: CubeState.faceKey, point: vec, normalAxis: int}
+
+let get = ((x, y, z): vec, axis) =>
+  switch axis {
+  | 0 => x
+  | 1 => y
+  | _ => z
+  }
+
+let rotateX = ((x, y, z): vec, angle) => (
+  x,
+  y *. Math.cos(angle) -. z *. Math.sin(angle),
+  y *. Math.sin(angle) +. z *. Math.cos(angle),
+)
+
+let rotateY = ((x, y, z): vec, angle) => (
+  x *. Math.cos(angle) +. z *. Math.sin(angle),
+  y,
+  -.x *. Math.sin(angle) +. z *. Math.cos(angle),
+)
+
+let along = ((ox, oy, oz): vec, distance, (dx, dy, dz): vec) => (
+  ox +. distance *. dx,
+  oy +. distance *. dy,
+  oz +. distance *. dz,
+)
+
+// The pointer's ray from the camera, in cube coordinates.
+let pointerRay = (x, y, camera) => {
+  let tangent = Math.tan(Math.Constants.pi /. 8.0)
+  let ray = (
+    (2.0 *. x /. camera.width -. 1.0) *. tangent *. (camera.width /. camera.height),
+    (1.0 -. 2.0 *. y /. camera.height) *. tangent,
+    -1.0,
+  )
+  let unrotate = v => rotateY(rotateX(v, -.camera.pitch), -.camera.yaw)
+  (unrotate((0.0, 0.0, camera.zoom)), unrotate(ray))
+}
+
+let pickCubeSurface = (x, y, camera) =>
+  if camera.width <= 0.0 || camera.height <= 0.0 {
+    Null.null
+  } else {
+    let (origin, direction) = pointerRay(x, y, camera)
+    let half = camera.size /. 2.0
+    let closest = ref(Float.Constants.positiveInfinity)
+    let hit = ref(Null.null)
+    [
+      (0, 1.0, CubeState.R),
+      (0, -1.0, L),
+      (1, 1.0, U),
+      (1, -1.0, D),
+      (2, 1.0, F),
+      (2, -1.0, B),
+    ]->Array.forEach(((axis, sign, face)) => {
+      let d = get(direction, axis)
+      if Math.abs(d) >= 1e-8 {
+        let distance = (sign *. half -. get(origin, axis)) /. d
+        if distance > 0.0 && distance < closest.contents {
+          let point = along(origin, distance, direction)
+          let (px, py, pz) = point
+          let inside = value => Math.abs(value) <= half +. 1e-6
+          if inside(px) && inside(py) && inside(pz) {
+            closest := distance
+            hit := Null.make({face, point, normalAxis: axis})
+          }
+        }
+      }
+    })
+    hit.contents
+  }
+
+// The visible sticker tile stops about 0.07 cubie units before each seam.
+// Keep that inactive band in the stickerless view too.
+let stickerGapHalfWidth = 0.07
+
+let pickStickerSurface = (x, y, camera) =>
+  pickCubeSurface(x, y, camera)
+  ->Null.toOption
+  ->Option.filter((hit: surfaceHit) =>
+    [0, 1, 2]->Array.every(axis => {
+      if axis == hit.normalAxis {
+        true
+      } else {
+        let position = get(hit.point, axis) +. camera.size /. 2.0
+        let seam = Math.round(position)
+        seam < 1.0 || seam > camera.size -. 1.0 || Math.abs(position -. seam) >= stickerGapHalfWidth
+      }
+    })
+  )
+  ->Null.fromOption
+
+let project = (point, camera) => {
+  let (x, y, z) = rotateX(rotateY(point, camera.yaw), camera.pitch)
+  let focal = camera.height /. (2.0 *. Math.tan(Math.Constants.pi /. 8.0))
+  (focal *. x /. (camera.zoom -. z), -.focal *. y /. (camera.zoom -. z))
+}
+
+// A point of the cube as the camera sees it: turned by the view, with its
+// depth toward the camera in z.
+let viewPoint = (point, camera) => rotateX(rotateY(point, camera.yaw), camera.pitch)
+
+// Where a point of the cube appears on screen, from the top-left corner -
+// the inverse of the ray pickCubeSurface casts.
+let screenPoint = (point, camera) => {
+  let (x, y) = project(point, camera)
+  (camera.width /. 2.0 +. x, camera.height /. 2.0 +. y)
+}
+
+// The point's motion when turning about `axis`, without its motion along
+// the face's normal.
+let tangentInPlane = (axis, (x, y, z): vec, normalAxis) => {
+  let (tx, ty, tz) = switch axis {
+  | 0 => (0.0, -.z, y)
+  | 1 => (z, 0.0, -.x)
+  | _ => (-.y, x, 0.0)
+  }
+  (normalAxis == 0 ? 0.0 : tx, normalAxis == 1 ? 0.0 : ty, normalAxis == 2 ? 0.0 : tz)
+}
+
+let inPlaneAxes = normalAxis => [0, 1, 2]->Array.filter(axis => axis != normalAxis)
+
+// How far a swipe moved the touched point along the face for each of the
+// two layers it can turn, in tenths of a radian. The layers rotate about the
+// face's two in-plane axes; each moves the point across the other axis, and
+// its motion into the face would only skew the projection.
+let swipeAlong = (hit: surfaceHit, dx, dy, camera: camera) => {
+  let axes = inPlaneAxes(hit.normalAxis)
+  let (ax, ay) = project(hit.point, camera)
+  let screen = axis => {
+    let direction = tangentInPlane(axis, hit.point, hit.normalAxis)
+    let (bx, by) = project(along(hit.point, 0.1, direction), camera)
+    (bx -. ax, by -. ay)
+  }
+  // Express the swipe in those two on-screen directions.
+  let (ux, uy) = screen(axes->Array.getUnsafe(0))
+  let (vx, vy) = screen(axes->Array.getUnsafe(1))
+  let det = ux *. vy -. uy *. vx
+  Math.abs(det) < 1e-9
+    ? None
+    : Some((axes, [(dx *. vy -. dy *. vx) /. det, (ux *. dy -. uy *. dx) /. det]))
+}
+
+type swipeLayer = {
+  face: CubeState.faceKey,
+  depth: int,
+  // Layers turning together, ending at `depth`; 1 when omitted.
+  width?: int,
+  axis: int,
+  // Turns the rotation about +axis into the face's clockwise turns.
+  sign: int,
+}
+
+// A swipe turns a layer once it has moved swipeStartPx (by default; the
+// settings page can change it) and clearly along one of the face's axes.
+let swipeStartPx = 18.0
+
+let axisFaces = axis =>
+  switch axis {
+  | 0 => (CubeState.R, CubeState.L)
+  | 1 => (U, D)
+  | _ => (F, B)
+  }
+
+// The layer a coordinate along an axis falls in, 0 at the negative side.
+let layerIndex = (coordinate, size) =>
+  Math.max(0.0, Math.min(size -. 1.0, Math.round(coordinate +. (size -. 1.0) /. 2.0)))
+
+let pickLayer = (hit: surfaceHit, dx, dy, camera: camera, startPx) =>
+  if Math.hypot(dx, dy) < startPx {
+    None
+  } else {
+    swipeAlong(hit, dx, dy, camera)->Option.flatMap(((axes, along)) => {
+      let first = Math.abs(along->Array.getUnsafe(0))
+      let second = Math.abs(along->Array.getUnsafe(1))
+
+      // A diagonal swipe across the face is ambiguous.
+      if Math.min(first, second) > 0.75 *. Math.max(first, second) {
+        None
+      } else {
+        let axis = axes->Array.getUnsafe(first >= second ? 0 : 1)
+        let coordinate = get(hit.point, axis)
+        let positive = coordinate >= 0.0
+        let (plus, minus) = axisFaces(axis)
+        let index = layerIndex(coordinate, camera.size)
+        let depth = positive ? camera.size -. index : index +. 1.0
+        Some({
+          face: positive ? plus : minus,
+          depth: Float.toInt(depth),
+          axis,
+          sign: positive ? -1 : 1,
+        })
+      }
+    })
+  }
+
+let pickSwipeLayer = (hit, dx, dy, camera, startPx) =>
+  Null.fromOption(pickLayer(hit, dx, dy, camera, startPx))
+
+// The picked layer's angle in its face's clockwise radians, so the touched
+// sticker follows the finger. A turn about an in-plane axis moves the point
+// along the face by half the cube width per radian, so a tenth of that
+// distance is a tenth of a radian.
+let swipeLayerAngle = (hit, layer: swipeLayer, dx, dy, camera) =>
+  switch swipeAlong(hit, dx, dy, camera) {
+  | None => 0.0
+  | Some((axes, along)) =>
+    Int.toFloat(layer.sign) *. 0.1 *. along->Array.getUnsafe(axes->Array.indexOf(layer.axis))
+  }
+
+type pressLevel =
+  | @as("layer") Layer
+  | @as("wide") Wide
+
+type pressKeys = {shiftKey: bool}
+
+let pressLevel = keys =>
+  if keys.shiftKey {
+    Wide
+  } else {
+    Layer
+  }
+
+// The layers between two indexes along an axis, named from the face the
+// block reaches, else from the nearer face.
+let blockLayer = (axis, from, to, size) => {
+  let low = Math.Int.min(from, to)
+  let high = Math.Int.max(from, to)
+  let positive = high == size - 1 || (low != 0 && low + high >= size - 1)
+  let (plus, minus) = axisFaces(axis)
+  {
+    face: positive ? plus : minus,
+    depth: positive ? size - low : high + 1,
+    width: high - low + 1,
+    axis,
+    sign: positive ? -1 : 1,
+  }
+}
+
+// Every layer about an axis: an x, y or z rotation of the whole cube.
+let wholeCubeLayer = (axis, size) => blockLayer(axis, 0, size - 1, size)
+
+// Shift turns a standard wide move from the same named face.
+// An outer slice widens to two layers; an inner slice includes all layers
+// between the named face and the touched slice.
+let standardWideLayer = (layer: swipeLayer, size) => {
+  let width = size <= 2 ? 1 : Math.Int.min(size - 1, Math.Int.max(2, layer.depth))
+  {...layer, depth: width, width}
+}
+
+// A swipe that starts on the seam between two layers and leans slightly
+// toward one side turns a wide block: both layers at the seam and every
+// layer on that side, named from the face it reaches. On a 5x5, swiping
+// along the U3/U4 seam and leaning toward U turns 4Uw, leaning toward D
+// 3Dw. The outer quarters of a sticker count as the seam. A start in the
+// middle half of a sticker turns one layer. A seam always turns a wide
+// block, even if the first movement has no clear lean; the lean can change
+// that block until the pointer leaves the face it started on (seamSwitch).
+let seamTolerance = 0.25
+let seamLean = 0.1
+
+// The seam the swipe starts on, counted in layers from the axis's minus
+// face, or None away from a seam.
+let seamAt = (hit: surfaceHit, layer: swipeLayer, camera: camera) => {
+  let position = get(hit.point, layer.axis) +. camera.size /. 2.0
+  let seam = Math.round(position)
+  seam < 1.0 || seam > camera.size -. 1.0 || Math.abs(position -. seam) > seamTolerance
+    ? None
+    : Some(Float.toInt(seam))
+}
+
+// Where one sticker along `axis` from the touched point appears on screen.
+let screenStep = (hit: surfaceHit, axis, camera) => {
+  let (sx, sy) = project(hit.point, camera)
+  let unit = switch axis {
+  | 0 => (1.0, 0.0, 0.0)
+  | 1 => (0.0, 1.0, 0.0)
+  | _ => (0.0, 0.0, 1.0)
+  }
+  let (ex, ey) = project(along(hit.point, 1.0, unit), camera)
+  (ex -. sx, ey -. sy)
+}
+
+let acrossAxis = (hit: surfaceHit, layer: swipeLayer) =>
+  inPlaneAxes(hit.normalAxis)->Array.find(axis => axis != layer.axis)
+
+let onSeam = (hit, layer, camera) => seamAt(hit, layer, camera)->Option.isSome
+
+let seamBlock = (axis, seam, size, towardPlus) => {
+  let plus = blockLayer(axis, seam - 1, size - 1, size)
+  let minus = blockLayer(axis, 0, seam, size)
+  let preferred = towardPlus ? plus : minus
+  // A seam beside an outer layer has only one proper wide side. On a
+  // 2x2, both sides are the whole cube, which is still a two-layer move.
+  size > 2 && preferred.width->Option.getOr(1) >= size ? towardPlus ? minus : plus : preferred
+}
+
+let defaultSeamBlock = (hit, layer: swipeLayer, camera) =>
+  seamAt(hit, layer, camera)->Option.map(seam =>
+    seamBlock(layer.axis, seam, Float.toInt(camera.size), layer.sign < 0)
+  )
+
+let seamWideLayer = (hit: surfaceHit, layer: swipeLayer, dx, dy, camera: camera) =>
+  switch (seamAt(hit, layer, camera), acrossAxis(hit, layer)) {
+  | (Some(seam), Some(across)) =>
+    // The swipe on screen as motion along the layer axis (the lean) and
+    // across it (the turn), in stickers.
+    let (ux, uy) = screenStep(hit, layer.axis, camera)
+    let (vx, vy) = screenStep(hit, across, camera)
+    let det = ux *. vy -. uy *. vx
+    let lean = Math.abs(det) < 1e-9 ? 0.0 : (dx *. vy -. dy *. vx) /. det
+    let turn = Math.abs(det) < 1e-9 ? 0.0 : (ux *. dy -. uy *. dx) /. det
+    let size = Float.toInt(camera.size)
+    if Math.abs(lean) < seamLean *. Math.hypot(lean, turn) {
+      Null.null
+    } else {
+      Null.make(seamBlock(layer.axis, seam, size, lean > 0.0))
+    }
+  | _ => Null.null
+  }
+
+// What a seam swipe turns now: the block its lean picks. Without a clear
+// lean, or for a swipe that turns about the other axis, the current block
+// stays.
+let seamChoice = (hit, current: swipeLayer, dx, dy, camera) =>
+  switch pickLayer(hit, dx, dy, camera, 0.0) {
+  | Some(layer) if layer.axis == current.axis =>
+    seamWideLayer(hit, layer, dx, dy, camera)->Null.toOption->Option.getOr(current)
+  | _ => current
+  }
+
+// A seam swipe in progress: the lean picks the side while the pointer (x,
+// y on the canvas) stays on the face the swipe started on; once it leaves
+// that face the side is locked. U and D (likewise R/L and F/B) name the
+// same rotation with opposite signs, so a switch between them negates the
+// angle and speed and the turn carries on smoothly.
+type seamDrag = {layer: swipeLayer, angle: float, velocity: float}
+type seamSwitch = {locked: bool, layer: swipeLayer, angle: float, velocity: float}
+
+let seamSwitch = (hit: surfaceHit, drag: seamDrag, x, y, dx, dy, camera) => {
+  let onStartFace =
+    pickCubeSurface(x, y, camera)->Null.toOption->Option.mapOr(false, now => now.face == hit.face)
+  let unchanged = {
+    locked: !onStartFace,
+    layer: drag.layer,
+    angle: drag.angle,
+    velocity: drag.velocity,
+  }
+  if !onStartFace {
+    unchanged
+  } else {
+    let next = seamChoice(hit, drag.layer, dx, dy, camera)
+    let same =
+      next.face == drag.layer.face &&
+      next.depth == drag.layer.depth &&
+      next.width->Option.getOr(1) == drag.layer.width->Option.getOr(1)
+    if same {
+      unchanged
+    } else {
+      let flip = next.sign == drag.layer.sign ? 1.0 : -1.0
+      {locked: false, layer: next, angle: flip *. drag.angle, velocity: flip *. drag.velocity}
+    }
+  }
+}
+
+// A released drag settles on whole quarter turns. Each further quarter
+// counts once the drag passes turnCommitFraction of it, so a short slow
+// drag springs back. A flick carries on for flickMs at its speed, but at
+// most half a quarter, so it finishes one more turn and never spins on.
+let turnCommitFraction = 0.35
+let flickMs = 120.0
+
+// The three can be changed on the settings page.
+type swipeTuning = {startPx: float, commitFraction: float, flickMs: float}
+
+let defaultSwipeTuning = {startPx: swipeStartPx, commitFraction: turnCommitFraction, flickMs}
+
+let releasedQuarterTurns = (angle, velocity, commitFraction, flickMs) => {
+  let quarter = Math.Constants.pi /. 2.0
+  let flick = Math.max(-.quarter /. 2.0, Math.min(quarter /. 2.0, velocity *. flickMs))
+  let quarters = (angle +. flick) /. quarter
+  let turns = Math.floor(Math.abs(quarters) +. 1.0 -. commitFraction)
+  turns == 0.0 ? 0.0 : Math.sign(quarters) *. turns
+}
+
+// How a released drag settles: whole quarter turns, and the speed the
+// settle starts with. A finger that stopped over 100 ms before lifting
+// throws nothing, and a cancelled drag springs back.
+type release = {turns: float, speed: float}
+
+let releaseDrag = (angle, velocity, lastMoveTime, time, cancelled, tuning: swipeTuning) => {
+  let velocity = time -. lastMoveTime > 100.0 ? 0.0 : velocity
+  cancelled
+    ? {turns: 0.0, speed: 0.0}
+    : {
+        turns: releasedQuarterTurns(angle, velocity, tuning.commitFraction, tuning.flickMs),
+        speed: velocity,
+      }
+}
+
+// A dragged layer's new angle, with its speed over at least 8 ms.
+type dragMotion = {angle: float, velocity: float, time: float}
+
+let followDrag = (previous: dragMotion, angle, time) => {
+  angle,
+  velocity: (angle -. previous.angle) /. Math.max(time -. previous.time, 8.0),
+  time,
+}
+
+// What a swipe from a sticker starts once it has traveled startPx: the
+// layers it turns - a seam block, Shift's standard wide move, or the one
+// touched layer - whether a seam keeps the choice open, and whether a
+// seam block was picked. A diagonal swipe turns nothing.
+type startKind = | @as("wait") Wait | @as("nothing") StartsNothing | @as("turn") StartsTurn
+
+type swipeStart = {kind: startKind, layer: Null.t<swipeLayer>, seam: bool, wide: bool}
+
+let swipeStart = (hit, dx, dy, camera: camera, startPx, level, seamWideEnabled) =>
+  if Math.hypot(dx, dy) < startPx {
+    {kind: Wait, layer: Null.null, seam: false, wide: false}
+  } else {
+    switch pickLayer(hit, dx, dy, camera, startPx) {
+    | None => {kind: StartsNothing, layer: Null.null, seam: false, wide: false}
+    | Some(layer) =>
+      let seam = seamWideEnabled && level == Layer && onSeam(hit, layer, camera)
+      let block = seam
+        ? seamWideLayer(hit, layer, dx, dy, camera)
+          ->Null.toOption
+          ->Option.orElse(defaultSeamBlock(hit, layer, camera))
+        : None
+      let turned = switch block {
+      | Some(block) => block
+      | None => level == Wide ? standardWideLayer(layer, Float.toInt(camera.size)) : layer
+      }
+      {kind: StartsTurn, layer: Null.make(turned), seam, wide: block->Option.isSome}
+    }
+  }
+
+// What a drag does. Mouse and pen: a sticker swipe turns its layer and the
+// background rotates the view. Touch: one finger turns layers; two fingers
+// turn the whole cube, rotate the camera, or zoom.
+type cubeGesture =
+  | @as("pending") Pending
+  | @as("turn") Turn
+  | @as("camera") Camera
+  | @as("two-finger") TwoFinger
+  | @as("none") NoGesture
+
+let gestureForPointerDown = (pointerType, touches, hit: Nullable.t<surfaceHit>, current) => {
+  let onSticker = Nullable.toOption(hit)->Option.isSome
+  if pointerType != "touch" {
+    onSticker ? Pending : Camera
+  } else if touches == 1 {
+    onSticker ? Pending : NoGesture
+  } else if touches == 2 {
+    TwoFinger
+  } else {
+    Nullable.toOption(current)->Option.getOr(NoGesture)
+  }
+}
+
+// With layer moves locked no sticker starts a turn: one pointer on the cube
+// orbits the view, and fingers keep their usual gestures.
+let gestureWhenLayerMovesLocked = (pointerType, touches, onCube, current) =>
+  if pointerType != "touch" {
+    Camera
+  } else if touches == 1 {
+    onCube ? Camera : NoGesture
+  } else {
+    gestureForPointerDown(pointerType, touches, (Nullable.null: Nullable.t<surfaceHit>), current)
+  }
+
+let lockedHintGapMs = 5000.0
+
+// Whether a drag on a locked sticker may show its hint again: not twice
+// within the gap, so a long orbit does not nag.
+let lockedHintDue = (lastShown, now) =>
+  switch Null.toOption(lastShown) {
+  | Some(shown) => now -. shown >= lockedHintGapMs
+  | None => true
+  }
+
+let gestureWhenSwipeTurnsNothing = pointerType => pointerType == "touch" ? NoGesture : Camera
+
+// Lifting one of two fingers must not start a layer turn with the
+// other.
+let gestureAfterPointerUp = (remaining, current: Nullable.t<cubeGesture>) =>
+  if remaining == 0 {
+    Null.null
+  } else {
+    switch Nullable.toOption(current) {
+    | Some(TwoFinger) => Null.make(NoGesture)
+    | Some(gesture) => Null.make(gesture)
+    | None => Null.null
+    }
+  }
+
+type screenPoint = (float, float)
+type motion = {dx: float, dy: float, scale: float}
+
+let twoFingerMotion = (before: (screenPoint, screenPoint), after: (screenPoint, screenPoint)) => {
+  let mid = (((ax, ay), (bx, by))) => ((ax +. bx) /. 2.0, (ay +. by) /. 2.0)
+  let spread = (((ax, ay), (bx, by))) => Math.hypot(ax -. bx, ay -. by)
+  let (x0, y0) = mid(before)
+  let (x1, y1) = mid(after)
+  let s0 = spread(before)
+  {dx: x1 -. x0, dy: y1 -. y0, scale: s0 > 0.0 ? spread(after) /. s0 : 1.0}
+}
+
+// Two fingers either tilt or pinch, decided once per gesture like map apps.
+// Fingers drift apart a little while tilting, so a pinch needs its spread
+// to change by at least pinchMinPx and pinchMinRatio, and by more than the
+// midpoint moved. A tilt needs the midpoint to travel tiltMinPx and more
+// than the spread changed; a pinch with one finger resting moves the
+// midpoint only half as far, so it never counts as a tilt.
+let pinchMinPx = 24.0
+let pinchMinRatio = 0.15
+let tiltMinPx = 16.0
+
+type twoFingerLock =
+  | @as("undecided") Undecided
+  | @as("tilt") TiltLock
+  | @as("pinch") Pinch
+
+let twoFingerLock = (startSpread, spread, midpointTravel, lock) =>
+  switch lock {
+  | Undecided =>
+    let spreadChange = Math.abs(spread -. startSpread)
+    if (
+      spreadChange >= Math.max(pinchMinPx, pinchMinRatio *. startSpread) &&
+        spreadChange > midpointTravel
+    ) {
+      Pinch
+    } else if midpointTravel >= tiltMinPx && midpointTravel > spreadChange {
+      TiltLock
+    } else {
+      Undecided
+    }
+  | decided => decided
+  }
+
+let clampZoom = (zoom, size: float) => Math.max(2.0 +. size, Math.min(8.0 +. size *. 3.0, zoom))
+
+type wheel = {deltaX: float, deltaY: float, deltaMode: int, ctrlKey: bool}
+
+type wheelGesture =
+  | @as("zoom") Zoom
+  | @as("tilt") WheelTilt
+
+// Touchpads send two-finger swipes as wheel events and pinches as wheel
+// events with Ctrl held. A swipe tilts the cube like two fingers on a touch
+// screen; a pinch or a mouse wheel zooms. Mouse wheels step in whole lines or
+// in large whole-pixel notches without sideways movement.
+let wheelGesture = (e: wheel) =>
+  if e.ctrlKey || e.deltaMode != 0 {
+    Zoom
+  } else {
+    let whole = Float.isFinite(e.deltaY) && Math.floor(e.deltaY) == e.deltaY
+    e.deltaX == 0.0 && whole && Math.abs(e.deltaY) >= 50.0 ? Zoom : WheelTilt
+  }
+
+// A touchpad sends a two-finger swipe as a run of wheel events. They count
+// as one swipe until they pause for wheelSwipeGapMs; `dx`/`dy` add up how
+// far the fingers moved, against the deltas.
+let wheelSwipeGapMs = 150.0
+
+// Once the fingers lift, macOS keeps sending the swipe's momentum: deltas
+// that each shrink to a steady fraction of the one before. Fingers speed
+// up and slow down unevenly, so this many shrinking deltas in a row mean
+// the swipe is coasting, and from then on it no longer counts.
+let coastingDeltas = 4
+
+type wheelSwipe = {
+  startTime: float,
+  lastTime: float,
+  dx: float,
+  dy: float,
+  // The last delta's size, and how many in a row shrank steadily.
+  lastMagnitude: float,
+  shrinking: int,
+  coasting: bool,
+}
+
+let nextWheelSwipe = (swipe: Null.t<wheelSwipe>, time, deltaX, deltaY) => {
+  let magnitude = Math.hypot(deltaX, deltaY)
+  switch Null.toOption(swipe) {
+  | Some(swipe) if time -. swipe.lastTime <= wheelSwipeGapMs =>
+    if swipe.coasting {
+      // Momentum keeps the swipe going without moving it.
+      {...swipe, lastTime: time}
+    } else {
+      let ratio = swipe.lastMagnitude > 0.0 ? magnitude /. swipe.lastMagnitude : 0.0
+      let shrinking = ratio >= 0.6 && ratio < 0.99 ? swipe.shrinking + 1 : 0
+      shrinking >= coastingDeltas
+        ? {...swipe, lastTime: time, lastMagnitude: magnitude, shrinking, coasting: true}
+        : {
+            ...swipe,
+            lastTime: time,
+            dx: swipe.dx -. deltaX,
+            dy: swipe.dy -. deltaY,
+            lastMagnitude: magnitude,
+            shrinking,
+          }
+    }
+  | _ => {
+      startTime: time,
+      lastTime: time,
+      dx: -.deltaX,
+      dy: -.deltaY,
+      lastMagnitude: magnitude,
+      shrinking: 0,
+      coasting: false,
+    }
+  }
+}

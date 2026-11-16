@@ -1,0 +1,20 @@
+{
+  "repository": "https://github.com/wstein/cube-assembler",
+  "revision": "1b7387b3acd40d817ebff820ae3cfcff8b7b1dc2",
+  "nativeSha256": "48dd02e1652849c0624097886068889ca1283b9ced0ac66c8ab75daa02fd8e0c",
+  "factory": "src/cube/CapturedFaceMatching.res#createSolvedCube(2)",
+  "move": "src/cube/CubeMoves.res#applyCubeMove",
+  "originalViewer": "src/client/view3d/cubeView3D.tsx#CubeView3D",
+  "stateLimitation": "Native state contains only facelet colors; it does not contain piece IDs, sticker IDs, or orientations. Candidate IDs are anchored to the known solved home and followed by moves; no arbitrary-state identity inference is valid.",
+  "presentation": {
+    "cubeSize": 2,
+    "stickerlessDefaultRequested": false,
+    "cookiePreferences": "CubeView3D reads preferences from document.cookie; fixture runtime must set or clear preferences deterministically.",
+    "paletteSource": "src/core/view/CubeViewState.res#defaultStickerHex",
+    "initialCamera": {
+      "pitch": 0.52,
+      "yaw": -0.74
+    }
+  },
+  "status": "Native fixture and original source bundle only; candidate facelet mapping and live comparison remain unverified."
+}
