@@ -205,6 +205,15 @@ export function createPresentationStudio(
     /** Opt-in 2048 maps with a slightly harder penumbra (default off). */
     setFineShadowEdges,
 
+    /** Configure effective shadow-caster directions before fitting; inputs remain caller-owned. */
+    setCasterDirections(key: THREE.Vector3, shadowFill: THREE.Vector3) {
+      const directions = [key, shadowFill];
+      if (directions.some(v => !v || ![v.x, v.y, v.z].every(Number.isFinite) || v.y <= 0 || v.lengthSq() <= 0))
+        throw Error("Invalid studio caster direction");
+      directions.forEach((v, i) => casters[i].direction.copy(v).normalize());
+      shadowState.markDirty();
+    },
+
     /** Fit one conservative caster union after its final rigid pose/scale.
      * Light-space side bounds also contain receiver intersections: shadow rays
      * are parallel to the directional camera depth axis. No mesh traversal. */
