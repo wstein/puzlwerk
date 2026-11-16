@@ -52,6 +52,13 @@ test('snapshot authenticates artifact and verifies both tree digests',async()=>{
   execFileSync('python3',['-c',"import sys,zipfile\nwith zipfile.ZipFile(sys.argv[1]) as source, zipfile.ZipFile(sys.argv[2],'w') as out:\n for i in source.infolist(): out.writestr(i, b'changed' if i.filename=='pr-preview/x' else source.read(i))",archive,corrupt]);
   const corruptBytes=await readFile(corrupt);
   await assert.rejects(readVerifiedSnapshot({...api,zip:async id=>id===9?corruptBytes:ledger[id-1]},{destination:join(temp,'corrupt'),fetch,bootstrap}));
+  const badRoot={...valid,root:'f'.repeat(64)};
+  const badRootArchive=join(temp,'bad-root.zip');
+  execFileSync('python3',['-c',"import sys,zipfile\nwith zipfile.ZipFile(sys.argv[1]) as source, zipfile.ZipFile(sys.argv[2],'w') as out:\n for i in source.infolist(): out.writestr(i, sys.argv[3] if i.filename=='.puzlwerk-publication.json' else source.read(i))",archive,badRootArchive,JSON.stringify(badRoot)]);
+  const badRootBytes=await readFile(badRootArchive);
+  const badRootCommit=await makeZip('bad-root-ledger.zip',{...start,receipt:badRoot});
+  const badRootApi={...api,zip:async id=>id===9?badRootBytes:id===2?badRootCommit:ledger[id-1]};
+  await assert.rejects(readVerifiedSnapshot(badRootApi,{destination:join(temp,'bad-root'),fetch:async()=>response(200,JSON.stringify(badRoot)),bootstrap}),/Snapshot receipt or digest mismatch/);
   const bad={...valid,snapshot:'f'.repeat(64)};
   await assert.rejects(readVerifiedSnapshot(api,{destination:join(temp,'bad'),fetch:async()=>response(200,JSON.stringify(bad)),bootstrap}));
  } finally {await rm(temp,{recursive:true,force:true});}
@@ -65,6 +72,10 @@ test('ledger rejects replay, forks, missing starts and unknown writers', async()
  const bootstrap={run:a.run,attempt:a.attempt,nonce:a.nonce};
  const chain=[make(a),make(b)];
  assert.equal(verifyWriterLedger(chain,b,{bootstrap}),true);
+ for(const [field,value] of [['run',99],['attempt',2],['sha','f'.repeat(40)],['previous','f'.repeat(32)]]) {
+  const broken={...chain[1],commit:{...chain[1].commit,[field]:value}};
+  assert.throws(()=>verifyWriterLedger([chain[0],broken],b,{bootstrap}),/Invalid writer commit/);
+ }
  assert.throws(()=>verifyWriterLedger(chain,a,{bootstrap}));
  assert.throws(()=>verifyWriterLedger([...chain,make({...b,run:44,nonce:'f'.repeat(32)})],b,{bootstrap}));
  assert.throws(()=>verifyWriterLedger([make(a),{...make(b),start:null}],b,{bootstrap}));
@@ -85,6 +96,16 @@ test('ledger API binds artifact bytes and rejects incomplete writer history',asy
   const api={request:async()=>run,pages:async(path)=>path.includes('/artifacts')?artifacts:path.includes('/jobs')?[{name:'Deploy production snapshot',status:'completed',conclusion:'success'}]:path.includes('documentation.yml')?[run]:[],zip:async id=>zips[id-1]};
   const bootstrap={run:42,attempt:1,nonce:r.nonce};
   assert.equal(await readWriterLedger(api,r,{bootstrap}),true);
+  const signal={...run,id:43,path:'.github/workflows/pages-publish.yml',event:'pull_request_target'};
+  const signalApi=state=>({...api,pages:async path=>path.includes('pages-publish.yml/runs')?[signal]:path.includes('/43/attempts/')?[{name:'Publish preview snapshot',status:'completed',conclusion:state}]:api.pages(path)});
+  assert.equal(await readWriterLedger(signalApi('skipped'),r,{bootstrap}),true);
+  await assert.rejects(readWriterLedger(signalApi('success'),r,{bootstrap}));
+  const next={...r,run:43,nonce:'e'.repeat(32),previous:r.nonce};
+  const signalStart={schema:1,run:43,attempt:1,sha:r.sha,previous:r.nonce};
+  const signalZips=[await makeZip('signal-start.zip',signalStart),await makeZip('signal-commit.zip',{...signalStart,receipt:next})];
+  const signalArtifacts=signalZips.map((v,i)=>({id:10+i,name:`pages-writer-${i?'commit':'start'}-1`,expired:false,size_in_bytes:v.length,workflow_run:{id:43}}));
+  const activeSignal={...signalApi('success'),pages:async path=>path.includes('/43/artifacts')?signalArtifacts:signalApi('success').pages(path),zip:async id=>id>=10?signalZips[id-10]:zips[id-1]};
+  await assert.rejects(readWriterLedger(activeSignal,next,{bootstrap}),/Signal run activated publisher job/);
   await assert.rejects(readWriterLedger({...api,pages:async path=>path.includes('/artifacts')?artifacts.slice(0,1):api.pages(path)},r,{bootstrap}));
   await assert.rejects(readWriterLedger({...api,zip:async id=>id===2?zips[0]:zips[id-1]},r,{bootstrap}));
  } finally {await rm(temp,{recursive:true,force:true});}

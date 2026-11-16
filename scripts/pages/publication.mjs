@@ -85,7 +85,7 @@ export async function readWriterLedger(api,receipt,{bootstrap,context}={}) {
    if(!run || !positive(run.id) || !positive(run.run_attempt) || run.run_attempt>100 || !validTime(run.created_at) || seen.has(run.id)) throw Error('Invalid writer run list');
    seen.add(run.id);
    if(run.created_at<anchor.created_at || run.head_branch!=='main') continue;
-   if(run.path!==`.github/workflows/${workflow}` || run.head_branch!=='main' || run.repository?.full_name!==REPOSITORY || run.head_repository?.full_name!==REPOSITORY || !hex(run.head_sha,40) || !(workflow==='documentation.yml' ? run.event==='workflow_dispatch' : ['workflow_dispatch','workflow_run'].includes(run.event))) {
+   if(run.path!==`.github/workflows/${workflow}` || run.head_branch!=='main' || run.repository?.full_name!==REPOSITORY || run.head_repository?.full_name!==REPOSITORY || !hex(run.head_sha,40) || !(workflow==='documentation.yml' ? run.event==='workflow_dispatch' : ['workflow_dispatch','workflow_run','pull_request_target'].includes(run.event))) {
     // Other documentation triggers cannot execute its deploy job; still require its job evidence.
     if(!(workflow==='documentation.yml' && ['push','pull_request'].includes(run.event) && run.path===`.github/workflows/${workflow}` && run.repository?.full_name===REPOSITORY)) throw Error('Untrusted writer run');
    }
@@ -95,6 +95,7 @@ export async function readWriterLedger(api,receipt,{bootstrap,context}={}) {
     const selected=jobs.filter(j=>j.name===jobName);
     if(selected.length!==1) throw Error('Missing or ambiguous writer job');
     if(selected[0].status==='completed' && selected[0].conclusion==='skipped') continue;
+    if(run.event==='pull_request_target') throw Error('Signal run activated publisher job');
     const load=async kind=>{
      const matches=artifacts.filter(a=>a.name===`pages-writer-${kind}-${attempt}`);
      if(matches.length!==1 || matches[0].expired || matches[0].workflow_run?.id!==run.id || !positive(matches[0].id) || !positive(matches[0].size_in_bytes) || matches[0].size_in_bytes>65536) throw Error('Missing or invalid writer artifact');
