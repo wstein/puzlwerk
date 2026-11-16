@@ -38,7 +38,7 @@ Cubistry package's AGPL-3.0-or-later terms.
 Adapted target SHA-256 values at this revision:
 src/presentation-preset.ts bb791c66c95a02931d7b05cffa182c9b64e13cfacd27454615edab20b9beb7de
 src/studio.ts 00ffac466351db90b5754de1da4c0d90eb4aea127835ab34fc77cfd49a1435fd
-src/scene.ts 8d8f9bc4556e38885de25bde8b7aa4b8e5504de8508be0c9923c7d0a0bbc7b7a
+src/scene.ts 99794345da1b4d65a049d8bfa962710e63d2b435ee2cdafc7ffba463d44962e8
 
 src/layer-widths.ts: Git blob c0239c3830f4177f8ef30f616c39e6e93977c48b;
 source SHA-256 0977d80f09a4e939d471b74c867c6e7a76a19dbdfc8cc1243cafed4ba7ff7416.
@@ -46,3 +46,7 @@ The core validation import is replaced by a local throwing assertion; target
 SHA-256 64bae58e9c3c64689a19d718691c119036b29a4ceced00e00ee0cddae124f261.
 The source presentation layer-profile and widths functions are restored and
 the scene routes body geometry through that builder with its existing inputs.
+
+The scene adapts the static core sphere and body/sticker shadow flags from
+Cubistry physical-scene.ts at the same source revision. Core bounds are explicit
+render-only input, and the sphere remains outside moving piece groups.

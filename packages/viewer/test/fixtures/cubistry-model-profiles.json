@@ -1,0 +1,273 @@
+{
+  "source": "Cubistry packages/cube-viewer/src/presentation-preset.ts at efafcc1d97687eccea0cde87a230f447ce1b6c66",
+  "cases": [
+    {
+      "name": "native-2",
+      "size": 2,
+      "widths": [
+        1.012,
+        1.012
+      ],
+      "nominalEdge": 2,
+      "cell": [
+        1.012,
+        1.012,
+        1.012
+      ],
+      "outer": [
+        [
+          true,
+          false
+        ],
+        [
+          false,
+          false
+        ],
+        [
+          false,
+          true
+        ]
+      ],
+      "bodyPosition": "cc5048e5bcff0471515c42f2ce7022e4be35bc1e426b2b112e6208cb926b0017",
+      "bodyNormal": "f1c64d8db37bf05a0e18a7b72eb29ab457aa27e476870a5e2c9baad7ffb33a8d",
+      "bodyUv": "50f591aafd2203e4d356dd062749249e6fbc2c280048a40ee86e7074463ccdc3",
+      "bodyIndex": "b97a4a5a0454c9cc9b09e5fe0a9d29a98bd529253c8d93f19fabea92078ca352",
+      "stickerPosition": "9b87313c666b7f7595a7779a63c96b6be031d0dbf0a53b617890cef985d892f2",
+      "stickerUv": "72b9d2e1af6131ec36b47c1bd868def2a93619a6268cca6e7cb0d60114c66c3a",
+      "stickerRadius": 0.055,
+      "stickerSide": 0.87
+    },
+    {
+      "name": "native-3",
+      "size": 3,
+      "widths": [
+        1.022,
+        1,
+        1.022
+      ],
+      "nominalEdge": 3,
+      "cell": [
+        1.022,
+        1,
+        1.022
+      ],
+      "outer": [
+        [
+          true,
+          false
+        ],
+        [
+          false,
+          false
+        ],
+        [
+          false,
+          true
+        ]
+      ],
+      "bodyPosition": "f626d3f14e61bf43975512cd4e4b194a0130088edff13dfc68b09cd7322aa2dd",
+      "bodyNormal": "f1c64d8db37bf05a0e18a7b72eb29ab457aa27e476870a5e2c9baad7ffb33a8d",
+      "bodyUv": "451cc84fbf7f751fffa01593ebbf0218e7e73842315457a56ee851ddb7750f18",
+      "bodyIndex": "b97a4a5a0454c9cc9b09e5fe0a9d29a98bd529253c8d93f19fabea92078ca352",
+      "stickerPosition": "9b87313c666b7f7595a7779a63c96b6be031d0dbf0a53b617890cef985d892f2",
+      "stickerUv": "72b9d2e1af6131ec36b47c1bd868def2a93619a6268cca6e7cb0d60114c66c3a",
+      "stickerRadius": 0.055,
+      "stickerSide": 0.87
+    },
+    {
+      "name": "native-4",
+      "size": 4,
+      "widths": [
+        1.0293333333333334,
+        1,
+        1,
+        1.0293333333333334
+      ],
+      "nominalEdge": 4,
+      "cell": [
+        1.0293333333333334,
+        1,
+        1.0293333333333334
+      ],
+      "outer": [
+        [
+          true,
+          false
+        ],
+        [
+          false,
+          false
+        ],
+        [
+          false,
+          true
+        ]
+      ],
+      "bodyPosition": "77ac06bb075fe1e422012ae9c151450e6e2ebd289e0928b6e0975add47083f62",
+      "bodyNormal": "f1c64d8db37bf05a0e18a7b72eb29ab457aa27e476870a5e2c9baad7ffb33a8d",
+      "bodyUv": "3bc9b6374c05a9c5aa8fd86d7dfec71d20663364d9ef3a6f50314c9bbf651779",
+      "bodyIndex": "b97a4a5a0454c9cc9b09e5fe0a9d29a98bd529253c8d93f19fabea92078ca352",
+      "stickerPosition": "e46783b3463074545a80da0016e54daf5534d98e511a3988894857e021d74a3c",
+      "stickerUv": "a1a44ff7f3a0d40b7359e936dc5524df77cbc64038178680cdfb10db2c41a085",
+      "stickerRadius": 0.07333333333333333,
+      "stickerSide": 0.87
+    },
+    {
+      "name": "native-5",
+      "size": 5,
+      "widths": [
+        1.0366666666666666,
+        1,
+        1,
+        1,
+        1.0366666666666666
+      ],
+      "nominalEdge": 5,
+      "cell": [
+        1.0366666666666666,
+        1,
+        1.0366666666666666
+      ],
+      "outer": [
+        [
+          true,
+          false
+        ],
+        [
+          false,
+          false
+        ],
+        [
+          false,
+          true
+        ]
+      ],
+      "bodyPosition": "e2b6adc1bc683c06835c52b3d8db57d76a1b6fc251850dd211b9bce64ed83b70",
+      "bodyNormal": "f1c64d8db37bf05a0e18a7b72eb29ab457aa27e476870a5e2c9baad7ffb33a8d",
+      "bodyUv": "495d577f187b0843363a934f6128a1c6510910255063f21596c6060c54d22412",
+      "bodyIndex": "b97a4a5a0454c9cc9b09e5fe0a9d29a98bd529253c8d93f19fabea92078ca352",
+      "stickerPosition": "39b263eb8a0618a1f238d35ccb544d325f87871c63cd8d67bfedfe83a6a75eb3",
+      "stickerUv": "5a2a8a3e90f3a22e71636940dd419332e5a4e940c9070f5582bbd5764f8b2b27",
+      "stickerRadius": 0.09166666666666667,
+      "stickerSide": 0.87
+    },
+    {
+      "name": "native-6",
+      "size": 6,
+      "widths": [
+        1.044,
+        1,
+        1,
+        1,
+        1,
+        1.044
+      ],
+      "nominalEdge": 6,
+      "cell": [
+        1.044,
+        1,
+        1.044
+      ],
+      "outer": [
+        [
+          true,
+          false
+        ],
+        [
+          false,
+          false
+        ],
+        [
+          false,
+          true
+        ]
+      ],
+      "bodyPosition": "451e43f9522d5297b6de679eae2686acbb9eeb0dca298cce8abb493a11a14121",
+      "bodyNormal": "f1c64d8db37bf05a0e18a7b72eb29ab457aa27e476870a5e2c9baad7ffb33a8d",
+      "bodyUv": "c88e043bb81180023275d188b3eb8ff4cdea0cb3afb448d980d6f049bb319607",
+      "bodyIndex": "b97a4a5a0454c9cc9b09e5fe0a9d29a98bd529253c8d93f19fabea92078ca352",
+      "stickerPosition": "9046fac9f17a15ec16f92162b563e7155b081e70a1a9f1e6ae22a11d141dcaca",
+      "stickerUv": "f9caea226dce811624a607cec3997049f7dd358a31e1deb114e669704e5133a6",
+      "stickerRadius": 0.11,
+      "stickerSide": 0.858
+    },
+    {
+      "name": "native-7",
+      "size": 7,
+      "widths": [
+        1.0513333333333332,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1.0513333333333332
+      ],
+      "nominalEdge": 7,
+      "cell": [
+        1.0513333333333332,
+        1,
+        1.0513333333333332
+      ],
+      "outer": [
+        [
+          true,
+          false
+        ],
+        [
+          false,
+          false
+        ],
+        [
+          false,
+          true
+        ]
+      ],
+      "bodyPosition": "b2a1085cb84ec1bbf1a572f4fe29bafa9b16b73b99a956057b47977f3404a8c0",
+      "bodyNormal": "f1c64d8db37bf05a0e18a7b72eb29ab457aa27e476870a5e2c9baad7ffb33a8d",
+      "bodyUv": "0f7074b012da4682569f9eacfb7ab52c5322db5f8d37b4059cedcaf491ec1e51",
+      "bodyIndex": "b97a4a5a0454c9cc9b09e5fe0a9d29a98bd529253c8d93f19fabea92078ca352",
+      "stickerPosition": "efa3ad2b473144f2845088c2acaf56cc24522cba6e9708d0626df39dad164b87",
+      "stickerUv": "b33e1c3c97d74197d841838c6d93af1ac5d1bf3d8ddb3740648875f39d4818ac",
+      "stickerRadius": 0.12833333333333333,
+      "stickerSide": 0.836
+    },
+    {
+      "name": "unequal-3",
+      "size": 3,
+      "widths": [
+        0.7,
+        1,
+        1.4
+      ],
+      "nominalEdge": 3.1,
+      "cell": [
+        0.7,
+        1,
+        1.4
+      ],
+      "outer": [
+        [
+          true,
+          false
+        ],
+        [
+          false,
+          false
+        ],
+        [
+          false,
+          true
+        ]
+      ],
+      "bodyPosition": "618b42ae0089b32279a048a5b98be26e7f8b69d7b2ca84d8fb8cbb305bcbcdd9",
+      "bodyNormal": "f1c64d8db37bf05a0e18a7b72eb29ab457aa27e476870a5e2c9baad7ffb33a8d",
+      "bodyUv": "49591c6f344c34696cccd053b42d2a3bf5e1b1db98d44ce5c1b7eea3b0ad9c52",
+      "bodyIndex": "b97a4a5a0454c9cc9b09e5fe0a9d29a98bd529253c8d93f19fabea92078ca352",
+      "stickerPosition": "9b87313c666b7f7595a7779a63c96b6be031d0dbf0a53b617890cef985d892f2",
+      "stickerUv": "72b9d2e1af6131ec36b47c1bd868def2a93619a6268cca6e7cb0d60114c66c3a",
+      "stickerRadius": 0.055,
+      "stickerSide": 0.87
+    }
+  ]
+}
