@@ -1,0 +1,9 @@
+import {createHash} from 'node:crypto';import {readFile,writeFile} from 'node:fs/promises';import {join,resolve} from 'node:path';import {pathToFileURL} from 'node:url';
+const root=resolve(process.argv[2]),dir=join(root,'packages/cube-viewer/src');
+for(const [name,hash] of Object.entries({'body-artwork.ts':'ed67b4f913b50e142b3262a4b81ac5ba19748921b424fdda57bf3661c906b5c5','cut-faces.ts':'b77409426386d2409b367350641c5e63fc04a327f26443df433724aff2b89fb1','projected-uv.ts':'f30ca569a5cbe84a3369ecee03134ce67006d755db6d64b93479460af1584397','two-radius-body.ts':'d0a822c0fbc2e0b84b73944bb17831872f5d2cbfa3ed72e0e83403b2b6220c38','layer-widths.ts':'0977d80f09a4e939d471b74c867c6e7a76a19dbdfc8cc1243cafed4ba7ff7416'})){if(createHash('sha256').update(await readFile(join(dir,name))).digest('hex')!==hash)throw Error(`Source hash mismatch: ${name}`)}
+const body=await import(pathToFileURL(join(dir,'body-artwork.ts'))), cut=await import(pathToFileURL(join(dir,'cut-faces.ts'))), uv=await import(pathToFileURL(join(dir,'projected-uv.ts'))), geom=await import(pathToFileURL(join(dir,'two-radius-body.ts')));
+const b=geom.createTwoRadiusBody({size:[.99,.99,.99],outer:[[true,false],[true,false],[true,false]],big:.03,small:.018,segments:3}), mapped=body.orientBodyArtwork(b,[{n:[0,0,1],up:[1,0,0]}]);
+const edges=[{edge:'u1',color:'#ff0000',stops:[{to:.3,color:'#ffffff'},{to:1,color:'#ff0000'}],reverse:false},{edge:'v1',color:'#0000ff'}];
+const hash=a=>createHash('sha256').update(Buffer.from(a.buffer,a.byteOffset,a.byteLength)).digest('hex');
+const fixture={revision:'efafcc1d97687eccea0cde87a230f447ce1b6c66',uvHash:hash(mapped.getAttribute('uv').array),patternHash:hash(cut.paintCutPattern(edges,16)),window:uv.stickerWindow([1.2,1,1.4],.87,'F',[0,2,2])};
+await writeFile('packages/viewer/test/fixtures/cubistry-artwork-builders.json',JSON.stringify(fixture,null,2)+'\n');mapped.dispose();b.dispose();

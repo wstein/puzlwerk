@@ -21,3 +21,13 @@ The model-profile fixture executes the same pinned builder for sizes 2–7 and
 custom widths [0.7, 1, 1.4] and [0.7, 1, 1, 1, 1, 1, 1.4]. Default profiles
 pass nominalEdge=N; the custom profiles pass the respective width sums 3.1 and 7.1. It records position, normal, UV and index
 buffers and the source sticker side and radius.
+
+`cubistry-artwork-builders.json` records source-generated UV, miter texture and
+unequal-layer picture-window results. Regenerate it from a checkout of the same
+revision with dependencies installed:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-artwork.mjs /path/to/cubistry
+```
+
+The generator checks each direct viewer source hash before evaluating it.

@@ -50,3 +50,18 @@ the scene routes body geometry through that builder with its existing inputs.
 The scene adapts the static core sphere and body/sticker shadow flags from
 Cubistry physical-scene.ts at the same source revision. Core bounds are explicit
 render-only input, and the sphere remains outside moving piece groups.
+
+Render-only artwork builders are adapted from the same Cubistry revision:
+- `body-artwork.ts`: Git blob 608f01e9bcb6e23514cd76517656d7cb32856f8d,
+  source SHA-256 ed67b4f913b50e142b3262a4b81ac5ba19748921b424fdda57bf3661c906b5c5,
+  target SHA-256 55bf053f1201c79ca62944be173a5b20bb4e0fb2abc13d6a4dfb00bd4a0555f5.
+- `cut-faces.ts`: Git blob 683055a7f6fa191ad6cff7a7ed324bccfe65af0b,
+  source and target SHA-256 b77409426386d2409b367350641c5e63fc04a327f26443df433724aff2b89fb1.
+- `projected-uv.ts`: Git blob cda846f60bbcca518af1aff217cbd3ca0264f985,
+  source SHA-256 f30ca569a5cbe84a3369ecee03134ce67006d755db6d64b93479460af1584397,
+  target SHA-256 c0cd7d56794cb18b229c2ceea2280713a54b98cdf541c60a1229987e64f265d4.
+
+The body-artwork SPDX header and import path were adapted; projected-uv imports
+render-only helpers and uses the local JavaScript extension. The formulas are
+unchanged. `render-math.ts` supplies local vector and assertion operations; no
+Cubistry core or application dependency is imported.
