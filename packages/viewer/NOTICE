@@ -120,3 +120,8 @@ revision efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
 The source curve and shader are retained; installation checks the actual global
 chunk for the same shader and rejects an incompatible replacement. Target
 SHA-256 54dfe1bbc3d1ca13ddbd25e626b3c2a19e45ca7d1b360940467a6b703d869b4d.
+
+src/stage-lighting.ts adapts the source light luminance and directional snapshot
+formulas from Cubistry src/apps/calendar7/names-exposure.ts at the revision and
+source hash recorded above. It validates and copies caller render data; target
+SHA-256 2bd13710020dbf11336a597325245bd7ed5f65a8cc33c1eb4847a9b26c8a8fdf.
