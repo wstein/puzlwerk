@@ -25,7 +25,7 @@ function browserEnvironment(): RotationEnvironment {
 let noteSerial = 0;
 /** One binding per viewport, including one for the entire shared clock assembly. */
 export function bindSmartRotation(element: HTMLElement, root: Object3D, options: {
-  sensitivity: number; threshold?: number; panel: HTMLElement; changed?: () => void; environment?: RotationEnvironment; storageKey?: string; controller?: SmartRotation;
+  sensitivity: number; threshold?: number; panel: HTMLElement; changed?: () => void; environment?: RotationEnvironment; storageKey?: string; controller?: SmartRotation; requestMode?: (mode: RotationMode) => boolean;
 }) {
   if (!Number.isFinite(options.sensitivity) || options.sensitivity <= 0) throw Error("Invalid rotation sensitivity");
   const env = options.environment ?? browserEnvironment(), key = options.storageKey;
@@ -79,9 +79,14 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
     // preference() ends in refresh(), which resets the select to the current
     // mode; read the user's choice first.
     const chosen = select.value;
-    if (env.media.matches !== controller.reducedMotion) preference();
     if (!rotationModes.includes(chosen as RotationMode)) { refresh(); return; }
-    controller.setMode(chosen as RotationMode, env.now()); apply(); refresh(); options.changed?.();
+    if (options.requestMode) {
+      if (!options.requestMode(chosen as RotationMode)) { refresh(); return; }
+    } else {
+      if (env.media.matches !== controller.reducedMotion) preference();
+      controller.setMode(chosen as RotationMode, env.now());
+    }
+    apply(); refresh(); options.changed?.();
     try { if (key !== undefined) env.storage?.setItem(key, JSON.stringify({ version: 1, mode: controller.mode })); } catch { /* Motion stays usable without persistence. */ }
   };
   const panelDown = (event: Event) => {
@@ -111,7 +116,7 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
     if (disposed) throw Error("Rotation binding is disposed");
     const ids = new Set<number>();
     const down = (event: Event) => { if (seenDown.has(event)) return; seenDown.add(event); ids.add((event as PointerEvent).pointerId); panelDown(event); };
-    const activity = (event: Event) => { if (seenActivity.has(event)) return; seenActivity.add(event); panelActivity(); };
+    const activity = (event: Event) => { if (seenActivity.has(event)) return; seenActivity.add(event); if (options.requestMode && event.target === select && (event.type === "change" || event.type === "input")) return; panelActivity(); };
     const release = (event: Event) => { ids.delete((event as PointerEvent).pointerId); };
     surface.addEventListener("pointerdown", down);
     for (const type of ["keydown", "input", "change"]) surface.addEventListener(type, activity);
@@ -134,6 +139,7 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
   refresh(); if (env.document.hidden) controller.suspend(env.now()); apply();
   return {
     controller,
+    refresh() { if (!disposed) refresh(); },
     registerInteractionSurface,
     step() { if (!disposed) { controller.step(env.now()); apply(); } },
     interact() { if (!disposed) { controller.interact(env.now()); apply(); options.changed?.(); } },

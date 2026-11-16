@@ -131,3 +131,19 @@ test("a bubbled interaction event is handled once across registered surfaces",()
  surface.dispatchEvent(event);h.panel.dispatchEvent(event);assert.equal(calls,1);
  h.document.dispatchEvent(Object.assign(new Event("pointerup"),{pointerId:12}));unregister();h.binding.dispose();
 });
+
+
+test("rejected transactional HUD mode leaves controller, reduced preference and storage untouched",()=>{
+ let writes=0,calls=0;const h=rotationHarness({mode:"free",requestMode:()=>false,changed:()=>calls++});const before=h.data.get("test-key");
+ h.env.storage.setItem=()=>{writes++;};
+ h.media.matches=true;h.select.value="classic";h.select.dispatchEvent(new Event("change"));
+ assert.equal(h.binding.controller.mode,"free");assert.equal(h.binding.controller.reducedMotion,false);
+ assert.equal(h.select.value,"free");assert.equal(h.data.get("test-key"),before);assert.equal(writes,0);assert.equal(calls,0);h.binding.dispose();
+});
+test("accepted transactional HUD mode persists committed state; refresh only updates HUD",()=>{
+ let h;h=rotationHarness({mode:"free",requestMode:mode=>{h.binding.controller.setMode(mode,1);return true;}});
+ h.select.value="classic";h.select.dispatchEvent(new Event("change"));assert.equal(h.binding.controller.mode,"classic");
+ assert.equal(JSON.parse(h.data.get("test-key")).mode,"classic");
+ h.binding.controller.setMode("free",2);const before=h.data.get("test-key");h.binding.refresh();
+ assert.equal(h.select.value,"free");assert.equal(h.data.get("test-key"),before);assert.equal(h.binding.controller.mode,"free");h.binding.dispose();
+});
