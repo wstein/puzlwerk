@@ -154,7 +154,7 @@ application JSON file is not itself a wire or appearance document.
 | Picture | Original six distinct licensed faces, registry and all 54 tiles with crop and up orientation, including C1 behavior; record source bytes and rights. | Blocked: source extraction, mappings, original and adapted views not demonstrated. Private upload rights are unknown. |
 | Calendar 3 and 7 | Native JSON and fixed date; standard, names and names-any configurations, chain data and hashes; actual glyph generation, font files and licenses, metrics, palette, layout and banner geometry. Canvas runtime art is not an SVG atlas. | Blocked: reproducible source artwork, native configuration and paired views not packaged. |
 | Clock and timer | Native fixed-time state and original application configuration, two- and three-cube layouts and synchronized actions; compare each cube and scene. | Blocked: native frozen state and synchronized paired scenes not packaged. |
-| Regrip replay | Original GoCube and GAN JSONL, native replay actions, separate physical pose, virtual frame and presentation frame; identify replay UI as development-only. | Blocked: replay inputs, source execution and frame adapter not packaged; no live sensor claim. |
+| Regrip replay | Original GoCube and GAN JSONL, native replay actions, separate physical pose, virtual frame and presentation frame; identify replay UI as development-only. | GoCube and GAN native JSONL inputs and MIT notice are recorded under `acceptance/fixtures/regrip-replay/`. Source execution and frame adapter remain blocked; no live sensor claim. |
 
 For every family record source revision, complete executed dependency closure,
 asset hashes and applicable notices, fixture provenance, actual action trace,
