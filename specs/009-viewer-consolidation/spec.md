@@ -1,6 +1,6 @@
 # Viewer consolidation proposal
 
-Status: bounded pilot authorized by the owner on 2026-11-15. The separate TypeScript viewer uses Three.js and Cubistry material under AGPL-3.0-or-later with retained MIT and Three.js notices. Core remains rendering-independent. This does not authorize consumer migration, publication, a core license change, or an ADR. [Cubistry #111](https://github.com/wstein/cubistry/issues/111) is the source proposal; this document makes its boundaries reviewable without replacing its authority. The [inventory](inventory.md) records the existing implementations and [license brief](license-package-proposal.md) records unresolved provenance and distribution questions.
+Status: bounded pilot authorized by the owner on 2026-11-15. The separate TypeScript viewer uses Three.js and Cubistry material under AGPL-3.0-or-later with retained MIT and Three.js notices. Core remains rendering-independent. The owner authorized the staged consumer implementation sequence on 2026-11-16, subject to the gates in VC5. Publication, a core license change, and an ADR remain separate decisions. [Cubistry #111](https://github.com/wstein/cubistry/issues/111) is the source proposal; this document makes its boundaries reviewable without replacing its authority. The [inventory](inventory.md) records the existing implementations and [license brief](license-package-proposal.md) records unresolved provenance and distribution questions.
 
 ## Objective and acceptance
 
