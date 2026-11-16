@@ -16,3 +16,8 @@ and records the eight body positions and local sticker positions and rotations;
 the corresponding sticker up vectors are checked from those rotations. Native
 outer cell widths are 1.012, body centers are ±0.506, and local sticker offsets
 are ±0.508. These fixtures do not establish whole-scene or image parity.
+
+The model-profile fixture executes the same pinned builder for sizes 2–7 and
+custom widths [0.7, 1, 1.4]. Default profiles pass nominalEdge=N; the custom
+profile passes nominalEdge=3.1. It records position, normal, UV and index
+buffers and the source sticker side and radius.

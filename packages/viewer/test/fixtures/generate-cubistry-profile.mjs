@@ -14,3 +14,18 @@ const g=presentationLayerProfile(widths,2).body([widths[0],widths[0],widths[0]],
 const hash=a=>createHash('sha256').update(Buffer.from(a.buffer,a.byteOffset,a.byteLength)).digest('hex');
 const fixture={source:'Cubistry packages/cube-viewer/src/presentation-preset.ts at efafcc1d97687eccea0cde87a230f447ce1b6c66',widths,outer,position:hash(g.attributes.position.array),normal:hash(g.attributes.normal.array),uv:hash(g.attributes.uv.array),index:hash(g.index.array)};
 await writeFile('packages/viewer/test/fixtures/cubistry-2x2-profile.json',JSON.stringify(fixture,null,2)+'\n');g.dispose();
+const {stickerRadiusFor,innerRadiusFor,stickerSideFor}=await import(pathToFileURL(process.argv[2]));
+const cases=[];
+for (const size of [2,3,4,5,6,7]) {
+  const w=presentationWidths(size); cases.push({name:`native-${size}`,size,widths:w,nominalEdge:size});
+}
+cases.push({name:'unequal-3',size:3,widths:[.7,1,1.4],nominalEdge:3.1});
+for (const item of cases) {
+  const profile=presentationLayerProfile(item.widths,item.nominalEdge);
+  const cell=[item.widths[0],item.widths[1],item.widths.at(-1)];
+  const outer=[[true,false],[false,false],[false,true]];
+  const body=profile.body(cell,outer), sticker=profile.sticker();
+  Object.assign(item,{cell,outer,bodyPosition:hash(body.attributes.position.array),bodyNormal:hash(body.attributes.normal.array),bodyUv:hash(body.attributes.uv.array),bodyIndex:hash(body.index.array),stickerPosition:hash(sticker.attributes.position.array),stickerUv:hash(sticker.attributes.uv.array),stickerRadius:stickerRadiusFor(item.size,item.nominalEdge),stickerSide:stickerSideFor(1,innerRadiusFor(item.size,item.nominalEdge))});
+  body.dispose(); sticker.dispose();
+}
+await writeFile('packages/viewer/test/fixtures/cubistry-model-profiles.json',JSON.stringify({source:fixture.source,cases},null,2)+'\n');

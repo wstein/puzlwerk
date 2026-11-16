@@ -41,3 +41,14 @@ stickers use roughness 0.65 and clearcoat 0.12. The studio uses Cubistry's
 ambient, hemisphere, key, fill, rim and shadow-fill lights, two 1024-pixel
 shadow maps and the contact shadow. Renderer output uses sRGB, neutral tone
 mapping and a device pixel ratio capped at 2. See NOTICE for pinned sources.
+
+The model gallery is at `packages/viewer/demo/gallery.html` on the demo server.
+It shows native 2×2, 3×3 and 7×7 and an unequal [0.7, 1, 1.4] profile at
+rest and mid-turn. `presentation` supplies the explicit size and nominal edge;
+optional `core` supplies a scene-space center and positive half extent. These
+are render-only snapshot data, invariant across a transition. No core is inferred.
+The source-versus-adapter captures use Chromium with SwiftShader at DPR 1,
+300×300 drawing buffers, camera (4,3,5) scaled by max(1, edge/2), and the
+pinned studio. Desktop and mobile viewport captures are local test artifacts,
+not physical-device or full HQ acceptance. Artwork, picture projection and
+multiple cubes remain outside this slice.

@@ -290,6 +290,25 @@ test('explicit core stays static through nonzero-pivot turn and owns its resourc
   scene.dispose(); scene.dispose(); assert.equal(geometryDisposals,1); assert.equal(materialDisposals,1);
 });
 
+test('explicit size profiles match pinned Cubistry body and sticker buffers', async () => {
+  const {readFile}=await import('node:fs/promises'); const {createHash}=await import('node:crypto');
+  const fixture=JSON.parse(await readFile(new URL('./fixtures/cubistry-model-profiles.json',import.meta.url)));
+  const hash=a=>createHash('sha256').update(Buffer.from(a.buffer,a.byteOffset,a.byteLength)).digest('hex');
+  for (const item of fixture.cases) {
+    let rendered; const frames=[];
+    const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+    const input={presentation:{size:item.size,nominalEdge:item.nominalEdge},pieces:[{id:'fixture',transform:t(),geometry:{cellSize:item.cell,outerSides:item.outer},stickers:[{id:'fixture-sticker',transform:t([0,0,.5]),size:[item.stickerSide,item.stickerSide],color:'#fff'}]}]};
+    assert.equal((await scene.setProjection(input)).ok,true); frames.shift()(0);
+    const body=rendered.getObjectByName('fixture').children.find(o=>o.isMesh && !o.name).geometry;
+    const sticker=rendered.getObjectByName('fixture-sticker').geometry;
+    for (const [attribute,key] of [['position','bodyPosition'],['normal','bodyNormal'],['uv','bodyUv']]) assert.equal(hash(body.getAttribute(attribute).array),item[key],`${item.name} ${key}`);
+    assert.equal(hash(body.index.array),item.bodyIndex,item.name);
+    assert.equal(hash(sticker.getAttribute('position').array),item.stickerPosition,`${item.name} sticker`);
+    assert.equal(hash(sticker.getAttribute('uv').array),item.stickerUv,`${item.name} sticker UV`);
+    scene.dispose();
+  }
+});
+
 test('scene snapshots core and presentation while resolving caller assets', async () => {
   let resolve,rendered; const frames=[];
   const scene=createSceneForTest({resolveAsset:()=>new Promise(r=>resolve=r)},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});

@@ -2,7 +2,7 @@
 // Pivot grouping adapted from Cubistry physical-scene.ts; see NOTICE.
 import * as THREE from 'three';
 import type { OuterSides } from './two-radius-body.js';
-import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile } from './presentation-preset.js';
+import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile, stickerRadiusFor } from './presentation-preset.js';
 import { createPresentationStudio } from './studio.js';
 import { fail, ok, sameValues, validateProjection, validateTransition } from './contract.js';
 import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
@@ -20,7 +20,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
   const scene = new THREE.Scene();
   const root = new THREE.Group(); scene.add(root);
   const studio = createPresentationStudio(scene);
-  const profile = presentationLayerProfile([1,1],2);
+
   let projection: CubeProjection | undefined, pending: Pending | undefined, disposed = false, lost = false;
   let frame: number | undefined, animation: ((now: number) => boolean) | undefined;
   let pausedAt: number | undefined, pausedDuration = 0, dirty = false;
@@ -47,6 +47,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
   }
   function present(p: CubeProjection, assets: Map<string, CanvasImageSource>) {
     clear();
+    const profile = p.presentation ? presentationLayerProfile(Array(p.presentation.size).fill(1), p.presentation.nominalEdge) : presentationLayerProfile([1,1],2);
     if (p.core) {
       const geometry = new THREE.SphereGeometry(1,48,24);
       const material = createPlasticMaterial('#1b2431');
@@ -72,7 +73,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const material = createPlasticMaterial('#1b2431'); resources.push(geometry, material);
       const mesh = new THREE.Mesh(geometry, material); mesh.castShadow = true; mesh.receiveShadow = true; body.add(mesh);
       for (const sticker of piece.stickers) {
-        const geo = createStickerGeometry(...sticker.size, Math.min(.055, ...sticker.size.map(x => x / 2)));
+        const geo = createStickerGeometry(...sticker.size, Math.min(p.presentation ? stickerRadiusFor(p.presentation.size,p.presentation.nominalEdge) : .055, ...sticker.size.map(x => x / 2)));
         const texture = sticker.imageId ? new THREE.Texture(assets.get(sticker.imageId) as TexImageSource) : undefined;
         if (texture) { texture.colorSpace = THREE.SRGBColorSpace; texture.needsUpdate = true; resources.push(texture); }
         const mat = createStickerMaterial(texture ?? null, sticker.color); if (texture) mat.transparent = true; resources.push(geo, mat);
