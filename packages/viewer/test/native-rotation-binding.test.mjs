@@ -155,3 +155,20 @@ test("throwing transactional HUD request restores HUD and leaves state and stora
  assert.equal(h.binding.controller.mode,"free");assert.equal(h.binding.controller.reducedMotion,false);
  assert.equal(h.select.value,"free");assert.equal(h.data.get("test-key"),before);assert.equal(writes,0);assert.equal(calls,0);h.binding.dispose();
 });
+
+
+test("rejected and throwing media requests preserve controller, HUD and storage",()=>{
+ for(const requestReducedMotion of [()=>false,()=>{throw Error("policy failed");}]){
+  let calls=0,writes=0;const h=rotationHarness({mode:"free",requestReducedMotion,changed:()=>calls++});
+  const before=h.data.get("test-key"),note=h.note.textContent;h.env.storage.setItem=()=>{writes++;};
+  h.media.matches=true;h.media.dispatchEvent(new Event("change"));
+  assert.equal(h.binding.controller.reducedMotion,false);assert.equal(h.binding.controller.mode,"free");
+  assert.equal(h.select.value,"free");assert.equal(h.note.textContent,note);assert.equal(h.data.get("test-key"),before);
+  assert.equal(writes,0);assert.equal(calls,0);h.binding.dispose();
+ }
+});
+test("accepted media request refreshes HUD from the committed controller",()=>{
+ let h,requests=0;h=rotationHarness({requestReducedMotion:value=>{requests++;h.binding.controller.setReducedMotion(value,1);return true;}});
+ h.media.matches=true;h.media.dispatchEvent(new Event("change"));assert.equal(h.binding.controller.reducedMotion,true);
+ assert.equal(requests,1);assert.match(h.note.textContent,/Reduced motion/);h.binding.dispose();
+});

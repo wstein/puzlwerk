@@ -25,7 +25,7 @@ function browserEnvironment(): RotationEnvironment {
 let noteSerial = 0;
 /** One binding per viewport, including one for the entire shared clock assembly. */
 export function bindSmartRotation(element: HTMLElement, root: Object3D, options: {
-  sensitivity: number; threshold?: number; panel: HTMLElement; changed?: () => void; environment?: RotationEnvironment; storageKey?: string; controller?: SmartRotation; requestMode?: (mode: RotationMode) => boolean;
+  sensitivity: number; threshold?: number; panel: HTMLElement; changed?: () => void; environment?: RotationEnvironment; storageKey?: string; controller?: SmartRotation; requestMode?: (mode: RotationMode) => boolean; requestReducedMotion?: (value: boolean) => boolean;
 }) {
   if (!Number.isFinite(options.sensitivity) || options.sensitivity <= 0) throw Error("Invalid rotation sensitivity");
   const env = options.environment ?? browserEnvironment(), key = options.storageKey;
@@ -105,7 +105,15 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
   const blur = () => { if (!disposed) { focused = false; controller.suspend(env.now()); clearContacts(); apply(); options.changed?.(); } };
   const focus = () => { if (!disposed) { focused = true; if (!env.document.hidden) controller.resume(env.now()); apply(); options.changed?.(); } };
   const panelActivity = () => { if (!disposed) { controller.interact(env.now()); apply(); options.changed?.(); } };
-  const preference = () => { if (!disposed) { controller.setReducedMotion(env.media.matches, env.now()); apply(); refresh(); options.changed?.(); } };
+  const preference = () => {
+    if (disposed) return;
+    if (options.requestReducedMotion) {
+      let accepted = false;
+      try { accepted = options.requestReducedMotion(env.media.matches); } catch { /* A policy error rejects the request. */ }
+      if (!accepted) { refresh(); return; }
+    } else controller.setReducedMotion(env.media.matches, env.now());
+    apply(); refresh(); options.changed?.();
+  };
   const visibility = () => {
     if (disposed) return;
     if (env.document.hidden) { controller.suspend(env.now()); clearContacts(); }
