@@ -15,4 +15,5 @@ test('classic source comparison is mounted from the manifest at nested base',()=
  const html=renderCase(c,'/puzlwerk/pr-preview/pr-77/');
  assert.ok(html.includes('id="classic"'));
  assert.ok(html.includes('/puzlwerk/pr-preview/pr-77/assets/runtime/classic.mjs'));
+ assert.ok(html.includes('"three/examples/":"/puzlwerk/pr-preview/pr-77/assets/three/examples/"'));
 });
