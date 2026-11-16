@@ -1,6 +1,6 @@
 # Acceptance suite inventory and decisions
 
-Status: source inventory and route proposal at PuzlWerk head `277bf5b89a4b139e3188b85cb7d8358b2a28d4bc`; implementation, functional and visual parity, hosted references and owner approvals are not established. The machine-readable `acceptance-routes.json` is the case-level authority for routes, source pins, native setup, actions, source tests, production interfaces, blockers and independent checklists. Source test references establish coverage intent, not a passing result. The 96 entries comprise registry modes, public entry aliases and distinct functional, renderer or source-library variants; entry aliases are not additional proof of functional coverage.
+Status: source inventory and route proposal at PuzlWerk head `277bf5b89a4b139e3188b85cb7d8358b2a28d4bc`; implementation, functional and visual parity, hosted references and owner approvals are not established. The machine-readable `acceptance-routes.json` is the case-level authority for routes, source pins, native setup, actions, source tests, production interfaces, blockers and independent checklists. Source test references establish coverage intent, not a passing result. The 97 entries comprise registry modes, public entry aliases and distinct functional, renderer or source-library variants; entry aliases are not additional proof of functional coverage.
 
 ## Source pins and coverage boundaries
 
@@ -61,7 +61,7 @@ Each listed route is relative to one configured base and has its own checklist a
 | `cubistry-calendar7-any` | `acceptance/cubistry-calendar7-any/` | Cubistry: `index.html?app=calendar7&layout=names-any&year=2026&month=5` |
 | `cubistry-calendar7-custom-profile` | `acceptance/cubistry-calendar7-custom-profile/` | Cubistry: `index.html?app=calendar7&layout=names&outer=1.8` |
 | `cubistry-calendar7-schemes` | `acceptance/cubistry-calendar7-schemes/` | Cubistry: `index.html?app=calendar7&scheme=dracula` |
-| `cubistry-calendar7-hidden` | `acceptance/cubistry-calendar7-hidden/` | Cubistry: `index.html?app=calendar7` |
+| `cubistry-calendar7-playback-layout` | `acceptance/cubistry-calendar7-playback-layout/` | Cubistry: `index.html?app=calendar7` |
 | `cubistry-calendar3-english` | `acceptance/cubistry-calendar3-english/` | Cubistry: `index.html?app=calendar&lang=en&date=2026-05-01` |
 | `cubistry-playground-upload` | `acceptance/cubistry-playground-upload/` | Cubistry: `index.html?app=playground` |
 | `cubistry-picture3-edit` | `acceptance/cubistry-picture3-edit/` | Cubistry: `picture3.html` |
@@ -116,6 +116,8 @@ Each listed route is relative to one configured base and has its own checklist a
 | `regrip-landing` | `acceptance/regrip-landing/` | Regrip: `/` |
 | `regrip-docs` | `acceptance/regrip-docs/` | Regrip: `/docs/` |
 
+| `cubistry-viewer-hidden` | `acceptance/cubistry-viewer-hidden/` | Cubistry: `No separate app route; production rotation binding exercised by viewer.` |
+
 ## Contract and decision register
 
 | Item | Status | Required resolution |
@@ -126,10 +128,10 @@ Each listed route is relative to one configured base and has its own checklist a
 | Shared viewer | `packages/viewer/src/index.ts#createCubeScene`, `CubeScene` and stage interfaces exist | Case-level wire/appearance-to-projection mapping and production call evidence remain missing. Existing viewer tests do not establish consumer parity. |
 | Shared play controller | **MISSING** at the pinned PuzlWerk head | Specify and implement the production interface in a separately authorized phase. Existing Cubistry `src/apps/shared/playback.ts` and CubeLab `src/client/playback.ts` are separate implementations. Until then, play cases are blocked. |
 | Original references and licenses | **UNKNOWN** per case | Pin reproducible original, source revision, asset provenance and hosting eligibility; unavailable or unlicensed originals block the comparison. |
-| Route and build interface | Proposal | Routes are relative `acceptance/<id>/` under one configured base. Example `/puzlwerk/pr-preview/pr-72/acceptance/<id>/` is a hypothetical nested Pages path, not a live URL. Build command and manifest schema remain open. Test direct navigation, assets, workers and module imports at both root and nested bases. One PR produces one preview, not one deployment per case. |
+| Route and build interface | Proposal | Routes are relative `acceptance/<id>/` under one configured base. Example `/puzlwerk/pr-preview/pr-72/acceptance/<id>/` is a hypothetical nested Pages path, not a live URL. Build command and manifest schema remain open. Test direct navigation, assets, workers and module imports at `/puzlwerk/` and `/puzlwerk/pr-preview/pr-72/`. One PR produces one preview, not one deployment per case. |
 | Results | Proposal | Record architecture, functional and visual independently using `not implemented`, `not tested`, `passed`, `failed`, `blocked` or `owner approved`, with head, evidence and owner decision where applicable. Never infer owner approval. |
 | Preview and production policy | Proposal; gate **UNKNOWN** | See [preview plan](acceptance-preview-plan.md). Variable read returned 403; do not infer false or absence. Preserve explicit `deploy=true` production dispatch. Preview events may combine only verified already-published root bytes with their namespace, never unpublished main. Storage and verification require an owner decision. |
 | Acceptance record and approval | Owner decision open | Recommend versioned records with explicit attributable owner decision, exact case/head/fixture/scope and evidence. Local UI checks are observations, never owner approval; changed head or fixture invalidates the affected record. Architecture, functional and visual results stay separate. |
 | Activation | Not authorized | No workflow, publication, Pages setting or preview activation follows from this proposal. |
 
-Each case names source app and screen, exact original and prospective route, cube and definition/state, appearance, camera, actions, assets, source component and tests, production core/viewer/play references, license eligibility, root and nested-base links, checklist, trace, evidence and separate statuses. Check each case independently; a success for one case does not approve another. Renderer diagnostics establish only the exercised renderer behavior, not application parity.
+Each case names source app and screen, exact original and prospective route, cube and definition/state, appearance, camera, actions, assets, source component and tests, production core/viewer/play references, license eligibility, normal and nested-base links, checklist, trace, evidence and separate statuses. Check each case independently; a success for one case does not approve another. Renderer diagnostics establish only the exercised renderer behavior, not application parity.
