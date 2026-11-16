@@ -39,13 +39,13 @@ export function open(definitionText,stateText,appearanceText,options) {
   const poses = new Map(Codec.poses(state._0).map(p => [Id.toString(Pose.pieceId(p)),p]));
   const pieces = Codec.pieces(definition._0).map(p => {
     const id=Id.toString(p.id), pose=poses.get(id);
-    return {id,transform:{position:vector(Shell.toVec(Pose.position(pose))).map(v=>v/2),rotation:rotation(Pose.orientation(pose))},stickers:p.stickers.map(s=>{
+    return {id:`piece:${id}`,transform:{position:vector(Shell.toVec(Pose.position(pose))).map(v=>v/2),rotation:rotation(Pose.orientation(pose))},stickers:p.stickers.map(s=>{
       const id=Id.toString(s.id), style=styles.get(id), normal=vector(s.normal), up=vector(s.up);
       const token=style?.color ?? (s.color === undefined ? undefined : Id.toString(s.color));
-      return {id,transform:{position:normal.map(v=>v*.501),rotation:stickerRotation(normal,up)},size:[.87,.87],color:options.palette[token] ?? options.defaultColor,...(style?.image ? {imageId:style.image}:{}),sourceFace:{normal,up}};
+      return {id:`sticker:${id}`,transform:{position:normal.map(v=>v*.501),rotation:stickerRotation(normal,up)},size:[.87,.87],color:options.palette[token] ?? options.defaultColor,...(style?.image ? {imageId:style.image}:{}),sourceFace:{normal,up}};
     })};
   });
-  return {ok:true,value:{definition:definition._0,state:state._0,appearance:doc,projection:{pieces}}};
+  return {ok:true,value:{definition:definition._0,state:state._0,appearance:doc,ids:{pieces:wire.pieces.map(p=>({wire:p.id,viewer:`piece:${p.id}`})),stickers:wire.pieces.flatMap(p=>p.stickers.map(s=>({wire:s.id,viewer:`sticker:${s.id}`})))},projection:{pieces}}};
 }
 
 export function createPlayer(definitionText,stateText,appearanceText,options,scene) {
@@ -64,7 +64,7 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
       if (next.TAG !== 'Ok') return error(next._0);
       const target=open(definitionText,Codec.encodeState(next._0),appearanceText,options);
       if (!target.ok) return target;
-      const selected=Codec.poses(current.state).filter(p=>Move.selects(made._0,Pose.position(p))).map(p=>Id.toString(Pose.pieceId(p)));
+      const selected=Codec.poses(current.state).filter(p=>Move.selects(made._0,Pose.position(p))).map(p=>`piece:${Id.toString(Pose.pieceId(p))}`);
       const axes={X:[1,0,0],Y:[0,1,0],Z:[0,0,1]};
       busy=true;
       try {
