@@ -111,3 +111,11 @@ e90a374dbe1f8727c724e2817f802d51b50a5e08, source SHA-256
 It accepts numeric light snapshots instead of traversing mutable Three scene
 objects; target SHA-256
 bbc8d5fdd4a77bfa7d7517a4545c3ac631cc1ed1cc1e60ca6f0927443a16ead4.
+
+src/soft-shoulder.ts adapts Cubistry src/apps/calendar7/names-tone.ts at
+revision efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
+73c2ca8712d5ab253208f961e008050e1cd074d6, source SHA-256
+269e7b732d72349ab2f0aaf3940fad222374d3eaffdceb53c234bebb4988187c.
+The source curve and shader are retained; installation checks the actual global
+chunk for the same shader and rejects an incompatible replacement. Target
+SHA-256 54dfe1bbc3d1ca13ddbd25e626b3c2a19e45ca7d1b360940467a6b703d869b4d.

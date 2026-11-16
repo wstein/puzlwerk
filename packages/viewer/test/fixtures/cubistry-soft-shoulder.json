@@ -1,0 +1,25 @@
+{
+  "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+  "sourceHash": "269e7b732d72349ab2f0aaf3940fad222374d3eaffdceb53c234bebb4988187c",
+  "glsl": "vec3 CustomToneMapping( vec3 color ) {\n\tcolor *= toneMappingExposure;\n\tfloat s = 0.9500;\n\tfloat room = 1.0 - s;\n\tvec3 over = max( color - s, vec3( 0.0 ) );\n\treturn max( color - over + room * ( vec3( 1.0 ) - exp( -over / room ) ), vec3( 0.0 ) );\n}",
+  "inputs": [
+    -0.1,
+    0,
+    0.5,
+    0.95,
+    0.96,
+    1,
+    1.5,
+    10
+  ],
+  "outputs": [
+    0,
+    0,
+    0.5,
+    0.95,
+    0.9590634623461008,
+    0.9816060279414278,
+    0.9999991649149604,
+    1
+  ]
+}

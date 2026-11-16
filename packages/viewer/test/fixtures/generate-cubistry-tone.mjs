@@ -1,0 +1,4 @@
+import {createHash} from 'node:crypto';import {readFile,writeFile} from 'node:fs/promises';import {resolve} from 'node:path';import {pathToFileURL} from 'node:url';
+const root=process.argv[2];if(!root)throw Error('Pass the pinned Cubistry checkout');const file=resolve(root,'src/apps/calendar7/names-tone.ts');const hash=createHash('sha256').update(await readFile(file)).digest('hex');if(hash!=='269e7b732d72349ab2f0aaf3940fad222374d3eaffdceb53c234bebb4988187c')throw Error('Source hash mismatch');
+const source=await import(pathToFileURL(file));const inputs=[-.1,0,.5,.95,.96,1,1.5,10];
+await writeFile('packages/viewer/test/fixtures/cubistry-soft-shoulder.json',JSON.stringify({revision:'efafcc1d97687eccea0cde87a230f447ce1b6c66',sourceHash:hash,glsl:source.SHOULDER_GLSL,inputs,outputs:inputs.map(x=>source.shoulder(x))},null,2)+'\n');
