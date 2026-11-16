@@ -22,7 +22,7 @@ export function samePublication(a,b) { return Boolean(a && b && ['schema','sha',
 export async function readPublication({fetch:request=fetch}={}) {
  const response=await request(`${PUBLICATION_URL}?receipt=${randomUUID()}`,{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(15000)});
  if(response.status===404) return null;
- if(!response.ok || response.redirected) throw Error('Public receipt request failed');
+ if(!response.ok || response.redirected) { const error=Error('Public receipt request failed'); error.status=response.status; throw error; }
  const reader=response.body.getReader(), parts=[]; let size=0;
  for (;;) { const {done,value}=await reader.read(); if(done) break; size+=value.length; if(size>32768){await reader.cancel();throw Error('Receipt exceeds budget');} parts.push(value); }
  return parsePublication(new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(parts)));
@@ -32,6 +32,20 @@ export async function verifyLiveReceipt(receipt,options={}) {
  const live=await readPublication(options);
  if(!samePublication(live,receipt)) throw Error('Live publication receipt mismatch');
  return live;
+}
+export async function waitForLiveReceipt(receipt,{previous=null,fetch:request=fetch,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),attempts=12}={}) {
+ parsePublication(JSON.stringify(receipt));
+ if(previous!==null) parsePublication(JSON.stringify(previous));
+ if(!Number.isSafeInteger(attempts) || attempts<1 || attempts>30) throw Error('Invalid receipt wait budget');
+ for(let i=0;i<attempts;i++) {
+  let live;
+  try { live=await readPublication({fetch:request}); }
+  catch(error) { if(![500,502,503,504].includes(error.status)) throw error; live=null; }
+  if(samePublication(live,receipt)) return live;
+  if(live!==null && !samePublication(live,previous)) throw Error('Live publication receipt mismatch');
+  if(i+1<attempts) await sleep(2000);
+ }
+ throw Error('Live receipt wait exhausted');
 }
 export function trustedPublisher(run,receipt,{context}={}) {
  const own=context && context.run===receipt.run && context.attempt===receipt.attempt && context.sha===receipt.sha && run?.status==='in_progress';
