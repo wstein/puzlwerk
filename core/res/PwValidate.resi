@@ -74,3 +74,11 @@ let assessAssuming: (
   option<profile>,
   option<array<PwMove.t>>,
 ) => report
+
+// Apply one policy-legal move to a structurally valid state of this definition.
+type applyMoveError = IllegalMove | InvalidState(PwCodec.error)
+let applyMove: (
+  PwCodec.definition,
+  PwCodec.state,
+  PwMove.t,
+) => result<PwCodec.state, applyMoveError>

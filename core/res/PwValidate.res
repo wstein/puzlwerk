@@ -208,6 +208,23 @@ let legalMove = (definition, m) => {
   }
 }
 
+type applyMoveError = IllegalMove | InvalidState(PwCodec.error)
+
+let applyMove = (definition, state, move) => {
+  switch PwCodec.decodeState(definition, PwCodec.encodeState(state)) {
+  | Error(e) => Error(InvalidState(e))
+  | Ok(_) if !legalMove(definition, move) => Error(IllegalMove)
+  | Ok(_) =>
+    switch PwCodec.stateOfPoses(
+      definition,
+      PwCodec.poses(state)->Array.map(p => PwMove.applyToPose(move, p)),
+    ) {
+    | Ok(next) => Ok(next)
+    | Error(e) => Error(InvalidState(e))
+    }
+  }
+}
+
 type replay = Matches | Illegal | Mismatch
 
 let replay = (definition, state, certificate) =>
