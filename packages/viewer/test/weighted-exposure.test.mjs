@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {weightedFaceExposure} from '../dist/weighted-exposure.js';
+test('weighted face exposure matches pinned source for lights and display poses',async()=>{const fixture=JSON.parse(await readFile(new URL('./fixtures/cubistry-weighted-exposure.json',import.meta.url)));for(const c of fixture.cases)assert.equal(weightedFaceExposure(c.lights,c.orientation,c.cameraPosition),c.exposure)});
