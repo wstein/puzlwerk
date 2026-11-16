@@ -147,3 +147,28 @@ test('presentation uses rounded physical pieces, rounded stickers and a shadow s
   assert.equal(rendered.children.filter(c=>c.isDirectionalLight && c.castShadow).length,2);
   scene.dispose();
 });
+
+test('2x2 body keeps Cubistry exterior and seam radii and floor clears turn sweep', async () => {
+  const {createTwoRadiusBody}=await import('../dist/two-radius-body.js');
+  let rendered; const frames=[];
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  const corner={pieces:[{...projection.pieces[0],stickers:[...projection.pieces[0].stickers,{id:'top',transform:t([0,.471,0],[-Math.SQRT1_2,0,0,Math.SQRT1_2]),size:[.8,.8],color:'#fff'}]}]};
+  await scene.setProjection(corner); frames.shift()(0);
+  const actual=rendered.getObjectByName('a').children.find(c=>c.isMesh && !c.name).geometry;
+  const expected=createTwoRadiusBody({size:[.94,.94,.94],outer:[[false,false],[false,true],[false,true]],big:.03,small:.018,segments:3});
+  assert.deepEqual([...actual.getAttribute('position').array],[...expected.getAttribute('position').array]);
+  assert.ok(rendered.getObjectByName('studio-shadow-receiver').position.y < -Math.SQRT2);
+  expected.dispose(); scene.dispose();
+});
+
+test('renderer enables bounded PCF shadows and neutral output', async () => {
+  const THREE=await import('three');
+  const {configurePresentationRenderer}=await import('../dist/presentation-preset.js');
+  const renderer={shadowMap:{},setPixelRatio(value){this.pixelRatio=value}};
+  const previous=globalThis.devicePixelRatio; globalThis.devicePixelRatio=3;
+  try { configurePresentationRenderer(renderer,null); } finally { if(previous===undefined) delete globalThis.devicePixelRatio; else globalThis.devicePixelRatio=previous; }
+  assert.equal(renderer.pixelRatio,2); assert.equal(renderer.shadowMap.enabled,true);
+  assert.equal(renderer.shadowMap.type,THREE.PCFShadowMap);
+  assert.equal(renderer.outputColorSpace,THREE.SRGBColorSpace);
+  assert.equal(renderer.toneMapping,THREE.NeutralToneMapping);
+});
