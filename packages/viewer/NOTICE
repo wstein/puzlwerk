@@ -162,3 +162,8 @@ The source SmartRotation controller additionally supports adopting a validated
 snapshot without replacing the instance held by the source input binding.
 The stage uses the source binding as its sole input path; the native stylesheet
 is copied into the distributed viewer output.
+
+src/motion-timing.ts is unchanged from Cubistry revision
+ efafcc1d97687eccea0cde87a230f447ce1b6c66, SHA-256
+c6ccc46698f6ab10b00e43e25b60135aa5dc0b289d5cc59228e330daa644aa09.
+Its pinned original motion-timing regressions are retained in the viewer tests.
