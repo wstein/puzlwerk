@@ -6,12 +6,8 @@ efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
 78840b75e2e70ddc2a0fe551a85ff4908a334ab4, SHA-256
 73c9882b48c107b43513600e3dafbf1c2f9be1b1b44b30fcc1c2ebaf29c7c79f.
 Source: https://github.com/wstein/cubistry/tree/efafcc1d97687eccea0cde87a230f447ce1b6c66
-The adapted target src/scene.ts has SHA-256
-f40dd741af141ac298d24666202b7a4cd8f3ab9396c3113e1ade2c27cd6e9c37.
 The adaptation accepts a general axis and pivot, snapshots, cancellation, and
-explicit target poses; it omits Cubistry's application dependencies, geometry,
-artwork and controls. The box and plane geometry in this pilot is new. No other
-file from the selection register is copied. The source's history was inspected
+explicit target poses; it omits Cubistry application state, artwork and controls. The source's history was inspected
 with git log --follow; earliest retained entry a6a8e706 calls it a shared
 physical-frame scene adapter. No explicit CubeAssembler marker was found in
 this file; that alone does not establish all prior origins. Cubistry declares
@@ -21,3 +17,25 @@ AGPL-3.0-or-later for the package. See LICENSE and CUBE_ASSEMBLER_LICENSE.txt
 Three.js 0.187.0 is MIT licensed; see THREE_LICENSE.txt. Its matching
 @types/three 0.187.0 is a development dependency used for TypeScript checking;
 its transitive development dependencies are recorded in the root lockfile.
+
+The following render-only sources are from the same Cubistry revision:
+
+src/two-radius-body.ts: Git blob 7b933cff1ac6587debd59fc8bf5ebe9ee64908b7;
+source SHA-256 d0a822c0fbc2e0b84b73944bb17831872f5d2cbfa3ed72e0e83403b2b6220c38.
+Copied unchanged.
+
+src/presentation-preset.ts: Git blob 0d02cc60f6aa3eb0fee4a7818d5b00fcd1572140;
+source SHA-256 6ae77f5c4579689272106d21de91a1de23ed9dcfa762e30ad9e36944f784466b.
+The layer-profile and default-geometry functions and their imports are omitted;
+the sticker material accepts a null map for color-only projections, and the
+default zero metallic factor is implicit.
+
+src/studio.ts: Git blob 3f378124c5788214bf7016882c9ff7129b4d0598;
+source SHA-256 dd263bb73056cfab830c4afb1dd40cced28960638a9d99b0296c5a71044197c1.
+The import extension and SPDX header were adapted. These files retain the
+Cubistry package's AGPL-3.0-or-later terms.
+
+Adapted target SHA-256 values at this revision:
+src/presentation-preset.ts a4b6f48df1f15fd8b1fbe627cd45ea4843b1dcb783d02fdf2c00fcfc9a55eabc
+src/studio.ts 00ffac466351db90b5754de1da4c0d90eb4aea127835ab34fc77cfd49a1435fd
+src/scene.ts f01d7b2e4c63c53db32e355fb78c9a79642f458a277d98d885a93ded178742c7

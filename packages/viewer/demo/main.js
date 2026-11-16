@@ -7,9 +7,9 @@ const size = value(Shell.makeSize(2));
 const slots = Shell.slots(size).map(Shell.toVec);
 const rotation = value(Orientation.make([0,-1,0,1,0,0,0,0,1]));
 const faces = [
-  [[1,0,0],[0,1,0],'#df302b'],[[-1,0,0],[0,1,0],'#e68a19'],
-  [[0,1,0],[0,0,-1],'#f7f7f7'],[[0,-1,0],[0,0,1],'#f6e44b'],
-  [[0,0,1],[0,1,0],'#238d4d'],[[0,0,-1],[0,1,0],'#2761c3']
+  [[1,0,0],[0,1,0],'#e94538'],[[-1,0,0],[0,1,0],'#ff922e'],
+  [[0,1,0],[0,0,-1],'#f7f6e9'],[[0,-1,0],[0,0,1],'#ffd635'],
+  [[0,0,1],[0,1,0],'#24ab72'],[[0,0,-1],[0,1,0],'#3384e5']
 ];
 const qFor = (normal,up) => {
   const n=new THREE.Vector3(...normal), u=new THREE.Vector3(...up), r=u.clone().cross(n);
@@ -18,7 +18,7 @@ const qFor = (normal,up) => {
 const pieces = slots.map(v => ({
   id:`${v.x},${v.y},${v.z}`,
   transform:{position:[v.x/2,v.y/2,v.z/2],rotation:[0,0,0,1]},
-  stickers:faces.filter(([n])=>n[0]*v.x+n[1]*v.y+n[2]*v.z===1).map(([n,up,color],i)=>({id:`${v.x},${v.y},${v.z}:${i}`,transform:{position:n.map(x=>x*.471),rotation:qFor(n,up)},size:[.82,.82],color}))
+  stickers:faces.filter(([n])=>n[0]*v.x+n[1]*v.y+n[2]*v.z===1).map(([n,up,color],i)=>({id:`${v.x},${v.y},${v.z}:${i}`,transform:{position:n.map(x=>x*.502),rotation:qFor(n,up)},size:[.87,.87],color}))
 }));
 const from={pieces};
 const to={pieces:pieces.map((p,i)=>{

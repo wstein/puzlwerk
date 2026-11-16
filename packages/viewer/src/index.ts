@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import * as THREE from 'three';
+import { configurePresentationRenderer } from './presentation-preset.js';
 import { createSceneForTest } from './scene.js';
 import { fail, ok } from './contract.js';
 import type { CubeScene, Result, ViewerOptions } from './contract.js';
@@ -7,6 +8,7 @@ export type { AssetResolver, CubeProjection, CubeScene, Piece, Quaternion, Resul
 export function createCubeScene(host: HTMLElement, options: ViewerOptions): Result<CubeScene> {
   let renderer: THREE.WebGLRenderer;
   try { renderer = new THREE.WebGLRenderer({antialias:true, alpha:true}); } catch { return fail('Unavailable','WebGL is unavailable'); }
+  configurePresentationRenderer(renderer, null);
   const camera = new THREE.PerspectiveCamera(35,1,.1,100); camera.position.set(4,3,5); camera.lookAt(0,0,0);
   host.appendChild(renderer.domElement);
   let observer: ResizeObserver | undefined;
