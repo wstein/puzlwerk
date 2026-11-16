@@ -20,12 +20,12 @@ const server = createServer(async (req, res) => {
     res.end(await readFile(target));
   } catch { res.writeHead(404).end(); }
 });
-await new Promise(resolve => server.listen(4177, '127.0.0.1', resolve));
+await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const browser = await chromium.launch({headless:true,args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 try {
   const page = await browser.newPage({viewport:{width:1200,height:700},deviceScaleFactor:1});
   const errors=[]; page.on('pageerror', e=>errors.push(e.message));
-  await page.goto('http://127.0.0.1:4177/');
+  await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.evaluate(async () => {
     document.body.innerHTML='<style>body{margin:0;display:flex}.testhost{width:500px;height:500px}.cube-appearance{display:none}</style><div id="native" class="testhost"></div><div id="target" class="testhost"></div>';
     const [{CubeViewer},{loadAssets},{parseMove,presentMove},{createCubeStage},{createPlayer}] = await Promise.all([
