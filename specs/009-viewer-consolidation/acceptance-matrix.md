@@ -1,6 +1,6 @@
 # Acceptance suite inventory and decisions
 
-Status: source inventory and route proposal at PuzlWerk head `277bf5b89a4b139e3188b85cb7d8358b2a28d4bc`; implementation, functional and visual parity, hosted references and owner approvals are not established. The machine-readable `acceptance-routes.json` is the case-level authority for routes, source pins, native setup, actions, source tests, production interfaces, blockers and independent checklists. Source test references establish coverage intent, not a passing result. The 97 entries comprise registry modes, public entry aliases and distinct functional, renderer or source-library variants; entry aliases are not additional proof of functional coverage.
+Status: source inventory and route proposal at PuzlWerk head `277bf5b89a4b139e3188b85cb7d8358b2a28d4bc`; implementation, functional and visual parity, hosted references and owner approvals are not established. The machine-readable `acceptance-routes.json` is the case-level authority for routes, source pins, native setup, actions, source tests, production interfaces, blockers and independent checklists. Source test references establish coverage intent, not a passing result. The 98 entries comprise registry modes, public entry aliases and distinct functional, renderer or source-library variants; entry aliases are not additional proof of functional coverage.
 
 ## Source pins and coverage boundaries
 
@@ -117,6 +117,8 @@ Each listed route is relative to one configured base and has its own checklist a
 | `regrip-docs` | `acceptance/regrip-docs/` | Regrip: `/docs/` |
 
 | `cubistry-viewer-hidden` | `acceptance/cubistry-viewer-hidden/` | Cubistry: `No separate app route; production rotation binding exercised by viewer.` |
+
+| `cube-assembler-orientation-gizmo` | `acceptance/cube-assembler-orientation-gizmo/` | CubeAssembler: `/` |
 
 ## Contract and decision register
 
