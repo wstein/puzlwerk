@@ -212,3 +212,28 @@ test('free sticker frame and non-axis turn preserve supplied poses around a nonz
   assert.ok(rendered.getObjectByName('piece/α').getWorldPosition(new THREE.Vector3()).distanceTo(expected)<1e-6);
   now=100; frames.shift()(now); assert.equal((await turn).ok,true); scene.dispose();
 });
+
+test('explicit source cell geometry is validated, snapshotted and invariant in a transition', async () => {
+  let rendered, resolve; const frames=[]; const clock={now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}};
+  const scene=createSceneForTest({resolveAsset:()=>new Promise(r=>{resolve=r})},clock,{render:s=>{rendered=s},dispose(){}});
+  const geometry={cellSize:[1.012,1.012,1.012],outerSides:[[true,false],[true,false],[true,false]]};
+  const source={pieces:[{...projection.pieces[0],stickers:[{...projection.pieces[0].stickers[0],imageId:'image'}],geometry}]};
+  for(const cellSize of [[.01,1,1],[.010000000000000002,1,1],[.005,1,1],[Infinity,1,1]]) {
+    const invalid={pieces:[{...source.pieces[0],stickers:[],geometry:{...geometry,cellSize}}]};
+    assert.equal((await scene.setProjection(invalid)).error.code,'InvalidProjection');
+  }
+  const invalidFlags={pieces:[{...source.pieces[0],stickers:[],geometry:{...geometry,outerSides:[[true,false],[true,false],[true,1]]}}]};
+  assert.equal((await scene.setProjection(invalidFlags)).error.code,'InvalidProjection');
+  const setting=scene.setProjection(source); geometry.cellSize[0]=2; resolve({ok:true,value:{}});
+  assert.equal((await setting).ok,true); frames.shift()(0);
+  const body=rendered.getObjectByName('a').children.find(c=>c.isMesh && !c.name);
+  body.geometry.computeBoundingBox(); assert.ok(Math.abs(body.geometry.boundingBox.max.x-body.geometry.boundingBox.min.x-1.002)<1e-6);
+  const {readFile}=await import('node:fs/promises'); const {createHash}=await import('node:crypto');
+  const fixture=JSON.parse(await readFile(new URL('./fixtures/cubistry-2x2-profile.json',import.meta.url)));
+  const a=body.geometry.getAttribute('position').array;
+  assert.equal(createHash('sha256').update(Buffer.from(a.buffer,a.byteOffset,a.byteLength)).digest('hex'),fixture.position);
+  const original={pieces:[{...source.pieces[0],geometry:{...geometry,cellSize:[1.012,1.012,1.012]}}]};
+  const changed={...turn(0,0),from:original,to:{pieces:[{...original.pieces[0],geometry:{...geometry,cellSize:[1.1,1.012,1.012]}}]}};
+  assert.equal((await scene.transition(changed)).error.code,'InvalidTransition');
+  scene.dispose();
+});

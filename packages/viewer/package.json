@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test test/*.test.mjs",
+    "test": "npm run build && tsc --noEmit --strict --skipLibCheck --module NodeNext --moduleResolution NodeNext --target ES2022 test/types/profile.ts && node --test test/*.test.mjs",
     "dev": "npm run build && node demo/server.mjs"
   },
   "dependencies": {
