@@ -31,6 +31,8 @@ export function open(definitionText,stateText,appearanceText,options) {
   const wire = JSON.parse(Codec.encodeDefinition(definition._0));
   const checked = checkAppearance(wire,doc);
   if (!checked.ok) return error(checked);
+  const profile=options.presentation;
+  if (profile && (!Number.isFinite(profile.cellSize) || profile.cellSize<=0 || !Number.isFinite(profile.bodyGap) || profile.bodyGap<0 || profile.bodyGap>=profile.cellSize || !Number.isFinite(profile.bodyRadius) || profile.bodyRadius<=0 || profile.bodyRadius>(profile.cellSize-profile.bodyGap)/2 || (profile.frameColor !== undefined && !/^#[0-9a-f]{6}$/i.test(profile.frameColor)) || !Number.isFinite(profile.stickerWidth) || profile.stickerWidth<=0 || !Number.isFinite(profile.stickerRadius) || profile.stickerRadius<0 || profile.stickerRadius>profile.stickerWidth/2 || !Number.isFinite(profile.stickerOffset) || profile.stickerOffset<=0)) return error({code:'InvalidPresentation'});
   const styles = new Map(doc.stickers.map(s => [s.id,s]));
   for (const p of wire.pieces) for (const s of p.stickers) {
     const token = styles.get(s.id)?.color ?? s.color;
@@ -39,13 +41,14 @@ export function open(definitionText,stateText,appearanceText,options) {
   const poses = new Map(Codec.poses(state._0).map(p => [Id.toString(Pose.pieceId(p)),p]));
   const pieces = Codec.pieces(definition._0).map(p => {
     const id=Id.toString(p.id), pose=poses.get(id);
-    return {id:`piece:${id}`,transform:{position:vector(Shell.toVec(Pose.position(pose))).map(v=>v/2),rotation:rotation(Pose.orientation(pose))},stickers:p.stickers.map(s=>{
+    const home=vector(Shell.toVec(p.home)), extent=Shell.sizeToInt(Codec.size(definition._0))-1;
+    return {id:`piece:${id}`,transform:{position:vector(Shell.toVec(Pose.position(pose))).map(v=>v*(profile?.cellSize ?? 1)/2),rotation:rotation(Pose.orientation(pose))},...(profile?{geometry:{cellSize:[profile.cellSize,profile.cellSize,profile.cellSize],outerSides:home.map(v=>[v===-extent,v===extent])}}:{}),stickers:p.stickers.map(s=>{
       const id=Id.toString(s.id), style=styles.get(id), normal=vector(s.normal), up=vector(s.up);
       const token=style?.color ?? (s.color === undefined ? undefined : Id.toString(s.color));
-      return {id:`sticker:${id}`,transform:{position:normal.map(v=>v*.501),rotation:stickerRotation(normal,up)},size:[.87,.87],color:options.palette[token] ?? options.defaultColor,...(style?.image ? {imageId:style.image}:{}),sourceFace:{normal,up}};
+      return {id:`sticker:${id}`,transform:{position:normal.map(v=>v*(profile?.stickerOffset ?? .501)),rotation:stickerRotation(normal,up)},size:[profile?.stickerWidth ?? .87,profile?.stickerWidth ?? .87],...(profile?{geometry:{referenceSize:[profile.stickerWidth,profile.stickerWidth],cornerRadius:profile.stickerRadius}}:{}),color:options.palette[token] ?? options.defaultColor,...(style?.image ? {imageId:style.image}:{}),sourceFace:{normal,up}};
     })};
   });
-  return {ok:true,value:{definition:definition._0,state:state._0,appearance:doc,ids:{pieces:wire.pieces.map(p=>({wire:p.id,viewer:`piece:${p.id}`})),stickers:wire.pieces.flatMap(p=>p.stickers.map(s=>({wire:s.id,viewer:`sticker:${s.id}`})))},projection:{pieces}}};
+  return {ok:true,value:{definition:definition._0,state:state._0,appearance:doc,ids:{pieces:wire.pieces.map(p=>({wire:p.id,viewer:`piece:${p.id}`})),stickers:wire.pieces.flatMap(p=>p.stickers.map(s=>({wire:s.id,viewer:`sticker:${s.id}`})))},projection:{pieces,...(profile?{geometryProfile:{body:{kind:'roundedBox',gap:profile.bodyGap,radius:profile.bodyRadius,bevelSegments:3}},appearance:{construction:'stickered',frameColor:profile.frameColor ?? '#1c1c1f'}}:{})}}};
 }
 
 export function createPlayer(definitionText,stateText,appearanceText,options,scene) {
