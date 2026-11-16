@@ -1,7 +1,7 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import * as THREE from 'three';import {createStageForTest} from '../dist/stage.js';
 const t=(position=[0,0,0])=>({position,rotation:[0,0,0,1]});
 const projection={pieces:[{id:'same',transform:t(),stickers:[]}]};
-function harness(resolver=async()=>({ok:false})){let now=0,id=0,renders=0;const frames=new Map();let scene,view;const clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key)};const stage=createStageForTest({resolveAsset:resolver},clock,{render:s=>{scene=s;renders++},setView:v=>{view=v},dispose(){}});return {stage,frames,get scene(){return scene},get renders(){return renders},get view(){return view},step(ms){now+=ms;const pending=[...frames.values()];frames.clear();for(const f of pending)f(now)}};}
+function harness(resolver=async()=>({ok:false}),onError=()=>{}){let now=0,id=0,renders=0;const frames=new Map();let scene,view;const clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key)};const stage=createStageForTest({resolveAsset:resolver,onError},clock,{render:s=>{scene=s;renders++},setView:v=>{view=v},dispose(){}});return {stage,frames,get scene(){return scene},get renders(){return renders},get view(){return view},step(ms){now+=ms;const pending=[...frames.values()];frames.clear();for(const f of pending)f(now)}};}
 test('shared stage draws two independently disposed children in one frame',async()=>{
  const h=harness(),a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;
  assert.equal((await a.setProjection(projection)).ok,true);assert.equal((await b.setProjection(projection)).ok,true);assert.equal(h.frames.size,1);h.step(0);assert.equal(h.renders,1);assert.equal(h.scene.children.filter(o=>o.name==='studio-shadow-receiver').length,1);
@@ -64,4 +64,48 @@ test('hidden shared stage suspends all child turns without idle redraw',async()=
  const from={pieces:[{id:'p',transform:t([1,0,0]),stickers:[]}]},to={pieces:[{id:'p',transform:{position:[-1,0,0],rotation:[0,0,1,0]},stickers:[]}]};await child.setProjection(from);
  const step=ms=>{now+=ms;const pending=[...frames.values()];frames.clear();for(const cb of pending)cb(now)};step(0);const pending=child.transition({from,to,pieceIds:['p'],axis:[0,0,1],pivot:[0,0,0],signedAngleRadians:Math.PI,durationMs:100});step(25);const before=draws;
  hidden=true;for(const fn of listeners)fn();assert.equal(frames.size,0);step(500);assert.equal(draws,before);hidden=false;for(const fn of listeners)fn();step(0);step(75);assert.equal((await pending).ok,true);assert.equal(frames.size,0);stage.dispose();assert.equal(listeners.size,0);
+});
+test('stage drag uses the source controller and reset restores its initial display',async()=>{
+ const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);
+ const listeners=new Map(),captured=new Set();const element={style:{touchAction:''},addEventListener:(type,fn)=>listeners.set(type,fn),removeEventListener:(type)=>listeners.delete(type),setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)};
+ assert.equal(h.stage.setRotationMode('classic').ok,true);assert.equal(h.stage.attachInput(element).ok,true);
+ const emit=(type,x,y)=>listeners.get(type)?.({type,pointerId:1,clientX:x,clientY:y,timeStamp:0});emit('pointerdown',0,0);emit('pointermove',100,0);emit('pointerup',100,0);h.step(0);
+ const moved=h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3());assert.ok(Math.abs(moved.z)>.1);assert.equal(h.stage.resetDisplayOrientation().ok,true);h.step(0);assert.ok(Math.abs(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)<1e-12);h.stage.dispose();assert.equal(listeners.size,0);
+});
+test('smart return uses one timer while idle and resumes frames at its deadline',async()=>{
+ let now=0,id=0;const frames=new Map(),timers=new Map();const clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:id=>frames.delete(id),setTimer:(cb,delay)=>{timers.set(++id,{cb,at:now+delay});return id},clearTimer:id=>timers.delete(id)};
+ const stage=createStageForTest({resolveAsset:async()=>({ok:false})},clock,{render(){},dispose(){}}),child=stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);
+ const listeners=new Map(),capture=new Set(),el={style:{touchAction:''},addEventListener:(t,f)=>listeners.set(t,f),removeEventListener:t=>listeners.delete(t),setPointerCapture:id=>capture.add(id),hasPointerCapture:id=>capture.has(id),releasePointerCapture:id=>capture.delete(id)};stage.attachInput(el);
+ const step=ms=>{now+=ms;for(const [key,timer] of [...timers])if(timer.at<=now){timers.delete(key);timer.cb()}const pending=[...frames.values()];frames.clear();for(const cb of pending)cb(now)};
+ const emit=(type,x)=>listeners.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:now});step(0);emit('pointerdown',0);emit('pointermove',300);step(400);emit('pointerup',300);step(0);
+ assert.equal(frames.size,0);assert.equal(timers.size,1);step(1000);assert.ok(frames.size>0);for(let i=0;i<50&&frames.size;i++)step(100);assert.equal(frames.size,0);assert.equal(timers.size,0);stage.dispose();
+});
+test('registered UI contacts block overlapping canvas drags until all contacts end',async()=>{
+ const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);h.stage.setRotationMode('classic');
+ const fake=()=>{const handlers=new Map(),captured=new Set();return {handlers,style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)}};
+ const document=fake(),canvas=fake(),panel=fake();panel.ownerDocument=document;h.stage.attachInput(canvas);const registration=h.stage.registerInteractionSurface(panel);assert.equal(registration.ok,true);
+ const emit=(target,type,id,x=0)=>target.handlers.get(type)?.({type,pointerId:id,clientX:x,clientY:0,timeStamp:0});
+ emit(canvas,'pointerdown',1);emit(panel,'pointerdown',2);emit(canvas,'pointermove',1,100);emit(document,'pointerup',2);emit(canvas,'pointermove',1,200);emit(canvas,'pointerup',1,200);h.step(0);
+ assert.ok(Math.abs(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)<1e-12);
+ emit(canvas,'pointerdown',3);emit(canvas,'pointermove',3,100);emit(canvas,'pointerup',3,100);h.step(0);assert.ok(Math.abs(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)>.1);
+ registration.value();stageCleanup();function stageCleanup(){h.stage.dispose()}assert.equal(panel.handlers.size,0);assert.equal(document.handlers.size,0);
+});
+test('removing an active UI surface releases its contacts',async()=>{
+ const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);h.stage.setRotationMode('classic');
+ const fake=()=>{const handlers=new Map();return {handlers,style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}}};
+ const doc=fake(),canvas=fake(),panel=fake();panel.ownerDocument=doc;h.stage.attachInput(canvas);const remove=h.stage.registerInteractionSurface(panel).value;panel.handlers.get('pointerdown')({pointerId:9});remove();
+ const emit=(type,x)=>canvas.handlers.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:0});emit('pointerdown',0);emit('pointermove',100);emit('pointerup',100);h.step(0);assert.ok(Math.abs(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)>.1);h.stage.dispose();
+});
+test('asynchronous display policy errors report once and do not schedule a motion loop',async()=>{
+ const errors=[],h=harness(undefined,e=>errors.push(e.code)),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);
+ assert.equal(h.stage.setViewPolicy(v=>{if(Math.abs(v.orientation[1])>.01)throw Error('bad');return {distance:10,far:100,groupScale:1}}).ok,true);h.step(0);
+ const handlers=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};h.stage.attachInput(el);
+ const emit=(type,x)=>handlers.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:0});emit('pointerdown',0);h.step(10);emit('pointermove',100);emit('pointerup',100);h.step(0);
+ assert.ok(errors.includes('InvalidView'));assert.equal(h.frames.size,0);h.stage.dispose();
+});
+test('configured display sensitivity and drag threshold follow caller options',async()=>{
+ let now=0,next=0,rendered;const frames=new Map(),clock={now:()=>now,request:cb=>{frames.set(++next,cb);return next},cancel:id=>frames.delete(id)};
+ const stage=createStageForTest({resolveAsset:async()=>({ok:false}),sensitivity:.01,dragThreshold:10,mode:'classic'},clock,{render:s=>{rendered=s},dispose(){}}),child=stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);
+ const listeners=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>listeners.set(t,f),removeEventListener:t=>listeners.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};stage.attachInput(el);const step=()=>{const pending=[...frames.values()];frames.clear();for(const cb of pending)cb(now)};step();
+ const emit=(type,x)=>listeners.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:now});emit('pointerdown',0);emit('pointermove',5);step();assert.ok(Math.abs(rendered.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)<1e-12);emit('pointermove',12);emit('pointerup',12);step();assert.ok(Math.abs(rendered.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z-Math.sin(-.12))<1e-6);stage.dispose();
 });

@@ -2,28 +2,31 @@
 import * as THREE from 'three';
 import {createSceneForTest} from './scene.js';
 import {createPresentationStudio} from './studio.js';
+import {SmartRotation,rotationModes,type RotationMode} from './smart-rotation.js';
+import {installPresentationDrag,type PresentationDragBinding} from './presentation-input.js';
 import {fail,ok} from './contract.js';
 import type {CubeScene,Vec3,ViewerOptions,ViewerError} from './contract.js';
 type StageError=ViewerError|{code:'InvalidView'|'InvalidLighting';message:string};
 type StageResult<T>={ok:true;value:T}|{ok:false;error:StageError};
 type ViewPolicy=(view:Readonly<{aspect:number;fovDegrees:number;zoom:number;orientation:readonly [number,number,number,number];placements:readonly Readonly<{position:Vec3}>[]}>)=>Readonly<{distance:number;far:number;groupScale:number}>;
 type ExposurePolicy=(snapshot:Readonly<{lights:Readonly<{ambient:number;hemispheres:readonly Readonly<{up:Vec3;sky:number;ground:number}>[];directionals:readonly Readonly<{to:Vec3;amount:number}>[]}>;orientation:readonly [number,number,number,number];cameraPosition:Vec3;shadowMapEnabled:boolean}>)=>number;
-type Clock={now():number;request(cb:(time:number)=>void):number;cancel(id:number):void;isHidden?():boolean;onVisibility?(cb:()=>void):()=>void};
+type Clock={now():number;request(cb:(time:number)=>void):number;cancel(id:number):void;isHidden?():boolean;onVisibility?(cb:()=>void):()=>void;setTimer?(cb:()=>void,delay:number):number;clearTimer?(id:number):void};
 type Backend={render(scene:THREE.Scene):void;setView?(view:Readonly<{aspect:number;distance:number;far:number;exposure:number}>):void;dispose():void};
 type Child=CubeScene & {setPosition(position:Vec3):StageResult<void>};
 /** Internal shared ownership primitive; public stage controls are added separately. */
-export function createStageForTest(options:ViewerOptions,clock:Clock,backend:Backend){
+export function createStageForTest(options:ViewerOptions & {onError?:(error:StageError)=>void;initialOrientation?:readonly [number,number,number,number];mode?:RotationMode;reducedMotion?:boolean;sensitivity?:number;dragThreshold?:number},clock:Clock,backend:Backend){
  const scene=new THREE.Scene(),display=new THREE.Group();scene.add(display);const studio=createPresentationStudio(scene);
- const placements=new Map<Child,THREE.Group>(); let aspect=1,zoom=1; let exposurePolicy:ExposurePolicy=()=>1; let policy:ViewPolicy=()=>({distance:10,far:100,groupScale:1});
- const children=new Set<Child>(), callbacks=new Map<number,(time:number)=>void>();let next=0,frame:number|undefined,disposed=false,lost=false,dirty=false;
- const schedule=()=>{dirty=true;if(!disposed && !lost && !clock.isHidden?.() && frame===undefined)frame=clock.request(tick);};
- const tick=(time:number)=>{frame=undefined;if(disposed||lost||clock.isHidden?.())return;const current=[...callbacks.values()];callbacks.clear();for(const cb of current)cb(time);if(dirty){dirty=false;scene.updateMatrixWorld(true);backend.render(scene);}if(callbacks.size)schedule();};
- const unsubscribe=clock.onVisibility?.(()=>{if(clock.isHidden?.()){if(frame!==undefined){clock.cancel(frame);frame=undefined;}}else if(dirty||callbacks.size)schedule();});
- function applyPolicy(candidate:ViewPolicy, moved?:{parent:THREE.Group;position:Vec3},viewChange?:{aspect?:number;zoom?:number},additional?:THREE.Group,nextExposure:ExposurePolicy=exposurePolicy):StageResult<void>{
+ const placements=new Map<Child,THREE.Group>(); let aspect=1,zoom=1;const sensitivity=options.sensitivity??.004,threshold=options.dragThreshold??0;if(!Number.isFinite(sensitivity)||sensitivity<=0||!Number.isFinite(threshold)||threshold<0)throw Error('Invalid display input');const controller=new SmartRotation(new THREE.Quaternion(...(options.initialOrientation??[0,0,0,1])),options.mode,options.reducedMotion);display.quaternion.copy(controller.quaternion);let drag:PresentationDragBinding|undefined;let previousTouchAction='';let inputElement:HTMLElement|undefined;let canvasHeld=false,blockedOverlap=false;const panelPointers=new Set<number>(),registrations=new Set<()=>void>(); let exposurePolicy:ExposurePolicy=()=>1; let policy:ViewPolicy=()=>({distance:10,far:100,groupScale:1});
+ const children=new Set<Child>(), callbacks=new Map<number,(time:number)=>void>();let next=0,frame:number|undefined,disposed=false,lost=false,dirty=false,inTick=false,motionBlocked=false;let wake:number|undefined;
+ const schedule=()=>{dirty=true;if(!disposed && !lost && !inTick && !clock.isHidden?.() && frame===undefined)frame=clock.request(tick);};
+ const tick=(time:number)=>{frame=undefined;if(disposed||lost||clock.isHidden?.())return;inTick=true;const before=controller.quaternion.clone();controller.step(time/1000);if(!before.equals(controller.quaternion))syncRotation(true);const current=[...callbacks.values()];callbacks.clear();for(const cb of current)cb(time);if(dirty){dirty=false;scene.updateMatrixWorld(true);backend.render(scene);}inTick=false;scheduleMotion();if(callbacks.size)schedule();};
+ const unsubscribe=clock.onVisibility?.(()=>{if(clock.isHidden?.()){controller.suspend(clock.now()/1000);drag?.();panelPointers.clear();canvasHeld=false;blockedOverlap=false;clearWake();if(frame!==undefined){clock.cancel(frame);frame=undefined;}}else{controller.resume(clock.now()/1000);scheduleMotion();if(dirty||callbacks.size)schedule();}});
+ function applyPolicy(candidate:ViewPolicy, moved?:{parent:THREE.Group;position:Vec3},viewChange?:{aspect?:number;zoom?:number;orientation?:readonly [number,number,number,number]},additional?:THREE.Group,nextExposure:ExposurePolicy=exposurePolicy):StageResult<void>{
   try {
    const nextAspect=viewChange?.aspect??aspect,nextZoom=viewChange?.zoom??zoom;
    if(!Number.isFinite(nextAspect)||nextAspect<=0||!Number.isFinite(nextZoom)||nextZoom<=0)throw Error('Invalid view');
-   const view=Object.freeze({aspect:nextAspect,fovDegrees:35,zoom:nextZoom,orientation:Object.freeze([0,0,0,1] as const),placements:Object.freeze([...placements.values(),...(additional?[additional]:[])].map(p=>Object.freeze({position:Object.freeze(p===moved?.parent?[...moved.position]:p.position.toArray()) as unknown as Vec3})))});
+   const orientation=viewChange?.orientation??display.quaternion.toArray() as [number,number,number,number];
+   const view=Object.freeze({aspect:nextAspect,fovDegrees:35,zoom:nextZoom,orientation:Object.freeze([...orientation]) as readonly [number,number,number,number],placements:Object.freeze([...placements.values(),...(additional?[additional]:[])].map(p=>Object.freeze({position:Object.freeze(p===moved?.parent?[...moved.position]:p.position.toArray()) as unknown as Vec3})))});
    const fit=candidate(view);
    if(!fit || ![fit.distance,fit.far,fit.groupScale].every(v=>Number.isFinite(v)&&v>0) || fit.far<=.1)throw Error('Invalid view');
    const luminance=(c:THREE.Color)=>.2126*c.r+.7152*c.g+.0722*c.b;
@@ -32,10 +35,32 @@ export function createStageForTest(options:ViewerOptions,clock:Clock,backend:Bac
    const freezeVec=(v:Vec3)=>Object.freeze([...v]) as unknown as Vec3;
    const lights=Object.freeze({ambient,hemispheres:Object.freeze(hemi.map(h=>Object.freeze({...h,up:freezeVec(h.up)}))),directionals:Object.freeze(dirs.map(d=>Object.freeze({...d,to:freezeVec(d.to)})))});
    let exposure:number;try{exposure=nextExposure(Object.freeze({lights,orientation:view.orientation,cameraPosition:Object.freeze([0,0,fit.distance] as const),shadowMapEnabled:true}));if(!Number.isFinite(exposure)||exposure<=0)throw Error('Invalid exposure');}catch{return {ok:false,error:{code:'InvalidLighting',message:'Invalid exposure policy'}};}
-   backend.setView?.({aspect:nextAspect,distance:fit.distance,far:fit.far,exposure});exposurePolicy=nextExposure;policy=candidate;aspect=nextAspect;zoom=nextZoom;if(moved)moved.parent.position.set(moved.position[0],moved.position[1],moved.position[2]);display.scale.setScalar(fit.groupScale);schedule();return ok(undefined);
+   backend.setView?.({aspect:nextAspect,distance:fit.distance,far:fit.far,exposure});exposurePolicy=nextExposure;policy=candidate;aspect=nextAspect;zoom=nextZoom;if(moved)moved.parent.position.set(moved.position[0],moved.position[1],moved.position[2]);display.quaternion.set(...view.orientation);display.scale.setScalar(fit.groupScale);schedule();return ok(undefined);
   } catch {return {ok:false,error:{code:'InvalidView',message:'Invalid view policy'}};}
  }
+ const clearWake=()=>{if(wake!==undefined){(clock.clearTimer??clearTimeout)(wake);wake=undefined;}};
+ const scheduleMotion=()=>{clearWake();if(disposed||lost||motionBlocked||clock.isHidden?.())return;const phase=controller.phase;if(phase==='coasting'||phase==='returning'||phase==='leveling')schedule();else if(phase==='awaiting-return'&&controller.returnDeadline!==null){const delay=Math.max(0,controller.returnDeadline*1000-clock.now());wake=(clock.setTimer??setTimeout)(()=>{wake=undefined;schedule();},delay) as number;}};
+ const syncRotation=(report=false)=>{const result=applyPolicy(policy,undefined,{orientation:controller.quaternion.toArray() as [number,number,number,number]});motionBlocked=!result.ok;if(!result.ok&&report)options.onError?.(result.error);scheduleMotion();return result;};
  return {
+  attachInput(element:HTMLElement):StageResult<void>{
+   if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');if(drag)return fail('Busy','Input already attached');
+   inputElement=element;previousTouchAction=element.style.touchAction;element.style.touchAction='none';
+   drag=installPresentationDrag(element,(dx,dy)=>{if(panelPointers.size||blockedOverlap)return;controller.drag(dy*sensitivity,dx*sensitivity,clock.now()/1000);syncRotation(true);},threshold,{down(){canvasHeld=true;if(panelPointers.size)blockedOverlap=true;controller.down(clock.now()/1000);syncRotation(true);},up(_event,cancelled){canvasHeld=false;if(!panelPointers.size){controller.up(clock.now()/1000,cancelled||blockedOverlap);blockedOverlap=false;}syncRotation(true);}});return ok(undefined);
+  },
+  registerInteractionSurface(element:HTMLElement):StageResult<()=>void>{
+   if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');
+   const doc=element.ownerDocument,owned=new Set<number>();
+   const down=(event:Event)=>{const id=(event as PointerEvent).pointerId;owned.add(id);panelPointers.add(id);if(canvasHeld)blockedOverlap=true;controller.down(clock.now()/1000);syncRotation(true);};
+   const release=(event:Event)=>{const id=(event as PointerEvent).pointerId;if(!owned.delete(id))return;panelPointers.delete(id);if(panelPointers.size)return;if(!canvasHeld){controller.up(clock.now()/1000,true);blockedOverlap=false;syncRotation(true);}};
+   const activity=()=>{controller.interact(clock.now()/1000);syncRotation(true);};
+   element.addEventListener('pointerdown',down);for(const type of ['keydown','input','change'])element.addEventListener(type,activity);
+   for(const type of ['pointerup','pointercancel','lostpointercapture'])doc.addEventListener(type,release,true);
+   let active=true;const remove=()=>{if(!active)return;active=false;element.removeEventListener('pointerdown',down);for(const type of ['keydown','input','change'])element.removeEventListener(type,activity);for(const type of ['pointerup','pointercancel','lostpointercapture'])doc.removeEventListener(type,release,true);for(const id of owned)panelPointers.delete(id);owned.clear();if(!disposed&&!panelPointers.size&&!canvasHeld){controller.up(clock.now()/1000,true);blockedOverlap=false;syncRotation(true);}registrations.delete(remove);};registrations.add(remove);return ok(remove);
+  },
+  setRotationMode(mode:RotationMode):StageResult<void>{if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');if(!rotationModes.includes(mode))return fail('InvalidProjection','Invalid rotation mode');controller.setMode(mode,clock.now()/1000);return syncRotation();},
+  setReducedMotion(value:boolean):StageResult<void>{if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');controller.setReducedMotion(value,clock.now()/1000);return syncRotation();},
+  resetDisplayOrientation():StageResult<void>{if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');controller.reset(clock.now()/1000);drag?.();return syncRotation();},
+  interact():StageResult<void>{if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');controller.interact(clock.now()/1000);return syncRotation();},
   setViewPolicy(candidate:ViewPolicy):StageResult<void>{if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');return applyPolicy(candidate);},
   setExposurePolicy(candidate:ExposurePolicy):StageResult<void>{if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');return applyPolicy(policy,undefined,undefined,undefined,candidate);},
   resize(value:number):StageResult<void>{if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');return applyPolicy(policy,undefined,{aspect:value});},
@@ -48,7 +73,7 @@ export function createStageForTest(options:ViewerOptions,clock:Clock,backend:Bac
    const child:Child={...inner,setPosition(position){if(gone||disposed)return fail('Disposed','Child disposed');if(lost)return fail('ContextLost','Context lost');if(!Array.isArray(position)||position.length!==3||Array.from(position).some(v=>!Number.isFinite(v)))return fail('InvalidProjection','Invalid placement');return applyPolicy(policy,{parent,position});},dispose(){if(gone)return;gone=true;inner.dispose();parent.removeFromParent();children.delete(child);placements.delete(child);schedule();}};
    children.add(child);placements.set(child,parent);schedule();return ok(child);
   },
-  contextLost(){if(disposed||lost)return;lost=true;for(const child of children)(child as Child & {contextLost():void}).contextLost();if(frame!==undefined)clock.cancel(frame);frame=undefined;callbacks.clear();},
-  dispose(){if(disposed)return;for(const child of [...children])child.dispose();disposed=true;unsubscribe?.();if(frame!==undefined)clock.cancel(frame);frame=undefined;callbacks.clear();studio.dispose();backend.dispose();}
+  contextLost(){if(disposed||lost)return;lost=true;clearWake();for(const child of children)(child as Child & {contextLost():void}).contextLost();if(frame!==undefined)clock.cancel(frame);frame=undefined;callbacks.clear();},
+  dispose(){if(disposed)return;for(const child of [...children])child.dispose();disposed=true;clearWake();for(const remove of [...registrations])remove();panelPointers.clear();drag?.dispose();if(inputElement)inputElement.style.touchAction=previousTouchAction;controller.dispose();unsubscribe?.();if(frame!==undefined)clock.cancel(frame);frame=undefined;callbacks.clear();studio.dispose();backend.dispose();}
  };
 }
