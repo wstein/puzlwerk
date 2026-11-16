@@ -528,17 +528,16 @@ export class PhysicalCubeScene {
     }
   }
   /** Legal layer selection and angle come from the caller's existing mechanics. */
-  beginTurn(cubies: readonly string[], axis: number, angle: number) {
-    demand(Number.isInteger(axis) && axis >= 0 && axis < 3 && Number.isFinite(angle),
-      "Invalid viewer turn");
+  beginTurn(cubies: readonly string[], axis: number | Vec3, angle: number, center: Vec3 = [0, 0, 0]) {
+    const vector = typeof axis === "number" ? ([0, 1, 2].map(i => i === axis ? 1 : 0) as unknown as Vec3) : axis;
+    demand((typeof axis !== "number" || (Number.isInteger(axis) && axis >= 0 && axis < 3)) && vector.length === 3 && vector.every(Number.isFinite) && Math.abs(Math.hypot(...vector) - 1) < 1e-6 && center.length === 3 && center.every(Number.isFinite) && Number.isFinite(angle), "Invalid viewer turn");
     demand(cubies.every((id) => this.bodies.has(id)), "Unknown turning body");
-    const pivot = new THREE.Group();
-    this.parent.add(pivot);
-    for (const id of cubies) pivot.add(this.bodies.get(id)!);
+    const pivot = new THREE.Group(); pivot.position.set(...center);
+    this.parent.add(pivot); this.parent.updateMatrixWorld(true);
+    for (const id of cubies) pivot.attach(this.bodies.get(id)!);
+    const direction = new THREE.Vector3(...vector);
     return {
-      update: (progress: number) => {
-        pivot.rotation[(["x", "y", "z"] as const)[axis]] = angle * progress;
-      },
+      update: (progress: number) => { pivot.quaternion.setFromAxisAngle(direction, angle * progress); },
       dispose: () => {
         for (const id of cubies) this.parent.add(this.bodies.get(id)!);
         pivot.removeFromParent();

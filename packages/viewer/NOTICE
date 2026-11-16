@@ -154,3 +154,5 @@ scene is staged for integration; the existing production entry point is unchange
 The staged physical scene additionally accepts explicit opaque body poses for pieces
 without sticker frames, rejects overlapping identities, and validates required poses
 before synchronization. These extensions do not define or mutate puzzle state.
+The source turn method also accepts a unit axis vector and an explicit pivot; the
+original numeric axis form remains available. This is a renderer-only extension.

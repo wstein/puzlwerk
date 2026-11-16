@@ -47,3 +47,13 @@ test('missing sticker frames do not partially move previously validated bodies',
  const old=parent.children[0].position.x;assert.throws(()=>scene.sync([{...a,p:[0,1,1]}]),/Missing physical body frame/);
  assert.equal(parent.children[0].position.x,old);scene.dispose();material.dispose();
 });
+
+test('universal turn supports an arbitrary axis and pivot without changing opaque identity',()=>{
+ const parent=new THREE.Group(),material=new THREE.MeshStandardMaterial();
+ const geometry={body:new THREE.BoxGeometry(.9,.9,.9),sticker:new THREE.PlaneGeometry(.8,.8),stickerOffset:.46};
+ const body={id:'inner',position:[2,0,0],rotation:[0,0,0,1]};
+ const scene=new PhysicalCubeScene(parent,[],new Map(),material,1,geometry,new Map(),{bodies:[body]});
+ const turn=scene.beginTurn([body.id],[0,0,1],Math.PI/2,[1,0,0]);turn.update(1);parent.updateMatrixWorld(true);
+ const mesh=[];parent.traverse(o=>{if(o.isMesh)mesh.push(o)});const pos=mesh[0].getWorldPosition(new THREE.Vector3());
+ assert.ok(pos.distanceTo(new THREE.Vector3(1,1,0))<1e-8);turn.dispose();scene.dispose();material.dispose();
+});
