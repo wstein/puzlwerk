@@ -64,7 +64,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-ms-timer",
@@ -118,7 +130,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar",
@@ -172,7 +196,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-playground",
@@ -226,7 +262,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-hm-clock",
@@ -280,7 +328,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-tenth",
@@ -334,7 +394,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-counter",
@@ -388,7 +460,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-timer",
@@ -442,7 +526,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-five-second-timer",
@@ -496,7 +592,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-hsm-counter",
@@ -550,7 +658,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-ms-counter",
@@ -604,7 +724,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-hm-one-cube",
@@ -658,7 +790,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar7",
@@ -712,7 +856,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-ci",
@@ -766,7 +922,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-picture3",
@@ -820,7 +988,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-status",
@@ -874,7 +1054,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-print",
@@ -923,7 +1115,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-ms-timer",
@@ -977,7 +1181,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-index",
@@ -1031,7 +1247,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-counter",
@@ -1085,7 +1313,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-timer",
@@ -1139,7 +1379,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-five-second",
@@ -1193,7 +1445,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-tenth",
@@ -1247,7 +1511,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-hsm",
@@ -1301,7 +1577,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-ms-counter",
@@ -1355,7 +1643,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-hm-one",
@@ -1409,7 +1709,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-solver-acceptance",
@@ -1463,7 +1775,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-library",
@@ -1517,7 +1841,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-entry-licenses",
@@ -1566,7 +1902,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-viewer-default",
@@ -1620,7 +1968,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-viewer-view-drag",
@@ -1674,7 +2034,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-viewer-play-gesture",
@@ -1728,7 +2100,19 @@
         "owner": "not tested"
       },
       "kind": "source-library API",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-viewer-animation",
@@ -1782,7 +2166,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-viewer-artwork",
@@ -1836,7 +2232,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-viewer-stickerless",
@@ -1890,7 +2298,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-viewer-picture-projected",
@@ -1944,7 +2364,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-viewer-lighting",
@@ -1998,7 +2430,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar7-standard",
@@ -2052,7 +2496,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar7-names",
@@ -2106,7 +2562,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar7-any",
@@ -2160,7 +2628,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar7-custom-profile",
@@ -2214,7 +2694,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar7-schemes",
@@ -2268,7 +2760,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar7-hidden",
@@ -2322,7 +2826,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-calendar3-english",
@@ -2376,7 +2892,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-playground-upload",
@@ -2430,7 +2958,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-picture3-edit",
@@ -2484,7 +3024,19 @@
         "owner": "not tested"
       },
       "kind": "variant",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-geometry-2",
@@ -2538,7 +3090,19 @@
         "owner": "not tested"
       },
       "kind": "source-library profile",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-geometry-3",
@@ -2592,7 +3156,19 @@
         "owner": "not tested"
       },
       "kind": "source-library profile",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-geometry-4",
@@ -2646,7 +3222,19 @@
         "owner": "not tested"
       },
       "kind": "source-library profile",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-geometry-5",
@@ -2700,7 +3288,19 @@
         "owner": "not tested"
       },
       "kind": "source-library profile",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-geometry-6",
@@ -2754,7 +3354,19 @@
         "owner": "not tested"
       },
       "kind": "source-library profile",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubistry-geometry-7",
@@ -2808,7 +3420,19 @@
         "owner": "not tested"
       },
       "kind": "source-library profile",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-scanner-home",
@@ -2863,7 +3487,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-camera",
@@ -2918,7 +3554,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-photo-upload",
@@ -2973,7 +3621,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-color-review",
@@ -3028,7 +3688,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-orientation-review",
@@ -3083,7 +3755,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-net-validity",
@@ -3138,7 +3822,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-notation-input-output",
@@ -3193,7 +3889,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-3d",
@@ -3248,7 +3956,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-camera",
@@ -3303,7 +4023,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-play",
@@ -3358,7 +4090,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-cancel",
@@ -3413,7 +4157,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-fixture-export",
@@ -3469,7 +4225,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-profiles-colors",
@@ -3524,7 +4292,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-profiles-cubes",
@@ -3579,7 +4359,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-profiles-transfer",
@@ -3634,7 +4426,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-settings",
@@ -3690,7 +4494,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-studio",
@@ -3746,7 +4562,19 @@
         "owner": "not tested"
       },
       "kind": "View",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-player",
@@ -3801,7 +4629,19 @@
         "owner": "not tested"
       },
       "kind": "View, Play, Dynamic, Device",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-workbench",
@@ -3856,7 +4696,19 @@
         "owner": "not tested"
       },
       "kind": "View, Play",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-patterns",
@@ -3911,7 +4763,19 @@
         "owner": "not tested"
       },
       "kind": "View, Play",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-academy",
@@ -3968,7 +4832,19 @@
         "owner": "not tested"
       },
       "kind": "View, Play, Dynamic",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-timer",
@@ -4023,7 +4899,19 @@
         "owner": "not tested"
       },
       "kind": "View, Device",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-mock-device",
@@ -4078,7 +4966,19 @@
         "owner": "not tested"
       },
       "kind": "Device, Dynamic",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-styles",
@@ -4133,7 +5033,19 @@
         "owner": "not tested"
       },
       "kind": "View",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-turns",
@@ -4188,7 +5100,19 @@
         "owner": "not tested"
       },
       "kind": "Play, Dynamic",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-focus-guides",
@@ -4243,7 +5167,19 @@
         "owner": "not tested"
       },
       "kind": "Dynamic",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-orientation-debug",
@@ -4298,7 +5234,19 @@
         "owner": "not tested"
       },
       "kind": "Device",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-orbit-lifecycle",
@@ -4353,7 +5301,19 @@
         "owner": "not tested"
       },
       "kind": "Dynamic",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-capture",
@@ -4407,7 +5367,19 @@
         "owner": "not tested"
       },
       "kind": "View",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-manual-input",
@@ -4464,7 +5436,19 @@
         "owner": "not tested"
       },
       "kind": "View, Dynamic",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-pictures",
@@ -4519,7 +5503,19 @@
         "owner": "not tested"
       },
       "kind": "View, Play",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cubelab-drills",
@@ -4574,7 +5570,19 @@
         "owner": "not tested"
       },
       "kind": "Play",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "regrip-console",
@@ -4630,7 +5638,19 @@
         "owner": "not tested"
       },
       "kind": "View, Device",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "regrip-replay",
@@ -4686,7 +5706,19 @@
         "owner": "not tested"
       },
       "kind": "Play, Dynamic, Device",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "regrip-gizmo",
@@ -4742,7 +5774,19 @@
         "owner": "not tested"
       },
       "kind": "View, Dynamic",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "regrip-sync",
@@ -4797,7 +5841,19 @@
         "owner": "not tested"
       },
       "kind": "Play, Device",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-2",
@@ -4852,7 +5908,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-3",
@@ -4907,7 +5975,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-4",
@@ -4962,7 +6042,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-5",
@@ -5017,7 +6109,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-6",
@@ -5072,7 +6176,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "cube-assembler-viewer-7",
@@ -5127,7 +6243,19 @@
         "owner": "not tested"
       },
       "kind": "application",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "regrip-landing",
@@ -5176,7 +6304,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     },
     {
       "id": "regrip-docs",
@@ -5225,7 +6365,19 @@
         "owner": "not tested"
       },
       "kind": "public-entry",
-      "implementation": "not implemented"
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      }
     }
   ],
   "manifestContract": {
@@ -5233,6 +6385,7 @@
     "sourceEvidence": "Pinned source, native builder or fixture, action and related tests are evidence of source scope only.",
     "results": "Record architecture, functional, visual and owner independently with exact head, device and evidence.",
     "original": "Do not host or copy a source or asset until its exact license and eligibility are resolved; blocked cases link a reproducible source.",
-    "deepLinks": "Example nested base is /puzlwerk/pr-preview/pr-72/; it is not a live URL."
+    "deepLinks": "Example nested base is /puzlwerk/pr-preview/pr-72/; it is not a live URL.",
+    "approval": "A local checklist is an observation only. Owner approval needs an explicit attributable decision, exact case/head/fixture/scope and trusted evidence; changed head or fixture invalidates affected scope. Record storage is an open decision."
   }
 }

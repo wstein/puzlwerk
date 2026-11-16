@@ -538,7 +538,7 @@ geometry parity. Consumer migration and full owner HQ acceptance remain open.
 
 ## Proposed acceptance suite and inventory gate
 
-The [acceptance inventory](acceptance-matrix.md) and `acceptance-routes.json` route manifest
+The [acceptance inventory](acceptance-matrix.md), [preview plan](acceptance-preview-plan.md) and `acceptance-routes.json` route manifest
 are a planning inventory. They do not establish parity, activate a
 preview, authorize implementation, or replace VC5. Before suite implementation, review the inventory, source-native fixtures,
 reference eligibility, per-case checklists, and open decisions recorded there.
