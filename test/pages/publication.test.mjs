@@ -110,3 +110,14 @@ test('ledger API binds artifact bytes and rejects incomplete writer history',asy
   await assert.rejects(readWriterLedger({...api,zip:async id=>id===2?zips[0]:zips[id-1]},r,{bootstrap}));
  } finally {await rm(temp,{recursive:true,force:true});}
 });
+
+test('bounded receipt confirmation tolerates only the exact previous receipt and transient HTTP failures',async()=>{
+ const {waitForLiveReceipt}=await import('../../scripts/pages/publication.mjs');
+ const prior={...receipt,run:41,nonce:'e'.repeat(32)}; const next={...receipt,previous:prior.nonce};
+ const sequence=[new Response(JSON.stringify(prior),{status:200}),new Response('',{status:503}),new Response('',{status:404}),new Response(JSON.stringify(next),{status:200})];
+ let waits=0; const got=await waitForLiveReceipt(next,{previous:prior,fetch:async()=>sequence.shift(),sleep:async()=>{waits++;},attempts:4});
+ assert.deepEqual(got,next); assert.equal(waits,3);
+ await assert.rejects(waitForLiveReceipt(next,{previous:prior,fetch:async()=>new Response(JSON.stringify({...prior,nonce:'f'.repeat(32)})),sleep:async()=>{},attempts:4}),/mismatch/);
+ let calls=0; await assert.rejects(waitForLiveReceipt(next,{previous:prior,fetch:async()=>{calls++;return new Response('',{status:503});},sleep:async()=>{},attempts:3}),/exhausted/); assert.equal(calls,3);
+ await assert.rejects(waitForLiveReceipt(next,{previous:prior,fetch:async()=>new Response('',{status:403}),sleep:async()=>{},attempts:3}),/failed/);
+});

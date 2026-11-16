@@ -1,4 +1,4 @@
-import {readPublication,verifyLiveReceipt,parsePublication} from './publication.mjs';
+import {readPublication,waitForLiveReceipt,parsePublication} from './publication.mjs';
 const positive=n=>Number.isSafeInteger(n)&&n>0;
 function validContext(c){return c && positive(c.run) && positive(c.attempt) && /^[a-f0-9]{40}$/.test(c.sha);}
 export async function begin(mode,gate,context,{read=readPublication,legacyAllowed=async()=>false,bootstrapRequest=null,bootstrapConfigured=false}={}) {
@@ -20,10 +20,10 @@ export async function begin(mode,gate,context,{read=readPublication,legacyAllowe
   parsePublication(JSON.stringify(previous));
   return {legacy:false,previous,start:{schema:1,...context,previous:previous.nonce}};
 }
-export async function finish(start,receipt,{verify=verifyLiveReceipt}={}) {
+export async function finish(start,receipt,{verify=waitForLiveReceipt,previous=null}={}) {
   parsePublication(JSON.stringify(receipt));
   if (!start || receipt.sha!==start.sha || receipt.run!==start.run || receipt.attempt!==start.attempt || receipt.previous!==start.previous) throw Error('Writer identity mismatch');
-  await verify(receipt);
+  await verify(receipt,{previous});
   return {...start,receipt};
 }
 export async function legacyAllowed(api,bootstrap) {
@@ -95,7 +95,7 @@ async function cli() {
     await validateChanges(api,state.changed);
   } else if (command==='finish') {
     const state=JSON.parse(await readFile(statePath,'utf8'));
-    const commit=await finish(state.start,state.receipt);
+    const commit=await finish(state.start,state.receipt,{previous:state.previous});
     await mkdir('writer-commit',{recursive:true}); await writeFile('writer-commit/ledger.json',JSON.stringify(commit));
   } else throw Error('Invalid writer operation');
 }
