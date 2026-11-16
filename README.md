@@ -24,7 +24,7 @@ Read [AGENTS.md](AGENTS.md) and [the knowledge base](docs/knowledge-base/README.
 ## Local acceptance comparisons
 
 After `npm ci`, run `npm run dev` and open <http://127.0.0.1:4174/>.
-The suite serves the [CubeAssembler 2×2 comparison](http://127.0.0.1:4174/acceptance/cube-assembler-solved-2/) and the [Cubistry classic 2×2 comparison](http://127.0.0.1:4174/acceptance/cubistry-playground-classic-2/) on this machine. `PORT=4175 npm run dev` selects another loopback port. Stop the server with Ctrl+C.
+The suite serves the [CubeAssembler 2×2 comparison](http://127.0.0.1:4174/acceptance/cube-assembler-solved-2/) and the [Cubistry classic 2×2 comparison](http://127.0.0.1:4174/acceptance/cubistry-playground-classic-2/) on this machine. `PORT=4175 npm run dev` selects another loopback port. For access from another network interface, explicitly opt in with `npm run dev -- --host 0.0.0.0`; this serves HTTP and does not configure HTTPS or port forwarding. Stop the server with Ctrl+C.
 
 These are bounded source-versus-candidate comparisons; they do not establish full application parity or owner acceptance. The standalone viewer demo remains available with `npm run dev --workspace @puzlwerk/viewer`.
 

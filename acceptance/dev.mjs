@@ -6,7 +6,12 @@ import {fileURLToPath} from 'node:url';
 import {build} from './build.mjs';
 
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.woff2':'font/woff2','.wasm':'application/wasm'};
-export async function startServer(directory,port=4174) {
+export function parseHost(args) {
+ if(args.length===0)return '127.0.0.1';
+ if(args.length!==2||args[0]!=='--host'||!args[1]||args[1].startsWith('-'))throw Error('Usage: --host <address>');
+ return args[1];
+}
+export async function startServer(directory,port=4174,host='127.0.0.1') {
  const root=await realpath(directory);
  const server=createServer(async(req,res)=>{
   try {
@@ -21,16 +26,17 @@ export async function startServer(directory,port=4174) {
    const data=await readFile(file);res.writeHead(200,{'content-type':types[extname(file).toLowerCase()]||'application/octet-stream'});res.end(req.method==='HEAD'?undefined:data);
   } catch(error) {res.writeHead(error instanceof URIError?400:404);res.end('Not found');}
  });
- await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});
+ await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,host,resolve);});
  return server;
 }
 async function main(){
  const port=process.env.PORT===undefined?4174:Number(process.env.PORT);
+ const host=parseHost(process.argv.slice(2));
  if(!Number.isInteger(port)||port<1||port>65535)throw Error('PORT must be an integer from 1 to 65535');
  const directory=await mkdtemp(join(tmpdir(),'puzlwerk-acceptance-'));
  try {
-  await build('/',directory);const server=await startServer(directory,port);
-  console.log(`http://127.0.0.1:${server.address().port}/`);
+  await build('/',directory);const server=await startServer(directory,port,host);
+  console.log(`http://${host}:${server.address().port}/`);
   const stop=()=>server.close(()=>rm(directory,{recursive:true,force:true}).then(()=>process.exit(0)));
   process.once('SIGINT',stop);process.once('SIGTERM',stop);
  } catch(error){await rm(directory,{recursive:true,force:true});throw error;}

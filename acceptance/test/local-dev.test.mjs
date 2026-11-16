@@ -4,7 +4,7 @@ import {mkdtemp,mkdir,writeFile,rm,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {request} from 'node:http';
-import {startServer} from '../dev.mjs';
+import {startServer,parseHost} from '../dev.mjs';
 
 const get=(port,path)=>new Promise((resolve,reject)=>{const req=request({host:'127.0.0.1',port,path},res=>{const chunks=[];res.on('data',x=>chunks.push(x));res.on('end',()=>resolve({status:res.statusCode,type:res.headers['content-type'],body:Buffer.concat(chunks).toString()}));});req.on('error',reject);req.end();});
 test('loopback server serves index, case deep link and module with correct MIME',async()=>{
@@ -28,4 +28,9 @@ test('acceptance manifest points each case at its local route',async()=>{
  const manifest=JSON.parse(await readFile(new URL('../../specs/009-viewer-consolidation/acceptance-routes.json',import.meta.url)));
  assert.match(manifest.routeBasePolicy,/127\.0\.0\.1:4174/);
  for(const c of manifest.cases){assert.equal(c.localUrlExample,`http://127.0.0.1:4174/${c.route}`);assert.equal(c.nestedBaseExample,undefined);assert.ok(c.checklist.every(item=>!item.includes('/pr-preview/')));}
+});
+
+test('explicit host opt-in changes binding and default stays loopback',async()=>{
+ assert.equal(parseHost([]),'127.0.0.1');assert.equal(parseHost(['--host','0.0.0.0']),'0.0.0.0');assert.throws(()=>parseHost(['--host']));
+ const dir=await mkdtemp(join(tmpdir(),'acceptance-host-'));let server;try {server=await startServer(dir,0,parseHost(['--host','0.0.0.0']));assert.equal(server.address().address,'0.0.0.0');} finally {if(server)await new Promise(resolve=>server.close(resolve));await rm(dir,{recursive:true,force:true});}
 });
