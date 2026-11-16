@@ -48,11 +48,12 @@ export function open(definitionText,stateText,appearanceText,options) {
       return {id:`sticker:${id}`,transform:{position:normal.map(v=>v*(profile?.stickerOffset ?? .501)),rotation:stickerRotation(normal,up)},size:[profile?.stickerWidth ?? .87,profile?.stickerWidth ?? .87],...(profile?{geometry:{referenceSize:[profile.stickerWidth,profile.stickerWidth],cornerRadius:profile.stickerRadius}}:{}),color:options.palette[token] ?? options.defaultColor,...(style?.image ? {imageId:style.image}:{}),sourceFace:{normal,up}};
     })};
   });
-  return {ok:true,value:{definition:definition._0,state:state._0,appearance:doc,ids:{pieces:wire.pieces.map(p=>({wire:p.id,viewer:`piece:${p.id}`})),stickers:wire.pieces.flatMap(p=>p.stickers.map(s=>({wire:s.id,viewer:`sticker:${s.id}`})))},projection:{pieces,...(profile?{geometryProfile:{body:{kind:'roundedBox',gap:profile.bodyGap,radius:profile.bodyRadius,bevelSegments:3}},appearance:{construction:'stickered',frameColor:profile.frameColor ?? '#1c1c1f'}}:{})}}};
+  return {ok:true,value:{definition:definition._0,state:state._0,appearance:doc,ids:{pieces:wire.pieces.map(p=>({wire:p.id,viewer:`piece:${p.id}`})),stickers:wire.pieces.flatMap(p=>p.stickers.map(s=>({wire:s.id,viewer:`sticker:${s.id}`})))},projection:{pieces,...(options.renderProfile?{renderProfile:structuredClone(options.renderProfile)}:{}),...(profile?{geometryProfile:{body:{kind:'roundedBox',gap:profile.bodyGap,radius:profile.bodyRadius,bevelSegments:3}},appearance:{construction:'stickered',frameColor:profile.frameColor ?? '#1c1c1f'}}:{})}}};
 }
 
 export function createPlayer(definitionText,stateText,appearanceText,options,scene) {
-  const first = open(definitionText,stateText,appearanceText,options);
+  const lockedOptions=structuredClone(options);
+  const first = open(definitionText,stateText,appearanceText,lockedOptions);
   if (!first.ok) return first;
   let current = first.value, busy = false, disposed = false;
   return {ok:true,value:{
@@ -65,7 +66,7 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
       if (made.TAG !== 'Ok') return error(made._0);
       const next=Validate.applyMove(current.definition,current.state,made._0);
       if (next.TAG !== 'Ok') return error(next._0);
-      const target=open(definitionText,Codec.encodeState(next._0),appearanceText,options);
+      const target=open(definitionText,Codec.encodeState(next._0),appearanceText,lockedOptions);
       if (!target.ok) return target;
       const selected=Codec.poses(current.state).filter(p=>Move.selects(made._0,Pose.position(p))).map(p=>`piece:${Id.toString(Pose.pieceId(p))}`);
       const axes={X:[1,0,0],Y:[0,1,0],Z:[0,0,1]};

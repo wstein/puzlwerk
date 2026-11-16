@@ -140,3 +140,12 @@ test('explicit source profile survives a real Core move and validates its viewer
  const player=createPlayer(definition,state,appearance,{palette,defaultColor:'#ffffff',presentation},scene).value;
  assert.equal((await player.turn('X',[1],-1,0)).ok,true);assert.equal(count,1);assert.notEqual(player.state(),state);
 });
+
+test('application render profile remains attached across Core transitions',async()=>{
+ const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d));
+ const appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]});
+ const palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const profile={kind:'cubeAssemblerV1',size:2,meshes:JSON.parse(definition).pieces.map(p=>({pieceId:`piece:${p.id}`,positions:[0,0,0,1,0,0,0,1,0],normals:[0,0,1,0,0,1,0,0,1],colors:Array(9).fill(.5),occlusion:[1,1,1],indices:[0,1,2],surfaces:[{role:'body',firstIndex:0,indexCount:3}]}))};let transition;
+ const player=createPlayer(definition,state,appearance,{palette,defaultColor:'#ffffff',renderProfile:profile},{transition(t){transition=t;return Promise.resolve({ok:true});},cancel(){},dispose(){}}).value;
+ assert.deepEqual(player.projection().renderProfile,profile);assert.equal(validateProjection(player.projection()).ok,true);await player.turn('X',[1],-1,0);assert.deepEqual(transition.to.renderProfile,profile);assert.equal(validateTransition(transition).ok,true);
+});
