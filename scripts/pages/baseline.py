@@ -51,11 +51,26 @@ def make_receipt(root, sha, run, attempt, nonce):
     return {'schema': 1, 'sha': sha, 'run': run, 'attempt': attempt,
             'nonce': nonce, 'root': digest(root)}
 
-if __name__ == '__main__':
+def stage(source, destination, sha, run, attempt, nonce):
     import json
+    import shutil
+    source, destination = Path(source), Path(destination)
+    if destination.exists() or destination.resolve().is_relative_to(source.resolve()):
+        raise ValueError('Unsafe staging destination')
+    if source.is_symlink() or not source.is_dir():
+        raise ValueError('Missing production source')
+    for directory, dirs, names in os.walk(source, followlinks=False):
+        for name in dirs + names:
+            path = Path(directory)/name
+            if path.is_symlink() or not (path.is_file() or path.is_dir()):
+                raise ValueError('Unsafe production source entry')
+    shutil.copytree(source, destination, ignore=lambda directory, names: [name for name in names if name.startswith('.')])
+    receipt = make_receipt(destination, sha, run, attempt, nonce)
+    (destination/RECEIPT).write_text(json.dumps(receipt, separators=(',', ':')) + '\n')
+    return receipt
+
+if __name__ == '__main__':
     import secrets
     import sys
-    root = Path(sys.argv[1])
-    receipt = make_receipt(root, os.environ['GITHUB_SHA'], int(os.environ['GITHUB_RUN_ID']),
-                           int(os.environ['GITHUB_RUN_ATTEMPT']), secrets.token_hex(16))
-    (root/RECEIPT).write_text(json.dumps(receipt, separators=(',', ':')) + '\n')
+    stage(sys.argv[1], sys.argv[2], os.environ['GITHUB_SHA'], int(os.environ['GITHUB_RUN_ID']),
+          int(os.environ['GITHUB_RUN_ATTEMPT']), secrets.token_hex(16))
