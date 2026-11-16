@@ -33,6 +33,6 @@
       "sha256": "44a354a459a4f4a585873c8512c7efca510e706aeba4cb3681223aca0957f91d"
     }
   ],
-  "sourceClosure": "incomplete; the old component and its full dependency closure are not packaged",
+  "sourceClosure": "Viewer, asset, mechanics and core source packages are pinned under acceptance/references/cubistry; executable comparison and browser verification remain open.",
   "generation": "createDesign(\"classic\"); target then sequential parseAlg/applyMoves for R U R' U'"
 }
