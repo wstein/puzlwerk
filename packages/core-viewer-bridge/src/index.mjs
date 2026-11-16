@@ -59,9 +59,9 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
   return {ok:true,value:{
     state: () => Codec.encodeState(current.state),
     projection: () => current.projection,
-    async turn(axis,layers,turns,durationMs) {
+    async turn(axis,layers,turns,durationMs,timing) {
       if (disposed || busy) return error({code:disposed?'Disposed':'Busy'});
-      if (!['X','Y','Z'].includes(axis) || !Array.isArray(layers) || !layers.every(Number.isInteger) || ![-1,1,2].includes(turns) || !Number.isFinite(durationMs) || durationMs < 0) return error({code:'InvalidMove'});
+      if (!['X','Y','Z'].includes(axis) || !Array.isArray(layers) || !layers.every(Number.isInteger) || ![-1,1,2].includes(turns) || !Number.isFinite(durationMs) || durationMs < 0 || (timing !== undefined && typeof timing !== 'function')) return error({code:'InvalidMove'});
       const made=Move.make(Codec.size(current.definition),axis,layers,turns);
       if (made.TAG !== 'Ok') return error(made._0);
       const next=Validate.applyMove(current.definition,current.state,made._0);
@@ -72,7 +72,7 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
       const axes={X:[1,0,0],Y:[0,1,0],Z:[0,0,1]};
       busy=true;
       try {
-        const result=await scene.transition({from:current.projection,to:target.value.projection,pieceIds:selected,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs});
+        const result=await scene.transition({from:current.projection,to:target.value.projection,pieceIds:selected,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs},timing);
         if (!result.ok) return result;
         current=target.value;
         return {ok:true,value:undefined};

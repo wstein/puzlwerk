@@ -805,3 +805,35 @@ test('picture windows follow sticker reference through scrambled poses, live art
   scene.dispose();
  }
 });
+
+test('optional source timing holds until its absolute window and finishes on the deadline timer',async()=>{
+ let now=0,id=0,rendered;const frames=new Map(),timers=new Map(),clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key),setTimer:(cb,delay)=>{timers.set(++id,{at:now+delay,cb});return id},clearTimer:key=>timers.delete(key)};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},clock,{render:s=>{rendered=s},dispose(){}});assert.equal((await scene.setProjection(projection)).ok,true);
+ const step=time=>{now=time;for(const [key,timer] of [...timers])if(timer.at<=now){timers.delete(key);timer.cb();}for(const [key,cb] of [...frames]){frames.delete(key);cb(now);}};step(0);
+ const pending=scene.transition(turn(Math.PI,100),()=>({endAt:200,durationMs:100,revision:1}));step(50);assert.ok(Math.abs(rendered.getObjectByName('a').position.x-1)<1e-9);step(150);assert.ok(Math.abs(rendered.getObjectByName('a').getWorldPosition({setFromMatrixPosition(m){this.x=m.elements[12];this.y=m.elements[13];this.z=m.elements[14];return this}}).y-1)<1e-6);
+ now=200;for(const [key,timer] of [...timers])if(timer.at<=now){timers.delete(key);timer.cb();}assert.equal((await pending).ok,true);assert.equal(timers.size,0);scene.dispose();
+});
+
+test('timed turn survives live artwork and cancel removes its pending deadline',async()=>{
+ let now=0,id=0,rendered;const frames=new Map(),timers=new Map(),clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key),setTimer:(cb,delay)=>{timers.set(++id,{at:now+delay,cb});return id},clearTimer:key=>timers.delete(key)};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},clock,{render:s=>{rendered=s},dispose(){}}),step=time=>{now=time;for(const [key,timer] of [...timers])if(timer.at<=now){timers.delete(key);timer.cb();}for(const [key,cb] of [...frames]){frames.delete(key);cb(now);}};
+ assert.equal((await scene.setProjection(projection)).ok,true);step(0);const transition=turn(Math.PI,100),pending=scene.transition(transition,()=>({endAt:200,durationMs:100,revision:1}));step(50);
+ assert.equal((await scene.setArtwork({stickers:[{id:'s',color:'#ff0000'}]})).ok,true);step(150);assert.ok(Math.abs(rendered.getObjectByName('a').getWorldPosition({setFromMatrixPosition(m){this.x=m.elements[12];this.y=m.elements[13];this.z=m.elements[14];return this}}).y-1)<1e-6);step(200);assert.equal((await pending).ok,true);assert.equal(rendered.getObjectByName('s').material.color.getHexString(),'ff0000');
+ const current={...transition.to,pieces:[{...transition.to.pieces[0],stickers:[{...transition.to.pieces[0].stickers[0],color:'#ff0000'}]}]},again=scene.transition({from:current,to:current,pieceIds:[],axis:[0,0,1],pivot:[0,0,0],signedAngleRadians:0,durationMs:100},()=>({endAt:400,durationMs:100,revision:2}));assert.ok(timers.size>0);scene.cancel();assert.equal((await again).error.code,'Cancelled');assert.equal(timers.size,0);scene.dispose();
+});
+
+test('application deadline finishes while visually hidden and renders on return',async()=>{
+ let now=0,id=0,hidden=false,visibility,rendered;const frames=new Map(),timers=new Map(),clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key),setTimer:(cb,delay)=>{timers.set(++id,{at:now+delay,cb});return id},clearTimer:key=>timers.delete(key),isHidden:()=>hidden,onVisibility:cb=>{visibility=cb;return()=>{}}};
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},clock,{render:s=>{rendered=s},dispose(){}}),step=time=>{now=time;for(const [key,timer] of [...timers])if(timer.at<=now){timers.delete(key);timer.cb();}for(const [key,cb] of [...frames]){frames.delete(key);cb(now);}};
+ assert.equal((await scene.setProjection(projection)).ok,true);step(0);const pending=scene.transition(turn(Math.PI,100),()=>({endAt:200,durationMs:100,revision:1}));step(50);hidden=true;visibility();assert.ok(timers.size>0,'deadline timer remains scheduled while hidden');now=200;for(const [key,timer] of [...timers])if(timer.at<=now){timers.delete(key);timer.cb();}assert.equal((await pending).ok,true);assert.equal(frames.size,0);hidden=false;visibility();step(200);assert.ok(Math.abs(rendered.getObjectByName('a').position.x+1)<1e-9);scene.dispose();
+});
+
+test('application timing revisions rebase an already running native turn',async()=>{
+ let now=0,id=0,rendered;const frames=new Map(),timers=new Map(),clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key),setTimer:(cb,delay)=>{timers.set(++id,{at:now+delay,cb});return id},clearTimer:key=>timers.delete(key)},scene=createSceneForTest({resolveAsset:async()=>({ok:false})},clock,{render:s=>{rendered=s},dispose(){}});
+ const step=time=>{now=time;for(const [key,timer] of [...timers])if(timer.at<=now){timers.delete(key);timer.cb();}for(const [key,cb] of [...frames]){frames.delete(key);cb(now);}},world=()=>rendered.getObjectByName('a').getWorldPosition({setFromMatrixPosition(m){this.x=m.elements[12];this.y=m.elements[13];this.z=m.elements[14];return this}});
+ assert.equal((await scene.setProjection(projection)).ok,true);step(0);let timing={endAt:200,durationMs:100,revision:1};const pending=scene.transition(turn(Math.PI,100),()=>timing);step(150);assert.ok(Math.abs(world().y-1)<1e-6);timing={endAt:350,durationMs:200,revision:2};step(150);step(200);assert.ok(Math.abs(world().y-1)<1e-6);step(300);assert.ok(world().x<-.5);step(350);assert.equal((await pending).ok,true);scene.dispose();
+});
+
+test('a failing application timing callback restores the previous core-driven scene',async()=>{
+ const h=harness();assert.equal((await h.scene.setProjection(projection)).ok,true);h.step(0);let shouldFail=false;const pending=h.scene.transition(turn(Math.PI,100),()=>{if(shouldFail)throw Error('timing failed');return {endAt:100,durationMs:100,revision:1}});h.step(50);h.step(0);assert.ok(Math.abs(h.draws.at(-1).y-1)<1e-6);shouldFail=true;h.step(1);const result=await pending;assert.equal(result.error.code,'Unavailable');h.step(0);assert.ok(Math.abs(h.draws.at(-1).x-1)<1e-9);assert.equal(h.frames.size,0);h.scene.dispose();
+});

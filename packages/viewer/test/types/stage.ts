@@ -10,3 +10,10 @@ void body; void shape;
 
 const lights:ExposureLights={ambient:1,hemispheres:[],directionals:[]};
 weightedFaceExposure(lights,[0,0,0,1],[0,0,1]);
+
+import type {CubeScene,Transition,MotionTimingSource} from '../../src/index.js';
+declare const timedScene:CubeScene,transition:Transition;
+const timing:MotionTimingSource=()=>({endAt:200,durationMs:100,revision:1});
+timedScene.transition(transition,timing);
+// @ts-expect-error timing is a source callback, not a timing object
+timedScene.transition(transition,{endAt:200,durationMs:100,revision:1});

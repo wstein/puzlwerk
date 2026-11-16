@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type {MotionTimingSource} from './motion-timing.js';
 import { Quaternion as Q, Vector3 } from 'three';
 import { PROJECTED_FACES, FACE_KEYS, type FaceKey } from './projected-uv.js';
 
@@ -22,7 +23,7 @@ export type Transition = { readonly from: CubeProjection; readonly to: CubeProje
 export type AssetResolver = (imageId: string, signal: AbortSignal) => Promise<Result<CanvasImageSource>>;
 export type ViewerOptions = { readonly resolveAsset: AssetResolver };
 export type ArtworkReplacement = { readonly appearance?: Appearance; readonly picture?: Picture; readonly stickers: readonly {readonly id:string; readonly color:string; readonly imageId?:string; readonly sourceFace?:SourceFace; readonly picture?:Sticker['picture']}[] };
-export interface CubeScene { setArtwork(artwork: ArtworkReplacement): Promise<Result<void>>; setProjection(projection: CubeProjection): Promise<Result<void>>; transition(transition: Transition): Promise<Result<void>>; cancel(): Result<void>; invalidate(): Result<void>; dispose(): void }
+export interface CubeScene { setArtwork(artwork: ArtworkReplacement): Promise<Result<void>>; setProjection(projection: CubeProjection): Promise<Result<void>>; transition(transition: Transition,timing?:MotionTimingSource): Promise<Result<void>>; cancel(): Result<void>; invalidate(): Result<void>; dispose(): void }
 export const ok = <T>(value: T): Result<T> => ({ ok: true, value });
 export const fail = (code: ViewerError['code'], message: string, path?: string): Result<never> => ({ ok: false, error: { code, message, ...(path ? { path } : {}) } });
 const tol = 1e-6;

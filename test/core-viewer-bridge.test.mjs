@@ -156,3 +156,9 @@ test('explicit decorative core remains a scene setting, not a Core piece',()=>{
  const options={palette:{red:'#ff0000',white:'#ffffff',green:'#00ff00',blue:'#0000ff',orange:'#ff8800',yellow:'#ffff00'},defaultColor:'#ffffff',core:{center:[0,0,0],halfExtent:1}};
  const result=open(definition,state,appearance,options);assert.equal(result.ok,true);assert.deepEqual(result.value.projection.core,options.core);assert.equal(result.value.projection.pieces.some(piece=>piece.id==='core'),false);
 });
+
+test('player forwards optional application timing to the shared scene without changing core ownership',async()=>{
+ const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d)),appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]}),palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ let supplied;const scene={transition(_transition,timing){supplied=timing;return Promise.resolve({ok:true});},cancel(){return {ok:true}},dispose(){}};const player=createPlayer(definition,state,appearance,{palette,defaultColor:'#ffffff'},scene).value;
+ const timing=()=>({endAt:200,durationMs:100,revision:7});assert.equal((await player.turn('X',[1],-1,100,timing)).ok,true);assert.equal(supplied,timing);assert.notEqual(player.state(),state);const after=player.state(),invalid=await player.turn('X',[1],1,100,{});assert.equal(invalid.ok,false);assert.equal(invalid.error.code,'InvalidMove');assert.equal(player.state(),after);
+});

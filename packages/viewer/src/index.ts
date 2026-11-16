@@ -20,7 +20,7 @@ export function createCubeScene(host: HTMLElement, options: ViewerOptions): Resu
   const added=stage.addCube({position:[0,0,0]});
   if(!added.ok){stage.dispose();return fail('Unavailable','Unable to create scene');}
   const child=added.value;
-  const scene:CubeScene={setProjection:p=>child.setProjection(p),setArtwork:a=>child.setArtwork(a),transition:t=>child.transition(t),cancel:()=>child.cancel(),invalidate:()=>child.invalidate(),dispose:()=>stage.dispose()};
+  const scene:CubeScene={setProjection:p=>child.setProjection(p),setArtwork:a=>child.setArtwork(a),transition:(t,timing)=>child.transition(t,timing),cancel:()=>child.cancel(),invalidate:()=>child.invalidate(),dispose:()=>stage.dispose()};
   renderer.domElement.addEventListener('webglcontextlost',onLost);
   if (typeof ResizeObserver !== 'undefined') { observer=new ResizeObserver(()=>{scene.invalidate();}); observer.observe(host); }
   return ok(scene);
@@ -33,3 +33,5 @@ export type {StageLighting,DirectionalData,ExposurePolicy,ExposureSnapshot,Light
 
 export {weightedFaceExposure} from './weighted-exposure.js';
 export type {ExposureLights} from './weighted-exposure.js';
+
+export type {MotionTiming,MotionTimingSource} from './motion-timing.js';

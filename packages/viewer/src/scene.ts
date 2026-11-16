@@ -12,8 +12,9 @@ import { createPresentationStudio } from './studio.js';
 import { fail, ok, sameValues, validateProjection, validateTransition } from './contract.js';
 import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
 import {validateAppearance,type ViewerAppearance} from './native-appearance.js';
+import {animateTimedProgress,type MotionTimingSource} from './motion-timing.js';
 
-type Clock = { now(): number; request(cb: (time: number) => void): number; cancel(id: number): void; isHidden?(): boolean; onVisibility?(cb: () => void): () => void };
+type Clock = { now(): number; request(cb: (time: number) => void): number; cancel(id: number): void; isHidden?(): boolean; onVisibility?(cb: () => void): () => void; setTimer?(cb:()=>void,delay:number):number; clearTimer?(id:number):void };
 type Backend = { render(scene: THREE.Scene): void; dispose(): void };
 type Pending = { controller: AbortController; finish(result: Result<void>): void; from?: CubeProjection; to?: CubeProjection };
 type PreparedAppearance={seal():Result<void>;commit():void;discard():void};
@@ -44,7 +45,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       if(sticker.picture && !referencePictures.has(sticker.id))referencePictures.set(sticker.id,copy(sticker.picture));
     }
   }
-  let frame: number | undefined, animation: ((now: number) => boolean) | undefined;
+  let frame: number | undefined, animation: ((now: number) => boolean) | undefined,timedAbort:(()=>void)|undefined;
   let pausedAt: number | undefined, pausedDuration = 0, dirty = false;
   const hidden = () => clock.isHidden?.() ?? false;
   const unsubscribe = clock.onVisibility?.(() => {
@@ -230,7 +231,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       void assetsFor(p,op).then(assets => { if (assets && pending === op) { try { present(p,assets); recordReferences(p,true); finish(op,ok(undefined)); } catch { finish(op,fail('Unavailable','Unable to build projection')); } } });
       return promise;
     },
-    transition(input: Transition) {
+    transition(input: Transition,timing?:MotionTimingSource) {
       const s = status(); if (!s.ok) return Promise.resolve(s);
       const validation = validateTransition(input); if (!validation.ok) return Promise.resolve(validation);
       if (!projection || !sameProjection(projection,input.from)) return Promise.resolve(fail('InvalidTransition','Source does not match current projection'));
@@ -242,6 +243,15 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       activeTurnState={ids:t.pieceIds,axis:t.axis,angle:t.signedAngleRadians,pivot:t.pivot,progress:0};
       activeTurn=native.beginTurn(t.pieceIds,t.axis,t.signedAngleRadians,t.pivot);
       const started=clock.now(),duration=t.durationMs;
+      if(timing){
+        const frames=new Set<number>(),timers=new Set<number>();
+        const failTiming=()=>{if(pending!==op)return;timedAbort?.();timedAbort=undefined;activeTurn?.dispose();activeTurn=undefined;activeTurnState=undefined;const restored=nativeFrames(from);if(restored.ok)native?.syncBodyPoses(restored.value.bodies);projection=from;finish(op,fail('Unavailable','Timing source failed'));draw();};
+        const runtime={now:()=>clock.now(),frame:(callback:(at:number)=>void)=>{const id=clock.request(at=>{frames.delete(id);try{callback(at)}catch{failTiming()}});frames.add(id);return id;},cancelFrame:(id:number)=>{frames.delete(id);clock.cancel(id);},timer:(callback:()=>void,delay:number)=>{const id=(clock.setTimer??setTimeout)(()=>{timers.delete(id as number);try{callback()}catch{failTiming()}},delay) as number;timers.add(id);return id;},cancelTimer:(id:number)=>{timers.delete(id);(clock.clearTimer??clearTimeout)(id);}};
+        timedAbort=()=>{for(const id of frames)clock.cancel(id);for(const id of timers)(clock.clearTimer??clearTimeout)(id);frames.clear();timers.clear();};
+        void animateTimedProgress(timing,()=>Math.max(10,duration),progress=>{if(pending!==op || !activeTurn || !activeTurnState)return;const eased=progress*progress*(3-2*progress);activeTurnState.progress=eased;activeTurn.update(eased);
+          if(progress>=1){activeTurn.dispose();activeTurn=undefined;activeTurnState=undefined;native!.syncBodyPoses(target.value.bodies);projection=op.to;timedAbort=undefined;finish(op,ok(undefined));}draw();},runtime).catch(failTiming);
+        return promise;
+      }
       pausedDuration=0;pausedAt=hidden()?started:undefined;
       const update=(now:number)=>{
         const progress=duration===0?1:Math.min(1,Math.max(0,(now-started-pausedDuration)/duration));
@@ -258,7 +268,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       if (disposed) return fail('Disposed','Scene disposed');
       if (livePending) {const live=livePending;livePending=undefined;live.controller.abort();live.finish(fail('Cancelled','Operation cancelled'));}
       if (pending) {
-        const op = pending; op.controller.abort(); animation = undefined;
+        const op = pending; op.controller.abort(); animation = undefined;timedAbort?.();timedAbort=undefined;
         if (op.from) {
           activeTurn?.dispose();activeTurn=undefined;activeTurnState=undefined;
           const restored=nativeFrames(op.from);if(restored.ok)native?.syncBodyPoses(restored.value.bodies);
