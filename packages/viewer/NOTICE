@@ -39,7 +39,7 @@ Cubistry package's AGPL-3.0-or-later terms.
 Adapted target SHA-256 values at this revision:
 src/presentation-preset.ts bb791c66c95a02931d7b05cffa182c9b64e13cfacd27454615edab20b9beb7de
 src/studio.ts 4ea2a8735e2b5b9fde87b3e3e64bcd0a79d68f9a121f23e5135a5fb4f3ec060c
-src/scene.ts 7248f1c46ed86bc33d2b8595c2d12ffe5d3871b2ad3de4572d29d3dbec88248b
+src/scene.ts 97ef857464665dd25e453de7da61f405e9b68b095d5b9a20cc0adc5aede89827
 
 src/layer-widths.ts: Git blob c0239c3830f4177f8ef30f616c39e6e93977c48b;
 source SHA-256 0977d80f09a4e939d471b74c867c6e7a76a19dbdfc8cc1243cafed4ba7ff7416.
@@ -125,3 +125,8 @@ src/stage-lighting.ts adapts the source light luminance and directional snapshot
 formulas from Cubistry src/apps/calendar7/names-exposure.ts at the revision and
 source hash recorded above. It validates and copies caller render data; target
 SHA-256 2bd13710020dbf11336a597325245bd7ed5f65a8cc33c1eb4847a9b26c8a8fdf.
+
+The scene also adapts the Calendar7 layer-profile use of the two-radius builder
+and source rounded sticker scaling from Cubistry at the pinned revision. The
+optional rounded-box path uses the Three.js example geometry covered by the
+Three.js MIT notice.

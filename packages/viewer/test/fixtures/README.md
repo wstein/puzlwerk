@@ -89,3 +89,12 @@ frusta and the actual Names-light key position. Regenerate with:
 ```sh
 node packages/viewer/test/fixtures/generate-cubistry-casters.mjs /path/to/cubistry
 ```
+
+`cubistry-names-geometry.json` comes from the actual pinned PhysicalCubeScene
+with the source Calendar7 Names layer profile, plus the source standard
+RoundedBoxGeometry. It records body and sticker buffers, pose and anisotropic
+scale. Regenerate with:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-names-geometry.mjs /path/to/cubistry
+```
