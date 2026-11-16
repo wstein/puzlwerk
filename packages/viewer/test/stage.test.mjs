@@ -221,3 +221,31 @@ test('context loss cancels native held pointer capture before later events',()=>
  assert.equal(h.stage.attachInput(canvas,panel,undefined,{now:()=>h.now/1000,document,media,window}).ok,true);
  canvas.pointer('pointerdown',0,0,7);assert.equal(canvas.hasPointerCapture(7),true);h.stage.contextLost();assert.equal(canvas.hasPointerCapture(7),false);h.stage.dispose();
 });
+
+test('rejected native pointer input does not mutate the last accepted display',async()=>{
+ const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);
+ const document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
+ assert.equal(h.stage.attachInput(canvas,panel,undefined,{now:()=>h.now/1000,document,media,window}).ok,true);let reject=false;
+ assert.equal(h.stage.setViewPolicy(()=>{if(reject)throw Error('denied');return {distance:10,far:100,groupScale:1}}).ok,true);h.step(0);
+ const before=h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).clone();reject=true;canvas.pointer('pointerdown',0,0);canvas.pointer('pointermove',100,0);h.step(0);h.scene.updateMatrixWorld(true);
+ assert.ok(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).distanceTo(before)<1e-9);reject=false;assert.equal(h.stage.invalidate().ok,true);h.step(0);assert.ok(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).distanceTo(before)<1e-9);h.stage.dispose();
+});
+
+test('native HUD cannot change mode or storage after context loss',()=>{
+ const h=harness(),document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;const writes=[];
+ assert.equal(h.stage.attachInput(canvas,panel,'key',{now:()=>0,document,media,window,storage:{getItem:()=>null,setItem:(...args)=>writes.push(args)}}).ok,true);
+ const select=panel.children[0].children[0],note=panel.children.find(child=>String(child.id).startsWith('cube-rotation-note')),before=note.textContent;h.stage.contextLost();select.value='free';select.dispatchEvent(new Event('change'));media.matches=true;media.dispatchEvent(new Event('change'));assert.equal(select.value,'smart');assert.equal(note.textContent,before);assert.deepEqual(writes,[]);h.stage.dispose();
+});
+
+test('native input still drives the committed controller after stage mode transactions',async()=>{
+ const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);
+ const document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
+ assert.equal(h.stage.attachInput(canvas,panel,undefined,{now:()=>h.now/1000,document,media,window}).ok,true);
+ for(const [index,operation] of [()=>h.stage.setRotationMode('free'),()=>h.stage.setReducedMotion(true),()=>h.stage.resetDisplayOrientation()].entries()){
+  assert.equal(operation().ok,true);h.step(0);const before=h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).clone();
+  canvas.pointer('pointerdown',0,0,index+1);canvas.pointer('pointermove',100,0,index+1);canvas.pointer('pointerup',100,0,index+1);h.step(0);
+  assert.ok(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).distanceTo(before)>.1);
+ }
+ const select=panel.children[0].children[0];select.value='classic';select.dispatchEvent(new Event('change'));assert.equal(select.value,'classic');
+ media.matches=false;media.dispatchEvent(new Event('change'));h.stage.dispose();
+});
