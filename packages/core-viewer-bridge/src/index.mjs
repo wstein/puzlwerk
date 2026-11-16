@@ -51,7 +51,7 @@ export function open(definitionText,stateText,appearanceText,options) {
 export function createPlayer(definitionText,stateText,appearanceText,options,scene) {
   const first = open(definitionText,stateText,appearanceText,options);
   if (!first.ok) return first;
-  let current = first.value, generation = 0, busy = false, disposed = false;
+  let current = first.value, busy = false, disposed = false;
   return {ok:true,value:{
     state: () => Codec.encodeState(current.state),
     projection: () => current.projection,
@@ -66,17 +66,16 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
       if (!target.ok) return target;
       const selected=Codec.poses(current.state).filter(p=>Move.selects(made._0,Pose.position(p))).map(p=>Id.toString(Pose.pieceId(p)));
       const axes={X:[1,0,0],Y:[0,1,0],Z:[0,0,1]};
-      const version=++generation; busy=true;
+      busy=true;
       try {
         const result=await scene.transition({from:current.projection,to:target.value.projection,pieceIds:selected,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs});
-        if (version !== generation || disposed) return error({code:'Cancelled'});
         if (!result.ok) return result;
         current=target.value;
         return {ok:true,value:undefined};
       } catch (cause) { return error({code:'TransitionFailed',cause}); }
-      finally { if (version === generation) busy=false; }
+      finally { busy=false; }
     },
-    cancel() { generation++; busy=false; return scene.cancel(); },
-    dispose() { generation++; busy=false; disposed=true; scene.dispose(); }
+    cancel() { return scene.cancel(); },
+    dispose() { disposed=true; scene.dispose(); }
   }};
 }
