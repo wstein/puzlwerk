@@ -72,13 +72,13 @@ export async function recoverFailedWriter(api,run,job,start,attempt,{snapshotRea
  if(classification==='not-deployed') return null;
  const receipt=parsePublication(JSON.stringify(await snapshotReader(api,run,attempt)));
  if(receipt.run!==start.run || receipt.attempt!==start.attempt || receipt.sha!==start.sha || receipt.previous!==start.previous) throw Error('Recovered receipt does not match writer start');
- return {start,commit:{...start,receipt}};
+ return {start,commit:{...start,receipt},recovered:true};
 }
 
 export function verifyWriterLedger(records,receipt,{bootstrap,context}={}) {
  parsePublication(JSON.stringify(receipt));
  if (!Array.isArray(records) || !records.length || records.length>5000 || !bootstrap || !positive(bootstrap.run) || !positive(bootstrap.attempt) || !hex(bootstrap.nonce,32)) throw Error('Invalid ledger bootstrap');
- const identities=new Set(), nonces=new Set(), children=new Map(); let anchor=null;
+ const identities=new Set(), nonces=new Set(), recoveredNonces=new Set(), children=new Map(); let anchor=null;
  for (const record of records) {
   const {start,commit}=record || {};
   if (!start || Object.keys(start).sort().join(',')!=='attempt,previous,run,schema,sha' || start.schema!==1 || !positive(start.run) || !positive(start.attempt) || !hex(start.sha,40) || !(start.previous===null || hex(start.previous,32))) throw Error('Invalid writer start');
@@ -92,12 +92,12 @@ export function verifyWriterLedger(records,receipt,{bootstrap,context}={}) {
   if(Object.keys(commit).sort().join(',')!=='attempt,previous,receipt,run,schema,sha' || commit.schema!==1 || commit.run!==start.run || commit.attempt!==start.attempt || commit.sha!==start.sha || commit.previous!==start.previous) throw Error('Invalid writer commit');
   const r=parsePublication(JSON.stringify(commit.receipt));
   if(r.run!==start.run || r.attempt!==start.attempt || r.sha!==start.sha || r.previous!==start.previous || nonces.has(r.nonce) || children.has(r.previous)) throw Error('Invalid or forked ledger');
-  nonces.add(r.nonce); children.set(r.previous,r);
+  nonces.add(r.nonce); if(record.recovered===true) recoveredNonces.add(r.nonce); children.set(r.previous,r);
   if(r.run===bootstrap.run && r.attempt===bootstrap.attempt && r.nonce===bootstrap.nonce) anchor=r;
  }
  if(!anchor || anchor.previous!==null) throw Error('Missing ledger bootstrap');
  let tip=anchor, count=1;
- while(children.has(tip.nonce)) { tip=children.get(tip.nonce); if(++count>nonces.size) throw Error('Ledger cycle'); }
+ while(children.has(tip.nonce)) { const next=children.get(tip.nonce); if(recoveredNonces.has(next.nonce) && next.root!==tip.root) throw Error('Recovered preview changed production root'); tip=next; if(++count>nonces.size) throw Error('Ledger cycle'); }
  if(count!==nonces.size || !samePublication(tip,receipt)) throw Error('Stale or disconnected ledger');
  return true;
 }
