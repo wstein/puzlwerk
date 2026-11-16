@@ -115,11 +115,8 @@ Each listed route is relative to one configured base and has its own checklist a
 | `cube-assembler-viewer-7` | `acceptance/cube-assembler-viewer-7/` | CubeAssembler: `/` |
 | `regrip-landing` | `acceptance/regrip-landing/` | Regrip: `/` |
 | `regrip-docs` | `acceptance/regrip-docs/` | Regrip: `/docs/` |
-
 | `cubistry-viewer-hidden` | `acceptance/cubistry-viewer-hidden/` | Cubistry: `No separate app route; production rotation binding exercised by viewer.` |
-
 | `cube-assembler-orientation-gizmo` | `acceptance/cube-assembler-orientation-gizmo/` | CubeAssembler: `/` |
-
 | `cubistry-playground-classic-2` | `acceptance/cubistry-playground-classic-2/` | Cubistry: native Playground classic 2×2 comparison |
 | `cube-assembler-solved-2` | `acceptance/cube-assembler-solved-2/` | CubeAssembler: native solved 2×2 viewer comparison |
 | `cube-assembler-capture-recovery` | `acceptance/cube-assembler-capture-recovery/` | CubeAssembler: proposed explicit recovery from capture/guide conflicts; not implemented |
