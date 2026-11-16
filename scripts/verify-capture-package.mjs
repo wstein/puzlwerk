@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const dir=mkdtempSync(join(tmpdir(),'puzlwerk-capture-consumer-'));
 const packed=JSON.parse(execFileSync('npm',['pack','--workspace','@puzlwerk/capture-recovery','--pack-destination',dir,'--json'],{cwd:root,encoding:'utf8'}))[0];
-for(const file of ['LICENSE','NOTICE','CUBE_ASSEMBLER_LICENSE.txt','provenance.json','lib/index.js','lib/index.d.ts','source/PwCapture.res','source/PwCapture.resi'])assert.ok(packed.files.some(x=>x.path===file),file);
+for(const file of ['LICENSE','NOTICE','CUBE_ASSEMBLER_LICENSE.txt','provenance.json','lib/index.js','lib/index.d.ts','source/PwCapture.res','source/PwCapture.resi','source/PwShell.resi','rescript.json'])assert.ok(packed.files.some(x=>x.path===file),file);
 assert.ok(!packed.files.some(x=>/solver|viewer/.test(x.path)));
 const meta=JSON.parse(readFileSync(join(root,'packages/capture-recovery/package.json')));
 const runtime=JSON.parse(readFileSync(join(root,'package-lock.json'))).packages['node_modules/@rescript/runtime'];
@@ -21,3 +21,9 @@ execFileSync(process.execPath,[join(dir,'consumer.mjs')],{cwd:dir,stdio:'inherit
 writeFileSync(join(dir,'consumer.ts'),"import {createCapture,photoForFace,type input} from '@puzlwerk/capture-recovery'; const x: input={captureId:'typed',revision:0,size:4,observations:[]}; const result=createCapture(x);if(result.ok) photoForFace(result.value,undefined,'F');\n");
 execFileSync(join(root,'node_modules/.bin/tsc'),['--strict','--noEmit','--module','NodeNext','--moduleResolution','NodeNext','--target','ES2022',join(dir,'consumer.ts')],{cwd:root,stdio:'inherit'});
 console.log(`Private packed consumer: ${packed.files.length} files; generated types checked; no compiler/application runtime dependency`);
+
+const extracted=join(dir,'node_modules/@puzlwerk/capture-recovery');
+execFileSync(join(root,'node_modules/.bin/rescript'),['build'],{cwd:extracted,stdio:'inherit'});
+const provenance=JSON.parse(readFileSync(join(extracted,'provenance.json')));
+for(const name of provenance.modules)assert.deepEqual(readFileSync(join(extracted,'source',name)),readFileSync(join(extracted,'lib',name)),name+' source rebuild differs');
+console.log(`Extracted source rebuild: ${provenance.sourceModules.length} source modules; ${provenance.modules.length} runtime modules byte-identical`);
