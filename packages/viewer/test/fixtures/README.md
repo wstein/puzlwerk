@@ -75,3 +75,10 @@ scene lights, including a dark scene, across display orientations. Regenerate:
 ```sh
 node packages/viewer/test/fixtures/generate-cubistry-exposure.mjs /path/to/cubistry
 ```
+
+`cubistry-soft-shoulder.json` records the source curve samples and exact shader.
+Regenerate with:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-tone.mjs /path/to/cubistry
+```
