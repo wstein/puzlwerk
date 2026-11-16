@@ -1,7 +1,14 @@
+import {Element as NativeElement} from './native-rotation-binding-harness.mjs';
 import {test} from 'node:test';import assert from 'node:assert/strict';import * as THREE from 'three';import {createStageForTest} from '../dist/stage.js';
 const t=(position=[0,0,0])=>({position,rotation:[0,0,0,1]});
+function attachNative(stage,element,now=()=>0,document=new EventTarget()){
+ document.hidden=false;document.createElement=tag=>new NativeElement(tag);
+ const media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div');media.matches=false;
+ return stage.attachInput(element,panel,undefined,{now:()=>now()/1000,document,media,window});
+}
+
 const projection={pieces:[{id:'same',transform:t(),stickers:[]}]};
-function harness(resolver=async()=>({ok:false}),onError=()=>{}){let now=0,id=0,renders=0;const frames=new Map();let scene,view;const clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key)};const stage=createStageForTest({resolveAsset:resolver,onError},clock,{render:s=>{scene=s;renders++},setView:v=>{view=v},dispose(){}});return {stage,frames,get scene(){return scene},get renders(){return renders},get view(){return view},step(ms){now+=ms;const pending=[...frames.values()];frames.clear();for(const f of pending)f(now)}};}
+function harness(resolver=async()=>({ok:false}),onError=()=>{}){let now=0,id=0,renders=0;const frames=new Map();let scene,view;const clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:key=>frames.delete(key)};const stage=createStageForTest({resolveAsset:resolver,onError,initialOrientation:[0,0,0,1],fovDegrees:35,sensitivity:.004,dragThreshold:0},clock,{render:s=>{scene=s;renders++},setView:v=>{view=v},dispose(){}});return {stage,frames,get now(){return now},get scene(){return scene},get renders(){return renders},get view(){return view},step(ms){now+=ms;const pending=[...frames.values()];frames.clear();for(const f of pending)f(now)}};}
 test('shared stage draws two independently disposed children in one frame',async()=>{
  const h=harness(),a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;
  assert.equal((await a.setProjection(projection)).ok,true);assert.equal((await b.setProjection(projection)).ok,true);assert.equal(h.frames.size,1);h.step(0);assert.equal(h.renders,1);assert.equal(h.scene.children.filter(o=>o.name==='studio-shadow-receiver').length,1);
@@ -19,7 +26,7 @@ test('shared children turn and cancel independently while core follows its place
 });
 test('context loss cancels all child asset work and prevents late rendering',async()=>{
  const pending=[],signals=[];const h=harness((id,signal)=>{signals.push(signal);return new Promise(resolve=>pending.push(resolve))}),a=h.stage.addCube({position:[0,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;
- const withAsset={pieces:[{id:'same',transform:t(),stickers:[{id:'tile',transform:t(),size:[1,1],color:'#fff',imageId:'image'}]}]};
+ const withAsset={pieces:[{id:'same',transform:t(),stickers:[{id:'tile',transform:t([0,0,.5]),size:[1,1],color:'#fff',imageId:'image'}]}]};
  const pa=a.setProjection(withAsset),pb=b.setProjection(withAsset);h.stage.contextLost();assert.ok(signals.every(signal=>signal.aborted));assert.equal((await pa).error.code,'ContextLost');assert.equal((await pb).error.code,'ContextLost');assert.equal(h.frames.size,0);
  for(const resolve of pending)resolve({ok:true,value:{}});await Promise.resolve();h.step(0);assert.equal(h.renders,0);assert.equal((await a.setProjection(projection)).error.code,'ContextLost');h.stage.dispose();
 });
@@ -68,22 +75,22 @@ test('hidden shared stage suspends all child turns without idle redraw',async()=
 test('stage drag uses the source controller and reset restores its initial display',async()=>{
  const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);
  const listeners=new Map(),captured=new Set();const element={style:{touchAction:''},addEventListener:(type,fn)=>listeners.set(type,fn),removeEventListener:(type)=>listeners.delete(type),setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)};
- assert.equal(h.stage.setRotationMode('classic').ok,true);assert.equal(h.stage.attachInput(element).ok,true);
+ assert.equal(h.stage.setRotationMode('classic').ok,true);assert.equal(attachNative(h.stage,element,()=>h.now).ok,true);
  const emit=(type,x,y)=>listeners.get(type)?.({type,pointerId:1,clientX:x,clientY:y,timeStamp:0});emit('pointerdown',0,0);emit('pointermove',100,0);emit('pointerup',100,0);h.step(0);
  const moved=h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3());assert.ok(Math.abs(moved.z)>.1);assert.equal(h.stage.resetDisplayOrientation().ok,true);h.step(0);assert.ok(Math.abs(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)<1e-12);h.stage.dispose();assert.equal(listeners.size,0);
 });
 test('smart return uses one timer while idle and resumes frames at its deadline',async()=>{
  let now=0,id=0;const frames=new Map(),timers=new Map();const clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:id=>frames.delete(id),setTimer:(cb,delay)=>{timers.set(++id,{cb,at:now+delay});return id},clearTimer:id=>timers.delete(id)};
  const stage=createStageForTest({resolveAsset:async()=>({ok:false})},clock,{render(){},dispose(){}}),child=stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);
- const listeners=new Map(),capture=new Set(),el={style:{touchAction:''},addEventListener:(t,f)=>listeners.set(t,f),removeEventListener:t=>listeners.delete(t),setPointerCapture:id=>capture.add(id),hasPointerCapture:id=>capture.has(id),releasePointerCapture:id=>capture.delete(id)};stage.attachInput(el);
+ const listeners=new Map(),capture=new Set(),el={style:{touchAction:''},addEventListener:(t,f)=>listeners.set(t,f),removeEventListener:t=>listeners.delete(t),setPointerCapture:id=>capture.add(id),hasPointerCapture:id=>capture.has(id),releasePointerCapture:id=>capture.delete(id)};attachNative(stage,el,()=>now);
  const step=ms=>{now+=ms;for(const [key,timer] of [...timers])if(timer.at<=now){timers.delete(key);timer.cb()}const pending=[...frames.values()];frames.clear();for(const cb of pending)cb(now)};
  const emit=(type,x)=>listeners.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:now});step(0);emit('pointerdown',0);emit('pointermove',300);step(400);emit('pointerup',300);step(0);
  assert.equal(frames.size,0);assert.equal(timers.size,1);step(1000);assert.ok(frames.size>0);for(let i=0;i<50&&frames.size;i++)step(100);assert.equal(frames.size,0);assert.equal(timers.size,0);stage.dispose();
 });
 test('registered UI contacts block overlapping canvas drags until all contacts end',async()=>{
  const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);h.stage.setRotationMode('classic');
- const fake=()=>{const handlers=new Map(),captured=new Set();return {handlers,style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)}};
- const document=fake(),canvas=fake(),panel=fake();panel.ownerDocument=document;h.stage.attachInput(canvas);const registration=h.stage.registerInteractionSurface(panel);assert.equal(registration.ok,true);
+ const fake=()=>{const handlers=new Map(),captured=new Set(),listeners=new Map();return {handlers,style:{touchAction:''},addEventListener(t,f){if(!listeners.has(t)){listeners.set(t,new Set());handlers.set(t,event=>{for(const listener of [...listeners.get(t)])listener(event);});}listeners.get(t).add(f);},removeEventListener(t,f){listeners.get(t)?.delete(f);if(!listeners.get(t)?.size){listeners.delete(t);handlers.delete(t);}},setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)}};
+ const document=fake(),canvas=fake(),panel=fake();panel.ownerDocument=document;attachNative(h.stage,canvas,()=>h.now,document);const registration=h.stage.registerInteractionSurface(panel);assert.equal(registration.ok,true);
  const emit=(target,type,id,x=0)=>target.handlers.get(type)?.({type,pointerId:id,clientX:x,clientY:0,timeStamp:0});
  emit(canvas,'pointerdown',1);emit(panel,'pointerdown',2);emit(canvas,'pointermove',1,100);emit(document,'pointerup',2);emit(canvas,'pointermove',1,200);emit(canvas,'pointerup',1,200);h.step(0);
  assert.ok(Math.abs(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)<1e-12);
@@ -93,25 +100,25 @@ test('registered UI contacts block overlapping canvas drags until all contacts e
 test('removing an active UI surface releases its contacts',async()=>{
  const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);h.stage.setRotationMode('classic');
  const fake=()=>{const handlers=new Map();return {handlers,style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}}};
- const doc=fake(),canvas=fake(),panel=fake();panel.ownerDocument=doc;h.stage.attachInput(canvas);const remove=h.stage.registerInteractionSurface(panel).value;panel.handlers.get('pointerdown')({pointerId:9});remove();
+ const doc=fake(),canvas=fake(),panel=fake();panel.ownerDocument=doc;attachNative(h.stage,canvas,()=>h.now,doc);const remove=h.stage.registerInteractionSurface(panel).value;panel.handlers.get('pointerdown')({pointerId:9});remove();
  const emit=(type,x)=>canvas.handlers.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:0});emit('pointerdown',0);emit('pointermove',100);emit('pointerup',100);h.step(0);assert.ok(Math.abs(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)>.1);h.stage.dispose();
 });
 test('asynchronous display policy errors report once and do not schedule a motion loop',async()=>{
  const errors=[],h=harness(undefined,e=>errors.push(e.code)),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.step(0);
  assert.equal(h.stage.setViewPolicy(v=>{if(Math.abs(v.orientation[1])>.01)throw Error('bad');return {distance:10,far:100,groupScale:1}}).ok,true);h.step(0);
- const handlers=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};h.stage.attachInput(el);
+ const handlers=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};attachNative(h.stage,el,()=>h.now);
  const emit=(type,x)=>handlers.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:0});emit('pointerdown',0);h.step(10);emit('pointermove',100);emit('pointerup',100);h.step(0);
  assert.ok(errors.includes('InvalidView'));assert.equal(h.frames.size,0);h.stage.dispose();
 });
 test('configured display sensitivity and drag threshold follow caller options',async()=>{
  let now=0,next=0,rendered;const frames=new Map(),clock={now:()=>now,request:cb=>{frames.set(++next,cb);return next},cancel:id=>frames.delete(id)};
- const stage=createStageForTest({resolveAsset:async()=>({ok:false}),sensitivity:.01,dragThreshold:10,mode:'classic'},clock,{render:s=>{rendered=s},dispose(){}}),child=stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);
- const listeners=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>listeners.set(t,f),removeEventListener:t=>listeners.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};stage.attachInput(el);const step=()=>{const pending=[...frames.values()];frames.clear();for(const cb of pending)cb(now)};step();
+ const stage=createStageForTest({resolveAsset:async()=>({ok:false}),initialOrientation:[0,0,0,1],sensitivity:.01,dragThreshold:10,mode:'classic'},clock,{render:s=>{rendered=s},dispose(){}}),child=stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);
+ const listeners=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>listeners.set(t,f),removeEventListener:t=>listeners.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};attachNative(stage,el,()=>now);const step=()=>{const pending=[...frames.values()];frames.clear();for(const cb of pending)cb(now)};step();
  const emit=(type,x)=>listeners.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:now});emit('pointerdown',0);emit('pointermove',5);step();assert.ok(Math.abs(rendered.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z)<1e-12);emit('pointermove',12);emit('pointerup',12);step();assert.ok(Math.abs(rendered.getObjectByName('same').getWorldPosition(new THREE.Vector3()).z-Math.sin(-.12))<1e-6);stage.dispose();
 });
 test('child material settings survive artwork replacement and remain child-local',async()=>{
  const h=harness(),a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;
- const p={pieces:[{id:'same',transform:t(),stickers:[{id:'tile',transform:t(),size:[.8,.8],color:'#fff'}]}]};await a.setProjection(p);await b.setProjection(p);h.step(0);
+ const p={pieces:[{id:'same',transform:t(),stickers:[{id:'tile',transform:t([0,0,.5]),size:[.8,.8],color:'#fff'}]}]};await a.setProjection(p);await b.setProjection(p);h.step(0);
  assert.equal(a.setMaterial({specularIntensity:.03,roughness:.65,clearcoat:.01,receiveShadow:false}).ok,true);assert.equal((await a.setArtwork({stickers:[{id:'tile',color:'#ff0000'}]})).ok,true);h.step(0);
  const tiles=[];h.scene.traverse(o=>{if(o.name==='tile')tiles.push(o)});const red=tiles.find(o=>o.material.color.getHexString()==='ff0000'),white=tiles.find(o=>o.material.color.getHexString()==='ffffff');assert.equal(red.material.specularIntensity,.03);assert.equal(red.receiveShadow,false);assert.notEqual(white.material.specularIntensity,.03);h.stage.dispose();
 });
@@ -158,7 +165,7 @@ test('nonfinite derived caster bounds reject a view before backend commit',async
 });
 test('source plasticity render values 0, .6 and 1 reach material, lights and floor',async()=>{
  const {readFile}=await import('node:fs/promises'),fixture=JSON.parse(await readFile(new URL('./fixtures/cubistry-names-plasticity.json',import.meta.url)));const h=harness(),child=h.stage.addCube({position:[0,0,0]}).value;
- const p={pieces:[{id:'p',transform:t(),stickers:[{id:'tile',transform:t(),size:[.8,.8],color:'#fff'}]}]};await child.setProjection(p);h.step(0);
+ const p={pieces:[{id:'p',transform:t(),stickers:[{id:'tile',transform:t([0,0,.5]),size:[.8,.8],color:'#fff'}]}]};await child.setProjection(p);h.step(0);
  for(const c of fixture.cases){const base=namesLighting(),cfg={...base,keyShadowStrength:c.parts.shadowStrength,shadowFillStrength:.55*c.parts.shadowStrength,floorOpacity:.3*c.floorFactor,exposure:()=>c.gain};assert.equal(h.stage.setLighting(cfg).ok,true);assert.equal(child.setMaterial({specularIntensity:c.parts.specular,roughness:c.roughness,clearcoat:c.clearcoat,receiveShadow:c.parts.faceShadows}).ok,true);h.step(0);const mesh=h.scene.getObjectByName('tile'),key=h.scene.children.find(o=>o.isDirectionalLight&&o.castShadow),floor=h.scene.getObjectByName('studio-shadow-receiver');assert.equal(mesh.material.specularIntensity,c.parts.specular);assert.equal(mesh.material.roughness,c.roughness);assert.equal(mesh.material.clearcoat,c.clearcoat);assert.equal(mesh.receiveShadow,c.parts.faceShadows);assert.equal(key.shadow.intensity,c.parts.shadowStrength);assert.equal(floor.material.opacity,.3*c.floorFactor);assert.equal(h.view.exposure,c.gain);}
  h.stage.dispose();
 });
@@ -167,19 +174,19 @@ test('configured non-shadow light targets update their world matrices before dra
 });
 test('failed synchronous controller operations leave the previous display state',async()=>{
  const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.stage.setRotationMode('classic');
- const handlers=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};h.stage.attachInput(el);const emit=(type,x)=>handlers.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:0});h.step(0);emit('pointerdown',0);emit('pointermove',100);emit('pointerup',100);h.step(0);
+ const handlers=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};attachNative(h.stage,el,()=>h.now);const emit=(type,x)=>handlers.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:0});h.step(0);emit('pointerdown',0);emit('pointermove',100);emit('pointerup',100);h.step(0);
  const before=h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).clone();let invalid=false;h.stage.setExposurePolicy(()=>invalid?NaN:1);h.step(0);invalid=true;
  for(const op of [()=>h.stage.resetDisplayOrientation(),()=>h.stage.setRotationMode('smart'),()=>h.stage.setReducedMotion(true),()=>h.stage.interact()])assert.equal(op().error.code,'InvalidLighting');
  invalid=false;assert.equal(h.stage.invalidate().ok,true);h.step(0);assert.ok(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).distanceTo(before)<1e-12);h.stage.dispose();
 });
 test('visibility resume does not restore input while blurred',()=>{
- let now=0,id=0,hidden=false,visibility;const frames=new Map(),timers=new Map(),clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:i=>frames.delete(i),setTimer:(cb,delay)=>{timers.set(++id,{cb,at:now+delay});return id},clearTimer:i=>timers.delete(i),isHidden:()=>hidden,onVisibility:cb=>(visibility=cb,()=>{})};const stage=createStageForTest({resolveAsset:async()=>({ok:false})},clock,{render(){},dispose(){}});stage.addCube({position:[0,0,0]});const handlers=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};stage.attachInput(el);const emit=(type,x)=>handlers.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:now});emit('pointerdown',0);emit('pointermove',300);now=400;emit('pointerup',300);assert.equal(timers.size,1);stage.suspendInput();assert.equal(timers.size,0);hidden=true;visibility();hidden=false;visibility();assert.equal(timers.size,0);stage.resumeInput();assert.equal(timers.size,1);stage.dispose();
+ let now=0,id=0,hidden=false,visibility;const frames=new Map(),timers=new Map(),clock={now:()=>now,request:cb=>{frames.set(++id,cb);return id},cancel:i=>frames.delete(i),setTimer:(cb,delay)=>{timers.set(++id,{cb,at:now+delay});return id},clearTimer:i=>timers.delete(i),isHidden:()=>hidden,onVisibility:cb=>(visibility=cb,()=>{})};const stage=createStageForTest({resolveAsset:async()=>({ok:false})},clock,{render(){},dispose(){}});stage.addCube({position:[0,0,0]});const handlers=new Map(),el={style:{touchAction:''},addEventListener:(t,f)=>handlers.set(t,f),removeEventListener:t=>handlers.delete(t),setPointerCapture(){},hasPointerCapture(){return false},releasePointerCapture(){}};attachNative(stage,el,()=>now);const emit=(type,x)=>handlers.get(type)?.({type,pointerId:1,clientX:x,clientY:0,timeStamp:now});emit('pointerdown',0);emit('pointermove',300);now=400;emit('pointerup',300);assert.equal(timers.size,1);stage.suspendInput();assert.equal(timers.size,0);hidden=true;visibility();hidden=false;visibility();assert.equal(timers.size,0);stage.resumeInput();assert.equal(timers.size,1);stage.dispose();
 });
 test('far plane must lie strictly beyond the near plane',()=>{
  const h=harness();h.stage.addCube({position:[0,0,0]});h.step(0);const before=h.view,renders=h.renders;for(const far of [.05,.1]){assert.equal(h.stage.setViewPolicy(()=>({distance:10,far,groupScale:1})).error.code,'InvalidView');assert.deepEqual(h.view,before);h.step(0);assert.equal(h.renders,renders);}assert.equal(h.stage.setViewPolicy(()=>({distance:10,far:.1001,groupScale:1})).ok,true);h.stage.dispose();
 });
 test('child material survives full projection replacement without affecting its neighbor',async()=>{
- const h=harness(),a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;const p={pieces:[{id:'same',transform:t(),stickers:[{id:'tile',transform:t(),size:[.8,.8],color:'#fff'}]}],core:{center:[0,0,0],halfExtent:1}};await a.setProjection(p);await b.setProjection(p);a.setMaterial({specularIntensity:.03,roughness:.65,clearcoat:.01,receiveShadow:false});await a.setProjection(p);h.step(0);const tiles=[];h.scene.traverse(o=>{if(o.name==='tile')tiles.push(o)});const changed=tiles.find(o=>o.material.specularIntensity===.03),other=tiles.find(o=>o!==changed);assert.ok(changed);assert.equal(changed.material.roughness,.65);assert.equal(changed.material.clearcoat,.01);assert.equal(changed.receiveShadow,false);assert.notEqual(other.material.specularIntensity,.03);h.stage.dispose();
+ const h=harness(),a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;const p={pieces:[{id:'same',transform:t(),stickers:[{id:'tile',transform:t([0,0,.5]),size:[.8,.8],color:'#fff'}]}],core:{center:[0,0,0],halfExtent:1}};await a.setProjection(p);await b.setProjection(p);a.setMaterial({specularIntensity:.03,roughness:.65,clearcoat:.01,receiveShadow:false});await a.setProjection(p);h.step(0);const tiles=[];h.scene.traverse(o=>{if(o.name==='tile')tiles.push(o)});const changed=tiles.find(o=>o.material.specularIntensity===.03),other=tiles.find(o=>o!==changed);assert.ok(changed);assert.equal(changed.material.roughness,.65);assert.equal(changed.material.clearcoat,.01);assert.equal(changed.receiveShadow,false);assert.notEqual(other.material.specularIntensity,.03);h.stage.dispose();
 });
 
 test('default stage starts with native Cubistry camera and presentation orientation',()=>{
@@ -188,4 +195,29 @@ test('default stage starts with native Cubistry camera and presentation orientat
  assert.equal(stage.resize(1).ok,true);assert.equal(view.fovDegrees,18);
  const expected=new THREE.Quaternion().setFromEuler(new THREE.Euler(7*Math.PI/180,-Math.PI/18,0,'XYZ'));
  assert.ok(1-Math.abs(expected.dot(new THREE.Quaternion(...view.orientation)))<1e-12);stage.dispose();
+});
+
+test('stage input uses native HUD and rejects mode changes when the view policy rejects',()=>{
+ const h=harness(),document=new EventTarget(),media=new EventTarget(),window=new EventTarget();
+ const panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
+ const writes=[],environment={now:()=>0,document,media,window,storage:{getItem:()=>null,setItem:(...args)=>writes.push(args)}};
+ assert.equal(h.stage.attachInput(canvas,panel,'test-key',environment).ok,true);
+ const select=panel.children[0].children[0];assert.equal(select.value,'smart');let reject=false;
+ assert.equal(h.stage.setViewPolicy(()=>{if(reject)throw Error('denied');return {distance:10,far:100,groupScale:1}}).ok,true);
+ reject=true;select.value='free';select.dispatchEvent(new Event('change'));assert.equal(select.value,'smart');assert.deepEqual(writes,[]);h.stage.dispose();
+});
+
+test('native blur cancels a held pointer and focus permits a fresh drag',async()=>{
+ const h=harness(),child=h.stage.addCube({position:[1,0,0]}).value;await child.setProjection(projection);h.stage.setRotationMode('classic');h.step(0);
+ const document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
+ const environment={now:()=>h.now/1000,document,media,window};assert.equal(h.stage.attachInput(canvas,panel,undefined,environment).ok,true);
+ canvas.pointer('pointerdown',0,0);canvas.pointer('pointermove',50,0);h.step(0);const before=h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).clone();
+ window.dispatchEvent(new Event('blur'));canvas.pointer('pointermove',150,0);h.step(0);assert.ok(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).distanceTo(before)<1e-9);
+ window.dispatchEvent(new Event('focus'));canvas.pointer('pointerdown',0,0,2);canvas.pointer('pointermove',50,0,2);canvas.pointer('pointerup',50,0,2);h.step(0);assert.ok(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).distanceTo(before)>.01);h.stage.dispose();
+});
+
+test('context loss cancels native held pointer capture before later events',()=>{
+ const h=harness(),document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
+ assert.equal(h.stage.attachInput(canvas,panel,undefined,{now:()=>h.now/1000,document,media,window}).ok,true);
+ canvas.pointer('pointerdown',0,0,7);assert.equal(canvas.hasPointerCapture(7),true);h.stage.contextLost();assert.equal(canvas.hasPointerCapture(7),false);h.stage.dispose();
 });

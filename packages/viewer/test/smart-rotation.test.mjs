@@ -17,3 +17,10 @@ test('smart rotation reproduces pinned source phase and pose traces',async()=>{
   rotation.dispose();
  }
 });
+
+test('a validated controller snapshot can be adopted without replacing its identity',()=>{
+ const controller=new SmartRotation(new Quaternion()),reference=controller,candidate=controller.clone();
+ candidate.setMode('free',0);candidate.down(0);candidate.drag(.2,.3,.01);controller.adopt(candidate);
+ assert.equal(controller,reference);assert.equal(controller.mode,'free');assert.ok(1-Math.abs(controller.quaternion.dot(candidate.quaternion))<1e-12);
+ const before=controller.quaternion.clone();candidate.drag(.1,.1,.02);assert.ok(1-Math.abs(candidate.quaternion.dot(before))>1e-6);assert.ok(1-Math.abs(controller.quaternion.dot(before))<1e-12);controller.dispose();candidate.dispose();
+});

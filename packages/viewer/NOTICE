@@ -158,3 +158,7 @@ The source turn method also accepts a unit axis vector and an explicit pivot; th
 original numeric axis form remains available. This is a renderer-only extension.
 The scene exposes validated direct Core-owned presentation poses for all bodies;
 this preserves arbitrary body quaternions without turning them into puzzle state.
+The source SmartRotation controller additionally supports adopting a validated
+snapshot without replacing the instance held by the source input binding.
+The stage uses the source binding as its sole input path; the native stylesheet
+is copied into the distributed viewer output.
