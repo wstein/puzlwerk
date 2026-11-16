@@ -53,8 +53,13 @@ test('current merged workflow accepts only a proven first-attempt legacy deploy'
  const steps=currentSteps();
  const current={...run,head_sha:currentHead};
  let job={name:'Deploy production snapshot',status:'completed',conclusion:'success',steps};
- const api={request:async path=>path.startsWith('contents/')?{sha:hash}:current,pages:async path=>path.includes('/jobs')?[job]:[artifact],zip:async()=>Buffer.from('archive')};
+ const build={name:'build',status:'completed',conclusion:'success'};
+ const api={request:async path=>path.startsWith('contents/')?{sha:hash}:current,pages:async path=>path.includes('/jobs')?[build,job]:[artifact],zip:async()=>Buffer.from('archive')};
  assert.deepEqual(await sourceArtifact(api,{run:42,attempt:1,artifact:9}),Buffer.from('archive'));
+ job={...job,name:'wrong deploy job'};
+ await assert.rejects(sourceArtifact(api,{run:42,attempt:1,artifact:9}));
+ job={...job,name:'Deploy production snapshot'};
+ await assert.rejects(sourceArtifact({...api,request:async path=>path.startsWith('contents/')?{sha:hash}:{...current,run_attempt:2}},{run:42,attempt:2,artifact:9}));
  job={...job,steps:steps.map(x=>x.name.includes('writer.mjs prepare')?{...x,conclusion:'success'}:x)};
  await assert.rejects(sourceArtifact(api,{run:42,attempt:1,artifact:9}));
  for (const expected of steps) {
