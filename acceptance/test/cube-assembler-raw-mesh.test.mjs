@@ -37,3 +37,16 @@ test('native loop owns each outside face and cut cap in its explicit home cell',
   assert.deepEqual(own.filter(r=>r.role==='cap').map(r=>r.face).sort(),inside,`${x}${y}${z}:cap`);
  }
 });
+
+test('native sticker colors match the fixed wire appearance and source palette',async()=>{
+ const {readFile}=await import('node:fs/promises'); const {defaultStickerHex}=await import('../references/cube-assembler/src/core/view/CubeViewState.res.mjs');
+ const dir=new URL('../fixtures/cube-assembler-solved-2/',import.meta.url);const data=JSON.parse(await readFile(new URL('raw-mesh.json',dir),'utf8'));const appearance=JSON.parse(await readFile(new URL('appearance.json',dir),'utf8'));
+ const tokens=new Map(appearance.stickers.map(s=>[s.id,s.color]));let checked=0;
+ for(const r of data.ranges.filter(r=>r.role==='sticker')) {
+  const [x,y,z]=r.owner;const id=`p${4*x+2*y+z}.${r.face.toUpperCase()}`; const token=tokens.get(id);assert.ok(token,id);
+  const hex=defaultStickerHex[token];assert.match(hex,/^#[0-9a-f]{6}$/i);const rgb=[1,3,5].map(i=>Math.fround(parseInt(hex.slice(i,i+2),16)/255));
+  for(let i=r.firstIndex;i<r.firstIndex+r.indexCount;i++){const v=data.mesh.indices[i];assert.deepEqual(data.mesh.colors.slice(v*3,v*3+3),rgb,id);}
+  checked++;
+ }
+ assert.equal(checked,24);
+});

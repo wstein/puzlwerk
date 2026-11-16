@@ -24,5 +24,19 @@
   "turnOracle": "Original source invoked with R depth=1 width=1 at angles 0, pi/4, pi/2; per-attribute SHA-256 covers native typed-array bytes.",
   "shadowSamples": "Chromium WebGL, RGBA8 pixels; native fragment source with compile-time loop constants substituted. Renderer reports WebKit WebGL; sample values can vary by GPU precision.",
   "scope": "Render data only; no production mechanics, physical identity inference, visual parity or owner acceptance is asserted.",
-  "surfaceSamples": "Original VS and FS compiled together in Chromium WebGL RGBA8; identity model/MVP, fragment at origin, native camera and key/fill, four normal/color/occlusion inputs. Results can vary by GPU precision."
+  "surfaceSamples": "Original VS and FS compiled together in Chromium WebGL RGBA8; identity model/MVP, fragment at origin, native camera and key/fill, four normal/color/occlusion inputs. Results can vary by GPU precision.",
+  "appearanceContract": {
+    "paletteSource": "src/core/view/CubeViewState.res#defaultStickerHex",
+    "palette": {
+      "W": "#f7f6f1",
+      "O": "#ff7a1a",
+      "G": "#1e9e57",
+      "R": "#cf2a3a",
+      "B": "#2459d6",
+      "Y": "#f2d21b"
+    },
+    "stickerId": "p{4*x+2*y+z}.{uppercase face}; candidate home-slot IDs only",
+    "fixedCase": "Each native sticker RGB equals the float32 conversion of its appearance.json token through this native palette; native mesh data captures this fixed input. Runtime appearance overrides require explicit consumer support and are not established by this data fixture."
+  },
+  "regeneration": "Node tests import tracked native CubeMesh.res.mjs and regenerate all 0/45/90-degree typed arrays; no scratch arrays or other worktree are required. Root repository dependency installation supplies @rescript/runtime."
 }
