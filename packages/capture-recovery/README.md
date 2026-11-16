@@ -18,3 +18,11 @@ pinned `@rescript/runtime` dependency to execute them. `provenance.json` identif
 the actual source commit (or explicitly marks dirty input), each source hash,
 compiled runtime hashes and compiler version. This is not a promise that an
 uncommitted prototype is reproduced by its base commit.
+
+Version 0.2.0 adds the compiler-generated `Recovery` namespace. Its explicit
+bounded search and pure revision-checked wizard use the existing application's
+named feasibility checker as a temporary bridge. Optional Core wire assessments
+report only the supplied wire state and profile, not capture identity. Reviewed
+color grids are separate revision-bound inputs and never rewrite raw observations.
+Use returns an atomic review/confirmation value for the caller to install; the
+caller owns external state, stale-event rejection and restoration on cancel.

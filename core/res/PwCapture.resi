@@ -70,3 +70,6 @@ type outcome<'a> = | @as(true) Accepted({value: 'a}) | @as(false) Rejected({erro
 
 @genType let synchronizeObservations: (capture, int, array<observation>) => outcome<capture>
 @genType let verifySourceHash: (capture, string, string) => bool
+
+// Internal shared 2D projection primitive; no new application binding.
+let rotateGrid: (grid, int) => grid

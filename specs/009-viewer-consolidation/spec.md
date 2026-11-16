@@ -582,10 +582,10 @@ live hardware behavior or owner visual acceptance.
 
 ## Proposed capture-recovery application contract
 
-Status: **proposal; not implemented in PuzlWerk**. The owner requested this
+Status: **proposal for the full envelope; bounded WI1/WI2 domain runtime is recorded below**. The owner requested this
 contract and an acceptance case on 2026-11-16. The workflow below remains a UX
-proposal, not approval of a shared recovery engine, consumer migration or runtime
-implementation. CubeAssembler owns camera acquisition, recognition, guide
+proposal; the separately authorized WI1/WI2 domain boundary below does not approve
+a general recovery engine, consumer migration or publication. CubeAssembler owns camera acquisition, recognition, guide
 provenance, photo inspection and the review/commit workflow. Pure mapping,
 candidate constraints and legality belong in ReScript domain functions; the
 viewer presents application-supplied projections and owns no authoritative
@@ -736,3 +736,40 @@ ReScript checks with source revision and scope. It does not make those checks a
 PuzlWerk reachability proof. Future retirement of that bridge requires separately
 authorized canonical identity/conformance mappings and equivalent Core checks;
 no second permanent puzzle engine is introduced.
+
+The additive local `PwRecovery.resi` slice is exposed as the `Recovery` namespace
+of private package version 0.2.0. `findMatchingCube` requires that explicit action,
+complete current observations, finite evaluation/retention budgets and odd-size
+center-color constraints. It enumerates whole-face bijections and quarter turns;
+source bindings remain distinct even for identical grids. A truncated retained
+set does not prove uniqueness or impossibility. No symmetry reduction discards
+photo bindings. The legacy deterministic guide/unknownness guard stays in the
+application; this separate operation never starts itself as fallback.
+
+Optional `reviewedGrids` bind the existing application review/calibration result
+to the current capture revision and all six photo IDs. They are snapshotted;
+raw observations are unchanged. Center constraints, checker projections and
+wizard previews consume those reviewed grids. There is no color editor or color
+mutation in this domain package. Existing application edits invalidate the
+capture revision before a new search. The wizard asks unresolved canonical
+F/R/B/L/U/D choices and preserves source ambiguity; Back and Cancel operate on
+revision-checked pure review values. Use rechecks the exact current capture,
+selected retained ID and named feasibility checker. The caller atomically
+installs the returned closed review and confirmation with its current UI state;
+reusing a superseded pure handle is not an external commit. Cancel changes no
+previously confirmed application cube and the app restores its approval context.
+
+A checker pass must name its source revision and scope. Optional wire evidence
+is decoded and assessed by `PwCodec`/`PwValidate`; `scope=providedWireOnly` and the
+explicit profile travel with its result. It proves no capture-to-wire identity
+relation. No wire document is synthesized from capture colors. Invalid or
+Core-disproved supplied wire states cannot be committed. Other NxN reachability
+stays unknown without an applicable complete method. Full envelope decoding,
+backward-compatible export, device behavior and application acceptance remain
+open. The informational recovery route remains unimplemented and blocked.
+
+Regression coverage is in `test/capture-identity.test.mjs` and
+`test/capture-recovery.test.mjs`; `npm run check` runs these through the existing
+Node test glob. The existing `npm run test:package` also runs
+`scripts/verify-capture-package.mjs` for isolated runtime/types and extracted
+source rebuild. These tests do not establish browser or physical-cube acceptance.

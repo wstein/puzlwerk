@@ -1,0 +1,86 @@
+// EUPL-1.2; pure application recovery transactions, not a physical puzzle state.
+@genType type center = {target: PwCapture.face, color: string}
+@genType type reviewedGrid = {photoId: string, grid: PwCapture.grid}
+@genType type reviewed = {captureRevision: int, grids: array<reviewedGrid>}
+@genType
+type request = {
+  action: string,
+  searchId: string,
+  maxEvaluated: int,
+  maxCandidates: int,
+  centers: array<center>,
+  reviewedGrids: option<reviewed>,
+}
+@genType
+type check = {
+  status: string,
+  checkerId: string,
+  sourceRevision: string,
+  scope: string,
+  issues: array<string>,
+}
+@genType type wireInput = {definitionJSON: string, stateJSON: string, faceTurnsAssumed: bool}
+@genType type assessment = {feasibility: check, wire: option<wireInput>}
+@genType
+type wireReport = {
+  structural: bool,
+  reachability: string,
+  method: string,
+  profile: string,
+  scope: string,
+}
+@genType
+type retained = {
+  candidate: PwCapture.candidateInput,
+  feasibility: check,
+  wireReport: option<wireReport>,
+}
+@genType
+type summary = {
+  searchId: string,
+  evaluated: int,
+  coverage: string,
+  truncated: bool,
+  candidates: array<retained>,
+}
+@genType
+type choice = {placement: PwCapture.placement, grid: PwCapture.grid, candidateIds: array<string>}
+@genType type session
+@genType type review
+@genType
+type confirmation = {
+  candidate: PwCapture.candidate,
+  projection: array<PwCapture.projection>,
+  feasibility: check,
+  wireReport: option<wireReport>,
+}
+@genType type committed = {review: review, confirmed: confirmation}
+@genType let assessWire: wireInput => wireReport
+// Only action="findMatchingCube" enters the bounded whole-face/quarter-turn domain.
+// The transitional checker must name its source and scope; its pass is never reachability evidence.
+@genType
+let findMatchingCube: (
+  PwCapture.capture,
+  request,
+  (PwCapture.candidateInput, array<PwCapture.projection>) => assessment,
+) => PwCapture.outcome<session>
+@genType let describeSession: session => summary
+@genType let beginReview: session => review
+@genType let revision: review => int
+@genType let nextTarget: review => option<PwCapture.face>
+@genType let choices: review => array<choice>
+@genType let select: (review, int, PwCapture.placement) => PwCapture.outcome<review>
+@genType let back: (review, int) => PwCapture.outcome<review>
+@genType let cancel: (review, int) => PwCapture.outcome<review>
+@genType let selectedCandidate: review => option<PwCapture.candidateInput>
+// Pure CAS-style transaction: caller installs the returned review/confirmation together.
+@genType
+let useCandidate: (
+  PwCapture.capture,
+  review,
+  int,
+  string,
+  (PwCapture.candidateInput, array<PwCapture.projection>) => assessment,
+) => PwCapture.outcome<committed>
+
+@genType let projectCandidate: (session, string) => option<array<PwCapture.projection>>

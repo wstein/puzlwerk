@@ -7534,7 +7534,7 @@
       "sourceRoute": "/",
       "sourceRevision": "bab97177a0d4b860d47308f57df20963dfdc9946",
       "sourceComponent": "src/client/capture/useFaceRecovery.ts; src/core/capture/SpatialOrientationWizard.resi",
-      "sourceSymbol": "generateForProtocol; validateMapping; reviewProtocol; proposed findMatchingCube/use port is not implemented in PuzlWerk",
+      "sourceSymbol": "generateForProtocol; validateMapping; reviewProtocol; private @puzlwerk/capture-recovery has the bounded WI1/WI2 domain port, while this application acceptance route remains unimplemented.",
       "sourceTests": [
         "test/captureRecoveryPersistence.test.ts",
         "test/captureFaceMapping.test.ts",
@@ -7545,7 +7545,7 @@
       ],
       "sourceReference": "https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/docs/orientation-recovery.md",
       "sourceFixture": "test/fixtures/cube-4x4-2026-11-16T19-08-19.assembly.json; original local meta.json SHA-256 f76e61a0aa8bafd12db3b378b033d910853267e3ddea5d7387d19482bfc5f65c; photographs and other-size fixtures require separate provenance/rights pins.",
-      "sourceDefault": "PR #56 is Draft/unmerged. Preserve guide-conflict and incomplete-current-protocol guards. Proposed explicit Find a matching cube is not an automatic fallback or an existing PuzlWerk runtime.",
+      "sourceDefault": "PR #56 is Draft/unmerged at the source pin. Preserve guide-conflict and incomplete-current-protocol guards. The bounded ReScript domain search requires explicit Find a matching cube and a named feasibility checker; it is never automatic fallback.",
       "cube": "Captured 2x2-7x7 inputs with independently declared size/profile/check/search capabilities; current 4x4 metadata is assembly-only evidence, not a complete photo or reachability fixture.",
       "camera": "Application camera capture and mirror provenance remain with CubeAssembler; canonical transform, capture frame and viewer orbit are distinct.",
       "actions": "Proposed CR1-CR10 in acceptance-matrix.md: inspect guide conflict; explicit Find a matching cube; constrained whole-face mapping/quarter turns; progressive Front/Right/Back/Left/Up/Down choices; synchronized net/3D; source-photo inspection and color-editor return; explicit Use or cancel.",
@@ -7558,7 +7558,9 @@
         "specs/001-core-foundation/contracts/wire-v1.md",
         "specs/001-core-foundation/contracts/appearance-v1.md",
         "core/res/PwCodec.resi",
-        "core/res/PwValidate.resi"
+        "core/res/PwValidate.resi",
+        "core/res/PwCapture.resi",
+        "core/res/PwRecovery.resi"
       ],
       "productionViewer": [
         "packages/viewer/src/contract.ts#CubeScene",
@@ -7570,7 +7572,7 @@
       "originalReference": "https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/test/fixtures/cube-4x4-2026-11-16T19-08-19.assembly.json",
       "localUrlExample": "http://127.0.0.1:4174/acceptance/cube-assembler-capture-recovery/",
       "checklist": [
-        "Proposal only: follow CR1-CR10 in acceptance-matrix.md; no PuzlWerk recovery runtime, original hosting or owner acceptance is established.",
+        "Application acceptance remains blocked: follow CR1-CR10 in acceptance-matrix.md. The bounded private ReScript domain package is not a hosted recovery UI or owner acceptance.",
         "Correct guide capture in both mirror modes retains source IDs, all guide steps and explicit capture-to-canonical transform; wrong order/rotation never causes silent replacement.",
         "Explicit search constrains whole-face permutations/quarter turns, odd fixed centers and even face bijection; source colors/photos remain unchanged.",
         "Missing/retaken/mixed observations preserve uncertain provenance and the incomplete-capture guard; invalidate stale candidates by observation/draft/search revisions.",
