@@ -18,4 +18,20 @@ jobs:
       - run: npm run check
       - run: node --test acceptance/test/native-cube-assembler.test.mjs acceptance/test/cube-assembler-raw-mesh.test.mjs acceptance/test/cube-assembler-shadow.test.mjs
       - run: node acceptance/test/cube-assembler-source-profile.mjs
+      - run: npm ci --prefix docs/site
+      - run: npx playwright install --with-deps chromium
+        working-directory: docs/site
+      - name: Test native and shared viewer in Chromium
+        env:
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/docs/site/node_modules/playwright/index.mjs
+        run: |
+          mkdir -p "$RUNNER_TEMP/acceptance-test"
+          node acceptance/build.mjs --base /puzlwerk/ --out "$RUNNER_TEMP/acceptance-test/puzlwerk"
+          python3 -m http.server 8765 --directory "$RUNNER_TEMP/acceptance-test" &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          timeout 30 bash -c 'until curl -fsS http://127.0.0.1:8765/puzlwerk/ >/dev/null; do :; done'
+          node acceptance/test/cube-assembler-browser.mjs http://127.0.0.1:8765/puzlwerk/acceptance/cube-assembler-solved-2/
+          node acceptance/test/cube-assembler-profile-shadow-browser.mjs http://127.0.0.1:8765/puzlwerk/assets/viewer/cube-assembler-profile.js acceptance/fixtures/cube-assembler-solved-2/shadow-oracle.json
+          node acceptance/test/cube-assembler-profile-surface-browser.mjs http://127.0.0.1:8765/puzlwerk/assets/viewer/cube-assembler-profile.js acceptance/fixtures/cube-assembler-solved-2/surface-gpu-samples.json
       - run: npm run test:package
