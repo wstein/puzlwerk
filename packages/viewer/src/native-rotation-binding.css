@@ -1,0 +1,32 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later
+   Source: Cubistry efafcc1d97687eccea0cde87a230f447ce1b6c66 src/style.css.
+   The caller applies cube-appearance to the panel and loads this stylesheet. */
+.cube-appearance .cube-appearance-hint {
+  margin: 0;
+}
+.cube-appearance .cube-appearance-hint-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  order: 1;
+}
+.cube-appearance .cube-appearance-viewport > p[id^="cube-rotation-note-"] {
+  order: 2;
+}
+.cube-appearance .cube-appearance-info {
+  flex: none;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 10px solid transparent;
+  border-radius: 50%;
+  background: rgba(21, 59, 97, 0.12) padding-box;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1;
+}
+.cube-appearance :focus-visible {
+  outline: 2px solid var(--focus, #c8257e);
+  outline-offset: 2px;
+}
