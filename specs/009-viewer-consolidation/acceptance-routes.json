@@ -1,0 +1,646 @@
+{
+  "schemaVersion": "proposal-0",
+  "status": "INCOMPLETE: inventory and fixture decisions remain open; routes are reserved, not implemented",
+  "sourceHead": "277bf5b89a4b139e3188b85cb7d8358b2a28d4bc",
+  "routeBasePolicy": "Relative route appended to one configured build base; example is not a live URL.",
+  "statusVocabulary": [
+    "not implemented",
+    "not tested",
+    "passed",
+    "failed",
+    "blocked",
+    "owner approved"
+  ],
+  "cases": [
+    {
+      "id": "cubistry-clock",
+      "route": "acceptance/cubistry-clock/",
+      "sourceApp": "Cubistry",
+      "screen": "clock",
+      "sourceRoute": "index.html?app=clock",
+      "cube": "3 cubes; hours/minutes/seconds",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/clock/stage.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/browser/live-clock.spec.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/clock/stage.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-clock/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-clock/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-ms-timer",
+      "route": "acceptance/cubistry-ms-timer/",
+      "sourceApp": "Cubistry",
+      "screen": "ms-timer",
+      "sourceRoute": "index.html?app=ms-timer",
+      "cube": "3 cubes; minutes/seconds/tenths",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/ms-timer/cube.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/browser/ms-timer.spec.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/ms-timer/cube.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-ms-timer/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-ms-timer/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-calendar",
+      "route": "acceptance/cubistry-calendar/",
+      "sourceApp": "Cubistry",
+      "screen": "calendar",
+      "sourceRoute": "index.html?app=calendar",
+      "cube": "3x3 date",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/calendar/viewer.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/browser/calendar.spec.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/calendar/viewer.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-calendar/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-calendar/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-playground",
+      "route": "acceptance/cubistry-playground/",
+      "sourceApp": "Cubistry",
+      "screen": "playground",
+      "sourceRoute": "index.html?app=playground",
+      "cube": "2x2 picture cube",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/playground/browser-env.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/browser/playground.spec.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/playground/browser-env.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-playground/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-playground/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-hm-clock",
+      "route": "acceptance/cubistry-hm-clock/",
+      "sourceApp": "Cubistry",
+      "screen": "hm-clock",
+      "sourceRoute": "index.html?app=hm-clock",
+      "cube": "2 cubes; hours/minutes",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/clock/stage.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/clock-mode.test.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/clock/stage.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-hm-clock/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-hm-clock/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-tenth",
+      "route": "acceptance/cubistry-tenth/",
+      "sourceApp": "Cubistry",
+      "screen": "tenth",
+      "sourceRoute": "index.html?app=tenth",
+      "cube": "tenth-second counter",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/chronocube/tenth-controls.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/chronocube-timer-mode.test.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/chronocube/tenth-controls.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-tenth/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-tenth/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-counter",
+      "route": "acceptance/cubistry-counter/",
+      "sourceApp": "Cubistry",
+      "screen": "counter",
+      "sourceRoute": "index.html?app=counter",
+      "cube": "0–99 counter",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/counter/controller.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/browser/counter.spec.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/counter/controller.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-counter/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-counter/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-timer",
+      "route": "acceptance/cubistry-timer/",
+      "sourceApp": "Cubistry",
+      "screen": "timer",
+      "sourceRoute": "index.html?app=timer",
+      "cube": "workshop timer",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/chronocube/timer-mode.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/workshop-timer.test.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/chronocube/timer-mode.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-timer/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-timer/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-five-second-timer",
+      "route": "acceptance/cubistry-five-second-timer/",
+      "sourceApp": "Cubistry",
+      "screen": "five-second-timer",
+      "sourceRoute": "index.html?app=five-second-timer",
+      "cube": "5-second countdown",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/chronocube/timer-mode.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/browser/five-second-timer.spec.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/chronocube/timer-mode.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-five-second-timer/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-five-second-timer/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-hsm-counter",
+      "route": "acceptance/cubistry-hsm-counter/",
+      "sourceApp": "Cubistry",
+      "screen": "hsm-counter",
+      "sourceRoute": "index.html?app=hsm-counter",
+      "cube": "hours/minutes/seconds counter",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/chronocube/hsm-mode.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/clock-mode.test.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/chronocube/hsm-mode.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-hsm-counter/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-hsm-counter/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-ms-counter",
+      "route": "acceptance/cubistry-ms-counter/",
+      "sourceApp": "Cubistry",
+      "screen": "ms-counter",
+      "sourceRoute": "index.html?app=ms-counter",
+      "cube": "minutes/seconds counter",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/ms/controller.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/ms-timer-gaps.test.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/ms/controller.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-ms-counter/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-ms-counter/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-hm-one-cube",
+      "route": "acceptance/cubistry-hm-one-cube/",
+      "sourceApp": "Cubistry",
+      "screen": "hm-one-cube",
+      "sourceRoute": "index.html?app=hm-one-cube",
+      "cube": "hours/minutes single cube",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/hm/variant.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/clock-mode.test.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/hm/variant.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-hm-one-cube/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-hm-one-cube/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-calendar7",
+      "route": "acceptance/cubistry-calendar7/",
+      "sourceApp": "Cubistry",
+      "screen": "calendar7",
+      "sourceRoute": "index.html?app=calendar7",
+      "cube": "7x7 calendar",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/calendar7/viewer.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/browser/calendar7-3d.spec.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/calendar7/viewer.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-calendar7/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-calendar7/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    },
+    {
+      "id": "cubistry-ci",
+      "route": "acceptance/cubistry-ci/",
+      "sourceApp": "Cubistry",
+      "screen": "ci",
+      "sourceRoute": "index.html?app=ci",
+      "cube": "CI quality cube",
+      "sourceRevision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+      "sourceComponent": "src/apps/status/browser-env.ts",
+      "sourceCatalog": "src/apps/mode-catalog.ts",
+      "sourceTestCandidate": "tests/timer-status.test.mjs",
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeScene",
+        "packages/viewer/src/contract.ts#CubeScene"
+      ],
+      "productionCore": [
+        "core/res/PwCodec.res",
+        "core/res/PwMove.res"
+      ],
+      "productionPlay": "MISSING: shared PlayController not established",
+      "definition": "UNKNOWN: select wire-v1 fixture",
+      "state": "UNKNOWN: select wire-v1 fixture",
+      "appearance": "UNKNOWN: select appearance-v1 fixture",
+      "camera": "UNKNOWN: capture source parameters",
+      "actions": "UNKNOWN: inventory and pin exact actions",
+      "assets": "UNKNOWN: inventory and license assets",
+      "originalReference": "https://github.com/wstein/cubistry/blob/efafcc1d97687eccea0cde87a230f447ce1b6c66/src/apps/status/browser-env.ts",
+      "referenceEligibility": "BLOCKED: hosting and file/asset licensing not assessed",
+      "normalBase": "/acceptance/cubistry-ci/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cubistry-ci/",
+      "checklist": [
+        "Pin equivalent definition, state, appearance, camera and assets.",
+        "Exercise source actions and compare shared viewer and controller.",
+        "Check direct navigation at root and nested base.",
+        "Record independent functional and visual evidence and owner decision."
+      ],
+      "trace": "UNKNOWN",
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      }
+    }
+  ]
+}

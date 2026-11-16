@@ -535,3 +535,24 @@ rest and mid-turn desktop/mobile views, invalid data, default-path regressions,
 resource lifetime and targeted mutations of each profile field. Stage lighting
 captures with the old preset profile demonstrate lighting only, not Names
 geometry parity. Consumer migration and full owner HQ acceptance remain open.
+
+## Proposed acceptance suite and inventory gate
+
+The [acceptance inventory](acceptance-matrix.md) and `acceptance-routes.json` route manifest
+are an incomplete planning draft. They do not establish parity, activate a
+preview, authorize implementation, or replace VC5. Before suite implementation,
+complete and review the source inventory, concrete reproducible fixtures,
+reference eligibility, per-case checklists, and decisions recorded there. In
+particular the current manifest covers only the Cubistry registry, not all public
+entries or the other consumers. Its reserved routes are not deployed URLs.
+
+Each case requires an independent owner decision, evidence and the exact tested
+head. Architecture, functional and visual results are distinct; a pass or owner
+approval for one case implies nothing about another. An unavailable original or
+an unresolved license blocks comparison; do not substitute a fabricated visual
+reference. Wire definition/state and appearance remain governed by their
+existing contracts. The ReScript core is authoritative for physical puzzle
+state and moves; viewer projections and interpolated frames are not. The suite
+must use the production shared viewer and, once available, a shared production
+play controller; a parallel TypeScript mechanics engine or simulated play does
+not demonstrate this architecture.
