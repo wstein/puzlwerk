@@ -61,3 +61,10 @@ threshold, overlapping contacts, cancellation and disposal. Regenerate with:
 ```sh
 node packages/viewer/test/fixtures/generate-cubistry-drag.mjs /path/to/cubistry
 ```
+
+`cubistry-clock-framing.json` records source camera distance, pose-dependent
+scale and world centers for two and three cubes. Regenerate with:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-clock-framing.mjs /path/to/cubistry
+```
