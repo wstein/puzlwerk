@@ -54,3 +54,10 @@ Regenerate against the hash-checked pinned checkout with:
 ```sh
 node packages/viewer/test/fixtures/generate-cubistry-framing.mjs /path/to/cubistry
 ```
+
+`cubistry-presentation-drag.json` records the source drag lifecycle for a
+threshold, overlapping contacts, cancellation and disposal. Regenerate with:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-drag.mjs /path/to/cubistry
+```
