@@ -12,7 +12,7 @@ test('wire and appearance produce a viewer projection with stable sticker orient
   const r = open(definition, Codec.encodeState(Codec.homeState(d)), appearance, { palette:{red:'#ff0000',white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'}, defaultColor:'#ffffff' });
   assert.equal(r.ok,true,JSON.stringify(r));
   assert.equal(validateProjection(r.value.projection).ok,true);
-  const sticker = r.value.projection.pieces.flatMap(p => p.stickers).find(s => s.id === 'DBR.R');
+  const sticker = r.value.projection.pieces.flatMap(p => p.stickers).find(s => s.id === 'sticker:DBR.R');
   assert.equal(sticker.imageId,'imageR');
   assert.equal(r.value.appearance.stickers.find(s => s.id === 'DBR.R').symmetry,'C1');
   assert.deepEqual(sticker.sourceFace,{normal:[1,0,0],up:[0,1,0]});
@@ -102,4 +102,17 @@ test('real viewer completion and cancellation keep canonical state synchronized'
  const afterAnimation=player.state();assert.notEqual(afterAnimation,afterZero);
  const pending=player.turn('X',[1],1,100);step(50);player.cancel();assert.equal((await pending).error.code,'Cancelled');assert.equal(player.state(),afterAnimation);
  assert.equal((await player.turn('Y',[1],1,0)).ok,true);player.dispose();
+});
+
+test('overlapping wire piece and sticker IDs have distinct reversible viewer IDs',()=>{
+ const wire=JSON.parse(definitionText(2));wire.pieces[0].stickers[0].id=wire.pieces[0].id;
+ const definition=JSON.stringify(wire), d=Codec.decodeDefinition(definition)._0;
+ const appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]});
+ const palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const result=open(definition,Codec.encodeState(Codec.homeState(d)),appearance,{palette,defaultColor:'#ffffff'});
+ assert.equal(result.ok,true);assert.equal(validateProjection(result.value.projection).ok,true);
+ const piece=result.value.projection.pieces.find(p=>p.id===`piece:${wire.pieces[0].id}`);
+ assert.ok(piece.stickers.some(s=>s.id===`sticker:${wire.pieces[0].id}`));
+ assert.equal(result.value.ids.pieces.find(p=>p.wire===wire.pieces[0].id).viewer,piece.id);
+ assert.equal(result.value.ids.stickers.find(s=>s.wire===wire.pieces[0].id).viewer,`sticker:${wire.pieces[0].id}`);
 });
