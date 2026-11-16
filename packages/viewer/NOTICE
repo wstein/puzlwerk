@@ -71,3 +71,12 @@ material, miter and picture-window resource paths at the pinned revision. It
 uses explicit render metadata and source builders; public updates stage before
 commit. Target SHA-256
 069b37274590242731c9354a18f9b437d49130870f8deaf8b31f964919ef93eb.
+
+src/smart-rotation.ts: Cubistry packages/cube-viewer/src/smart-rotation.ts at
+revision efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
+5da909bf3b087dee125f19f7884521882219e492, source SHA-256
+4ff65f4bc27917d5682401a54df0ed9f8e343108302b486fd742f3058904cd3f.
+Copied with an SPDX header; target SHA-256
+7f092498cecec25a64dd8f3626f1df99b7b782484119458b870249cb400f9d3b.
+The source attributes inertia to the CubeAssembler MIT port; its terms are
+retained in CUBE_ASSEMBLER_LICENSE.txt.

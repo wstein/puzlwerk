@@ -36,3 +36,13 @@ The generator checks each direct viewer source hash before evaluating it.
 produced by `generate-cubistry-stickerless.mjs` and
 `generate-cubistry-picture.mjs`, each accepting the pinned Cubistry checkout
 path. They execute the actual PhysicalCubeScene with hash-checked source files.
+
+`cubistry-smart-rotation.json` records source controller poses, anchors, phases,
+return deadlines and speeds for smart, free, classic, reduced-motion and
+suspend/reset sequences. Generate it from the pinned checkout using:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-rotation.mjs /path/to/cubistry
+```
+
+The generator checks the source SHA-256 before executing the source controller.
