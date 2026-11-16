@@ -15,7 +15,7 @@ Cases reflect identified screens and distinct flows; the manifest explicitly nam
 
 ## Case index
 
-Each listed route is relative to one configured base and has its own checklist and owner decision in the manifest. These are reserved routes, not deployed pages. The nested PR 72 path is `/puzlwerk/pr-preview/pr-72/` plus the route.
+Each listed route is relative to one configured base and has its own checklist and owner decision in the manifest. These are reserved routes, not deployed pages. The local address is `http://127.0.0.1:4174/` plus the route.
 
 | Case ID | Relative route | Source screen |
 | --- | --- | --- |
@@ -130,7 +130,7 @@ Each listed route is relative to one configured base and has its own checklist a
 | Shared viewer | `packages/viewer/src/index.ts#createCubeScene`, `CubeScene` and stage interfaces exist | Case-level wire/appearance-to-projection mapping and production call evidence remain missing. Existing viewer tests do not establish consumer parity. |
 | Shared play controller | **MISSING** at the pinned PuzlWerk head | Specify and implement the production interface in a separately authorized phase. Existing Cubistry `src/apps/shared/playback.ts` and CubeLab `src/client/playback.ts` are separate implementations. Until then, play cases are blocked. |
 | Original references and licenses | **UNKNOWN** per case | Pin reproducible original, source revision, asset provenance and hosting eligibility; unavailable or unlicensed originals block the comparison. |
-| Route and build interface | Proposal | Routes are relative `acceptance/<id>/` under one configured base. Example `/puzlwerk/pr-preview/pr-72/acceptance/<id>/` is a hypothetical nested Pages path, not a live URL. Build command and manifest schema remain open. Test direct navigation, assets, workers and module imports at `/puzlwerk/` and `/puzlwerk/pr-preview/pr-72/`. One PR produces one preview, not one deployment per case. |
+| Route and build interface | Proposal | Routes are relative `acceptance/<id>/` under one configured base. Use `npm run dev` to serve the local suite and test direct navigation, reloads, assets, workers and module imports under `http://127.0.0.1:4174/`. |
 | Results | Proposal | Record architecture, functional and visual independently using `not implemented`, `not tested`, `passed`, `failed`, `blocked` or `owner approved`, with head, evidence and owner decision where applicable. Never infer owner approval. |
 | Preview and production policy | Proposal; gate **UNKNOWN** | See [preview plan](acceptance-preview-plan.md). Variable read returned 403; do not infer false or absence. Preserve explicit `deploy=true` production dispatch. Preview events may combine only verified already-published root bytes with their namespace, never unpublished main. Storage and verification require an owner decision. |
 | Acceptance record and approval | Owner decision open | Recommend versioned records with explicit attributable owner decision, exact case/head/fixture/scope and evidence. Local UI checks are observations, never owner approval; changed head or fixture invalidates the affected record. Architecture, functional and visual results stay separate. |

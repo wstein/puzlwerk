@@ -1,5 +1,7 @@
 # Acceptance preview proposal
 
+> Historical proposal, superseded by the owner’s local-demo decision on 2026-11-16. The PR-scoped Pages workflow described below is withdrawn; use `npm run dev` and the local routes in the acceptance manifest. The text remains as historical design evidence.
+
 Status: planning only. No workflow, deployment, publication, settings change or
 activation is authorized by this document. The suite contract and case routes
 are in `acceptance-routes.json`; each PR would have one static preview containing

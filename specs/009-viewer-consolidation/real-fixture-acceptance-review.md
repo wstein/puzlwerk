@@ -51,7 +51,7 @@ Each accepted route must expose or identify:
 1. **Keep PR #77 Draft:** its renderer-only diagnostic and informational cases remain clearly labeled; no claims of completed app parity.
 2. Build one real vertical slice per family, beginning with NxN CubeAssembler, Picture Cube and Calendar7 names. Show native baseline and adapter mapping before broad migrations.
 3. Continue with multi-cube Clock/Timer and Regrip sensor replay; then the remaining inventoried routes.
-4. Publish each implemented case under its **PR-scoped Preview** path (e.g. `/puzlwerk/pr-preview/pr-<number>/acceptance/<case>/`) only through the established gated preview mechanism. Record direct URLs and independently verify route reloads and assets.
+4. Open each implemented case locally with `npm run dev` at `http://127.0.0.1:4174/acceptance/<case>/`. Record the local route and independently verify reloads and assets.
 5. Require exact-head architectural, functional and visual review, then separate **owner acceptance**. Merge, production release and broad consumer migration remain separately gated.
 6. Follow-ups that add scope should be new, chronologically tracked work; do not silently rewrite already handed-off PR #77 scope.
 

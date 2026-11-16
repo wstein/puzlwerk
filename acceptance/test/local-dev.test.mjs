@@ -23,3 +23,9 @@ test('loopback server serves index, case deep link and module with correct MIME'
   assert.equal((await get(port,'/missing')).status,404);
  } finally {if(server)await new Promise(resolve=>server.close(resolve));await rm(dir,{recursive:true,force:true});}
 });
+test('acceptance manifest points each case at its local route',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const manifest=JSON.parse(await readFile(new URL('../../specs/009-viewer-consolidation/acceptance-routes.json',import.meta.url)));
+ assert.match(manifest.routeBasePolicy,/127\.0\.0\.1:4174/);
+ for(const c of manifest.cases){assert.equal(c.localUrlExample,`http://127.0.0.1:4174/${c.route}`);assert.equal(c.nestedBaseExample,undefined);assert.ok(c.checklist.every(item=>!item.includes('/pr-preview/')));}
+});

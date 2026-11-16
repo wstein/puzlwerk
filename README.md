@@ -21,6 +21,13 @@ PuzlWerk core (ReScript) supplies reusable mathematical puzzle models, states, m
 
 Read [AGENTS.md](AGENTS.md) and [the knowledge base](docs/knowledge-base/README.md). Work proceeds specification-first, with small focused conventional commits, tests, pull requests and human review. No implementation is authorized by this bootstrap alone.
 
+## Local acceptance comparisons
+
+After `npm ci`, run `npm run dev` and open <http://127.0.0.1:4174/>.
+The suite serves the [CubeAssembler 2×2 comparison](http://127.0.0.1:4174/acceptance/cube-assembler-solved-2/) and the [Cubistry classic 2×2 comparison](http://127.0.0.1:4174/acceptance/cubistry-playground-classic-2/) on this machine. `PORT=4175 npm run dev` selects another loopback port. Stop the server with Ctrl+C.
+
+These are bounded source-versus-candidate comparisons; they do not establish full application parity or owner acceptance. The standalone viewer demo remains available with `npm run dev --workspace @puzlwerk/viewer`.
+
 ## Knowledge navigation
 
 The [canonical knowledge index](docs/knowledge-base/README.md) links API reference,
