@@ -20,3 +20,13 @@ test('visible facelet comparison checks all six arrays and every position',async
  for(const face of Object.keys(value)){const changed=structuredClone(value);changed[face][3]=99;assert.equal(visibleColorsMatch(value,changed),false);}
  assert.equal(visibleColorsMatch(value,{...value,b:[1]}),false);
 });
+
+test('native primitive ranges map by explicit home slots and preserve every vertex',async()=>{
+ const {sourceMeshProfile}=await import('../acceptance/runtime/source-mesh-profile.mjs');
+ const definition={size:2,pieces:[{id:'a',home:[-1,-1,-1]},{id:'b',home:[1,-1,-1]}]};
+ const raw={positions:[-.5,-.5,-.5,-.4,-.5,-.5,-.5,-.4,-.5,.5,-.5,-.5,.6,-.5,-.5,.5,-.4,-.5],normals:Array(18).fill(0),colors:Array(18).fill(.5),occlusion:Array(6).fill(1),indices:[0,1,2,3,4,5],ranges:[{owner:[0,0,0],role:'body',firstIndex:0,indexCount:3},{owner:[1,0,0],role:'cap',firstIndex:3,indexCount:3}]};
+ const p=sourceMeshProfile(raw,definition);assert.equal(p.kind,'cubeAssemblerV1');assert.deepEqual(p.meshes.map(m=>m.pieceId),['piece:a','piece:b']);
+ assert.deepEqual(p.meshes[0].positions.slice(0,3),[0,0,0]);assert.deepEqual(p.meshes[1].positions.slice(0,3),[0,0,0]);
+ assert.throws(()=>sourceMeshProfile({...raw,ranges:[raw.ranges[0],{...raw.ranges[1],firstIndex:0}]},definition));
+ assert.throws(()=>sourceMeshProfile({...raw,ranges:[raw.ranges[0],{...raw.ranges[1],owner:null}]},definition));
+});
