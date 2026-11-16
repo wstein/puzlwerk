@@ -31,9 +31,13 @@ verify the exact current published tree and all preview namespaces against an
 original successful production deployment and its retained Pages artifact; a
 crawl or a later `main` build is not evidence of the published tree. The
 supported source is a first-attempt successful `documentation.yml` dispatch
-using the original workflow blob `3f73dcb8d236057eb6724d4c45475d5b3215ba53`
-and its unique `github-pages` artifact. If the artifact expired or the current
-publication cannot be linked to it, stop. The owner also verifies that all
+using either the original workflow blob `3f73dcb8d236057eb6724d4c45475d5b3215ba53`
+or the reviewed workflow blob `f7f131d5a3bd64a4052ffbc78b90538ba391f51a`,
+and its unique `github-pages` artifact. For the latter, the deploy job's
+completed steps must prove that the legacy path deployed `github-pages` and the
+combined-publication steps were skipped. Other workflow versions are rejected
+until their exact blob and deployment contract are reviewed and explicitly added.
+If the artifact expired or the current publication cannot be linked to it, stop. The owner also verifies that all
 Pages writers are drained. The artifact can be inspected locally using a
 separately obtained trusted copy; calculate the production-root and full-tree
 SHA-256 values with `baseline.digest(path)` and
