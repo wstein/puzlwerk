@@ -79,3 +79,53 @@ The focused pilot checks must compare the fixed reference scene's frame and stic
 On 2026-11-16, the owner authorized the implementation sequence in the session: first preserve and obtain visual acceptance of Cubistry presentation quality in the shared viewer, then migrate Cubistry, CubeAssembler, CubeLab, and Regrip in that order. This supersedes the earlier migration order. Each stage follows acceptance of its predecessor; unresolved concrete visual, license, and owner merge gates remain. Regrip includes a separate gyro, frame, and replay adapter and regression checks. The CubeAssembler migration must preserve 2×2–7×7 scan-to-view, validation, colors, view controls, turns, gestures, cancellation and error handling. Its acceptance includes browser and visual parity, owner live desktop and mobile touch acceptance, and rollback to the existing viewer without changing canonical scan/state data. Record actual devices, browsers, commands and results; parity remains **UNKNOWN until run**. Agree performance targets from measured before/after startup, frame time, idle rendering, memory and responsiveness; baseline and results are **UNKNOWN until measured**. Stop on failed parity or live acceptance, unacceptable regression or unresolved mapping; retain the existing viewer until the owner resolves the issue. Each consumer needs its own adapter, applicable regression and visual parity checks, live acceptance, license assessment, and rollback criteria.
 
 The bounded pilot package and local demo are implemented; consumer migrations follow the authorized sequence and remain subject to the concrete gates above.
+
+## Stage 1 source-extraction slice
+
+The first source-extraction slice adapts the render builders from Cubistry
+`PhysicalCubeScene` and their render-only dependency closure at revision `efafcc1d97687eccea0cde87a230f447ce1b6c66`.
+Preserve the source rendering algorithms and profiles; replace core and application
+imports at the boundary with explicit render data. Connect the existing 2×2
+projection contract without making rendered poses authoritative. The adapter
+must retain caller-owned assets, signed turns, exact endpoints, hidden-time
+pause, cancellation restore, and disposal.
+
+Acceptance requires source-versus-adapter fixtures with the same 2×2 frames,
+profile and materials, comparing body and sticker transforms and sticker up;
+quarter, half and multiple-revolution turn behavior; cancellation and resource
+lifetime checks; targeted mutations of the new checks; and actual browser
+captures. Record source files and revisions in NOTICE. Multi-cube, picture UV,
+stickerless, unequal layers, sizes 3–7, and full HQ visual acceptance remain
+open until separately demonstrated; this slice does not migrate a consumer.
+
+`PhysicalCubeScene` uses numeric IDs, discrete axis-aligned sticker frames, and
+axis-indexed turns about the origin. `CubeScene` permits string IDs, arbitrary
+unit quaternions, arbitrary unit axes, and nonzero pivots. The extraction must
+preserve the latter contract: map IDs explicitly and adapt transforms, or extract
+the source's render geometry and asset builders under the existing generic pose
+and turn wrapper. Do not silently reject valid projections or introduce a second
+parallel render engine. The bridge and any necessary contract extension require
+review before code. Follow-up scope is tracked in [#68](https://github.com/wstein/puzlwerk/issues/68).
+
+The adapter must preserve caller-supplied body poses and sticker-local poses
+independently, including arbitrary offsets, sizes, and rotations, without
+rounding or snapping them to a grid. Any string-to-numeric ID mapping is stable
+and bijective within a projection. Use a source profile only when explicitly
+supplied render data fits it, with no hidden normalization. Extract the original source geometry, artwork, material, and resource builders
+under the existing generic pose and motion wrapper, preserving their algorithms
+and recording the source-to-target diff. Source `sync` and `beginTurn` cannot
+replace the public generic contract unchanged. The extraction uses one shared
+builder and lifecycle for all valid projections.
+
+Regression fixtures must include arbitrary IDs, non-axis-aligned sticker
+rotation and turn axis, a nonzero pivot, a piece without stickers, and an empty
+projection in addition to the source 2×2 comparison. These are existing valid
+contract cases, not an expansion of the contract.
+
+The public profile path adds optional per-piece render data
+`geometry: { cellSize, outerSides }`: three finite cell extents strictly greater than the source gap (0.01), and
+three pairs of boolean exterior-side flags. The data is snapshot-copied,
+validated (including the gap boundary) and invariant between transition endpoints. It selects only the source
+body geometry builder; it does not alter body or sticker poses, sticker sizes,
+state, legality, or identity. When absent the same builder uses the existing
+generic dimensions; no separate renderer or options-level ID map is introduced.

@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import * as THREE from "three";
+import { createTwoRadiusBody, type OuterSides } from "./two-radius-body.js";
+import { thickOuterLayerWidths } from "./layer-widths.js";
+type LayerProfile = { readonly widths: readonly number[]; readonly body: (cell: readonly [number, number, number], outer: OuterSides) => THREE.BufferGeometry; readonly sticker?: (width: number, height: number) => THREE.BufferGeometry };
 
 /** Bounded presentation quality, shared by every current 2×2/3×3 consumer.
  * Shared cube geometry and two bounded shadow maps per scene (key and shadow fill). */
@@ -119,6 +122,28 @@ export function createStickerGeometry(width: number, height: number, radius: num
       THREE.MathUtils.clamp(positions.getY(i) / height + 0.5, 0, 1));
   sticker.userData.size = [width, height]; // exact (the float32 positions are not)
   return sticker;
+}
+
+/**
+ * Layer profile of the preset for the widths of an N-cube: a two-radius body per cubie (the preset gap; the large radius on the
+ * edges that lie on a cube edge, 0.6 of it on every other edge) and one sticker of the same size on every cell (the inner cell:
+ * the flat face of a cubie is the same size everywhere). `widths` decide the cell of each layer; the flat face of an exterior
+ * cubie is as large as that of an inner cubie when its outer layer is wider by `outerExtensionFor` than the inner layers
+ * (`presentationWidths`). `nominalEdge`: the edge that the radius rule uses (default the sum of the widths).
+ */
+export function presentationLayerProfile(widths: readonly number[], nominalEdge?: number): LayerProfile {
+  const p = PRESENTATION_PRESET, n = widths.length, edge = nominalEdge ?? widths.reduce((a, b) => a + b, 0);
+  const big = bodyRadiusFor(n, edge), small = innerRadiusFor(n, edge), sticker = stickerRadiusFor(n, edge), gap = 1 - p.bodyWidth;
+  const side = stickerSideFor(1, small);
+  return {
+    widths,
+    body: (cell, outer) => createTwoRadiusBody({ size: cell.map((c) => c - gap) as [number, number, number], outer, big, small, segments: p.bevelSegments }),
+    sticker: () => createStickerGeometry(side, side, sticker),
+  };
+}
+/** Layer widths of an N-cube of the preset without a profile: the outer layers wider by the extra rounding (see `presentationLayerProfile`). */
+export function presentationWidths(size: number): number[] {
+  return thickOuterLayerWidths(size, 1 + outerExtensionFor(size));
 }
 
 export function createPlasticMaterial(color = "#202329", roughness = 0.45) {

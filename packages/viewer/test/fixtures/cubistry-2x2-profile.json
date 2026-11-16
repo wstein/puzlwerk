@@ -1,0 +1,25 @@
+{
+  "source": "Cubistry packages/cube-viewer/src/presentation-preset.ts at efafcc1d97687eccea0cde87a230f447ce1b6c66",
+  "widths": [
+    1.012,
+    1.012
+  ],
+  "outer": [
+    [
+      true,
+      false
+    ],
+    [
+      true,
+      false
+    ],
+    [
+      true,
+      false
+    ]
+  ],
+  "position": "8be80da5d9c141674f3253bcbf279228134b126232feba0c2764f3b8a037c93b",
+  "normal": "aec278563138940039267ee7379052d7bce649b06b14ac862f6b008e06f7cec0",
+  "uv": "d12ad4860c1ee9895cf193877d685c9d48e101c3a3f7c96a73ac0493eca646db",
+  "index": "68ecdbf81b7c47118581f14d7503434e16031176f0098056896102ed50ce5b51"
+}
