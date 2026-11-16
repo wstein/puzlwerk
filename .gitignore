@@ -1,6 +1,8 @@
 node_modules/
 lib/
 **/*.res.mjs
+# GenType bindings are rebuilt from the ReScript interfaces before packaging.
+core/res/*.gen.ts
 **/.compiler.log
 
 # Disposable curated documentation build inputs and output
