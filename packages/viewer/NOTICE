@@ -131,3 +131,16 @@ The scene also adapts the Calendar7 layer-profile use of the two-radius builder
 and source rounded sticker scaling from Cubistry at the pinned revision. The
 optional rounded-box path uses the Three.js example geometry covered by the
 Three.js MIT notice.
+
+The opt-in CubeAssembler V1 source mesh material and shadow adapt render-only
+formulas from CubeAssembler revision 1b7387b3acd40d817ebff820ae3cfcff8b7b1dc2:
+src/client/view3d/cubeView3DGraphics.ts (SHA-256
+0ab9d6f6f787b5e879db4a72620a846e1779fb39b54de5039e2789bb8b22bb29),
+src/client/view3d/cubeShadow.ts (SHA-256
+09732c0ee1bcb2dded339fe07ec7945a09184fa9240fa0af29c4fac2b4db33cd) and
+src/core/view/CubeShadow.res (SHA-256
+a4d9f0eae60355ac8e1aa37b3d0b4fdcbbf751147e0b357d9d7f5dee1e0538a0).
+Source: https://github.com/wstein/cube-assembler/tree/1b7387b3acd40d817ebff820ae3cfcff8b7b1dc2
+CubeAssembler is MIT licensed; see CUBE_ASSEMBLER_LICENSE.txt. The adapter
+uses caller-supplied per-piece render buffers and does not include puzzle
+state, move rules, or application controls.

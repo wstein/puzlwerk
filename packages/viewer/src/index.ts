@@ -4,7 +4,7 @@ import { configurePresentationRenderer } from './presentation-preset.js';
 import { createStageForTest } from './stage.js';
 import { fail, ok } from './contract.js';
 import type { CubeScene, Result, ViewerOptions } from './contract.js';
-export type { BodyProfile, StickerGeometry, Appearance, ArtworkReplacement, FaceEdgeColors, Picture, SourceFace, AssetResolver, CubeProjection, CubeScene, Piece, PieceGeometry, Quaternion, Result, Sticker, Transform, Transition, Vec3, ViewerError, ViewerOptions } from './contract.js';
+export type { BodyProfile, StickerGeometry, SourceMesh, Appearance, ArtworkReplacement, FaceEdgeColors, Picture, SourceFace, AssetResolver, CubeProjection, CubeScene, Piece, PieceGeometry, Quaternion, Result, Sticker, Transform, Transition, Vec3, ViewerError, ViewerOptions } from './contract.js';
 export function createCubeScene(host: HTMLElement, options: ViewerOptions): Result<CubeScene> {
   let renderer: THREE.WebGLRenderer;
   try { renderer = new THREE.WebGLRenderer({antialias:true, alpha:true}); } catch { return fail('Unavailable','WebGL is unavailable'); }

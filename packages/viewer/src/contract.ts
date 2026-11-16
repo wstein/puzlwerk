@@ -16,7 +16,8 @@ export type PieceGeometry = { readonly cellSize: Vec3; readonly outerSides: read
 export type Piece = { readonly id: string; readonly transform: Transform; readonly stickers: readonly Sticker[]; readonly geometry?: PieceGeometry };
 export type Appearance = {readonly construction:'stickered'|'stickerless'; readonly bodyColor?:string|null; readonly coreColor?:string; readonly frameColor?:string|null; readonly miterCutFaces?:boolean; readonly planarFaceUv?:boolean};
 export type Picture = {readonly widths:readonly number[]; readonly faces:Readonly<Record<FaceKey,string>>};
-export type CubeProjection = { readonly geometryProfile?: { readonly body:BodyProfile }; readonly appearance?:Appearance; readonly picture?:Picture; readonly pieces: readonly Piece[]; readonly presentation?: { readonly size: number; readonly nominalEdge: number }; readonly core?: { readonly center: Vec3; readonly halfExtent: number } };
+export type SourceMesh = { readonly pieceId:string; readonly positions:readonly number[]; readonly normals:readonly number[]; readonly colors:readonly number[]; readonly occlusion:readonly number[]; readonly indices:readonly number[]; readonly surfaces:readonly {readonly role:'body'|'sticker'|'cap';readonly face?:string;readonly stickerId?:string;readonly firstIndex:number;readonly indexCount:number}[] };
+export type CubeProjection = { readonly renderProfile?: {readonly kind:'cubeAssemblerV1'; readonly size:number; readonly meshes:readonly SourceMesh[]}; readonly geometryProfile?: { readonly body:BodyProfile }; readonly appearance?:Appearance; readonly picture?:Picture; readonly pieces: readonly Piece[]; readonly presentation?: { readonly size: number; readonly nominalEdge: number }; readonly core?: { readonly center: Vec3; readonly halfExtent: number } };
 export type Transition = { readonly from: CubeProjection; readonly to: CubeProjection; readonly pieceIds: readonly string[]; readonly axis: Vec3; readonly signedAngleRadians: number; readonly pivot: Vec3; readonly durationMs: number };
 export type AssetResolver = (imageId: string, signal: AbortSignal) => Promise<Result<CanvasImageSource>>;
 export type ViewerOptions = { readonly resolveAsset: AssetResolver };
@@ -39,6 +40,24 @@ export function validateProjection(p: CubeProjection): Result<void> {
   const body=p.geometryProfile?.body; if(p.geometryProfile !== undefined && (!p.geometryProfile || !body || !['twoRadius','roundedBox'].includes(body.kind) || !Number.isFinite(body.gap) || body.gap<0 || !Number.isSafeInteger(body.bevelSegments) || body.bevelSegments<1 || (body.kind==='twoRadius' && !p.presentation) || (body.kind==='roundedBox' && (!Number.isFinite(body.radius)||body.radius<=0)))) return fail('InvalidProjection','Invalid body profile','geometryProfile');
   const a=p.appearance; if (a !== undefined && (!a || !['stickered','stickerless'].includes(a.construction) || (a.bodyColor != null && !hex(a.bodyColor)) || (a.coreColor !== undefined && !hex(a.coreColor)) || (a.frameColor != null && !hex(a.frameColor)) || (a.miterCutFaces !== undefined && typeof a.miterCutFaces !== 'boolean') || (a.planarFaceUv !== undefined && typeof a.planarFaceUv !== 'boolean'))) return fail('InvalidProjection','Invalid appearance','appearance');
   const picture=p.picture; if (picture !== undefined && (!picture || !dense(picture.widths) || picture.widths.length === 0 || !picture.widths.every(x => typeof x === 'number' && Number.isFinite(x) && x > 0) || (p.presentation && picture.widths.length !== p.presentation.size) || !picture.faces || Object.keys(picture.faces).length !== 6 || !FACE_KEYS.every(k => Object.hasOwn(picture.faces,k) && id(picture.faces[k])))) return fail('InvalidProjection','Invalid picture','picture');
+  const profile=p.renderProfile;
+  if(profile !== undefined) {
+    if(!profile || profile.kind!=='cubeAssemblerV1' || !Number.isInteger(profile.size) || profile.size<2 || profile.size>7 || !dense(profile.meshes) || profile.meshes.length!==p.pieces.length || p.picture !== undefined || p.geometryProfile !== undefined || p.core !== undefined || (p.appearance !== undefined && (p.appearance.construction!=='stickered' || Object.keys(p.appearance).some(k=>k!=='construction')))  || p.pieces.some((piece:Piece)=>Array.isArray(piece?.stickers) && piece.stickers.some((sticker:Sticker)=>(sticker?.imageId !== undefined || !hex(sticker?.color))))) return fail('InvalidProjection','Invalid source render profile','renderProfile');
+    const meshIds=new Set<string>();
+    for(const mesh of profile.meshes){
+      if(!mesh || !id(mesh.pieceId) || meshIds.has(mesh.pieceId) || !p.pieces.some((piece:Piece)=>piece?.id===mesh.pieceId)) return fail('InvalidProjection','Invalid source mesh identity','renderProfile');
+      meshIds.add(mesh.pieceId);
+      const piece=p.pieces.find((p:Piece)=>p?.id===mesh.pieceId) as Piece;
+      if(!dense(mesh.surfaces) || mesh.surfaces.length===0) return fail('InvalidProjection','Missing source surface ranges','renderProfile');
+      let rangeCursor=0;
+      for(const surface of mesh.surfaces){
+        if(!surface || !['body','sticker','cap'].includes(surface.role) || surface.firstIndex!==rangeCursor || !Number.isInteger(surface.indexCount) || surface.indexCount<=0 || surface.indexCount%3!==0 || (surface.face!==undefined && !['u','r','f','d','l','b'].includes(surface.face)) || (surface.role==='sticker' && (!surface.stickerId || !Array.isArray(piece.stickers) || !piece.stickers.some((sticker:Sticker)=>sticker?.id===surface.stickerId))) || (surface.role!=='sticker' && surface.stickerId!==undefined)) return fail('InvalidProjection','Invalid source surface range','renderProfile');
+        rangeCursor+=surface.indexCount;
+      }
+      if(!Array.isArray(mesh.indices) || rangeCursor!==mesh.indices.length) return fail('InvalidProjection','Incomplete source surface ranges','renderProfile');
+      if(!dense(mesh.positions) || mesh.positions.length===0 || mesh.positions.length%3!==0 || mesh.positions.length>3000000 || !mesh.positions.every(Number.isFinite) || !dense(mesh.normals,mesh.positions.length) || !mesh.normals.every(Number.isFinite) || !dense(mesh.colors,mesh.positions.length) || !mesh.colors.every(n=>typeof n==='number' && Number.isFinite(n) && n>=0 && n<=1) || !dense(mesh.occlusion,mesh.positions.length/3) || !mesh.occlusion.every(n=>typeof n==='number' && Number.isFinite(n) && n>=0 && n<=1) || !dense(mesh.indices) || mesh.indices.length===0 || mesh.indices.length%3!==0 || !mesh.indices.every((n,i)=>typeof n==='number' && Number.isInteger(n) && n===i && n<mesh.positions.length/3)) return fail('InvalidProjection','Invalid source mesh attributes','renderProfile');
+    }
+  }
   let participating=0; const ids = new Set<string>();
   for (const [i, piece] of p.pieces.entries()) {
     if (!piece || !id(piece.id) || ids.has(piece.id) || !transform(piece.transform) || !Array.isArray(piece.stickers)) return fail('InvalidProjection', 'Invalid piece', `pieces[${i}]`);
@@ -79,7 +98,7 @@ export function validateTransition(t: Transition): Result<void> {
   const fromValidation = validateProjection(t.from); if (!fromValidation.ok) return fromValidation;
   const toValidation = validateProjection(t.to); if (!toValidation.ok) return toValidation;
   if (!array(t.axis, 3) || !unit(t.axis) || !array(t.pivot, 3) || !Number.isFinite(t.signedAngleRadians) || !Number.isFinite(t.durationMs) || t.durationMs < 0 || !Array.isArray(t.pieceIds) || new Set(t.pieceIds).size !== t.pieceIds.length) return fail('InvalidTransition', 'Invalid turn');
-  if (!sameValues(t.from.geometryProfile,t.to.geometryProfile) || !sameValues(t.from.presentation, t.to.presentation) || !sameValues(t.from.core, t.to.core) || !sameValues(t.from.appearance,t.to.appearance) || !sameValues(t.from.picture,t.to.picture)) return fail('InvalidTransition', 'Scene metadata differs');
+  if (!sameValues(t.from.renderProfile,t.to.renderProfile) || !sameValues(t.from.geometryProfile,t.to.geometryProfile) || !sameValues(t.from.presentation, t.to.presentation) || !sameValues(t.from.core, t.to.core) || !sameValues(t.from.appearance,t.to.appearance) || !sameValues(t.from.picture,t.to.picture)) return fail('InvalidTransition', 'Scene metadata differs');
   const targets = new Map(t.to.pieces.map(p => [p.id, p]));
   const selected = new Set(t.pieceIds);
   if (targets.size !== t.from.pieces.length || [...selected].some(k => !targets.has(k) || !t.from.pieces.some(p => p.id === k))) return fail('InvalidTransition', 'Piece IDs differ');

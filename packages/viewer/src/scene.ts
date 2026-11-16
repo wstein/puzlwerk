@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Pivot grouping adapted from Cubistry physical-scene.ts; see NOTICE.
 import * as THREE from 'three';
+import {createCubeAssemblerMaterial,createCubeAssemblerGeometry,createCubeAssemblerShadow} from './cube-assembler-profile.js';
 import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import {createTwoRadiusBody} from './two-radius-body.js';
 import type { OuterSides } from './two-radius-body.js';
@@ -18,7 +19,7 @@ type Pending = { controller: AbortController; finish(result: Result<void>): void
 const copy = <T>(x: T): T => structuredClone(x);
 const sameProjection = (a: CubeProjection, b: CubeProjection) => {
   const normalize = (p: CubeProjection) => [...p.pieces].sort((x,y) => x.id.localeCompare(y.id)).map(x => ({...x, stickers: [...x.stickers].sort((s,t) => s.id.localeCompare(t.id))}));
-  return sameValues(normalize(a), normalize(b)) && sameValues(a.geometryProfile,b.geometryProfile) && sameValues(a.presentation,b.presentation) && sameValues(a.core,b.core) && sameValues(a.appearance,b.appearance) && sameValues(a.picture,b.picture);
+  return sameValues(normalize(a), normalize(b)) && sameValues(a.renderProfile,b.renderProfile) && sameValues(a.geometryProfile,b.geometryProfile) && sameValues(a.presentation,b.presentation) && sameValues(a.core,b.core) && sameValues(a.appearance,b.appearance) && sameValues(a.picture,b.picture);
 };
 
 export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend, shared?: { scene: THREE.Scene; parent: THREE.Group }): CubeScene {
@@ -86,6 +87,8 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     for (const piece of p.pieces) {
       const body = new THREE.Group(); body.name = piece.id;
       body.position.set(...piece.transform.position); body.quaternion.set(...piece.transform.rotation);
+      const sourceMesh=p.renderProfile?.meshes.find(m=>m.pieceId===piece.id);
+      if(sourceMesh){const geometry=createCubeAssemblerGeometry(sourceMesh,piece), material=createCubeAssemblerMaterial();candidateResources.push(geometry,material);const surface=new THREE.Mesh(geometry,material);surface.castShadow=false;surface.receiveShadow=false;body.add(surface);staging.add(body);continue;}
       const sides: [[boolean, boolean], [boolean, boolean], [boolean, boolean]] = [[false,false],[false,false],[false,false]];
       for (const sticker of piece.stickers) {
         const n = new THREE.Vector3(0,0,1).applyQuaternion(new THREE.Quaternion(...sticker.transform.rotation));
@@ -146,6 +149,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       for (const {candidate,existing} of pairs) { existing!.clear(); while(candidate.children.length) existing!.add(candidate.children[0]); }
       const retained=resources.splice(0);for (const r of retained) {if(keep.has(r)) candidateResources.push(r);else r.dispose();}
     } else { clear(); while (staging.children.length) root.add(staging.children[0]); }
+    if(p.renderProfile){const shadow=createCubeAssemblerShadow(p.renderProfile.size,root);scene.add(shadow.mesh);candidateResources.push(shadow);}
     for (const core of cores) parent.add(core);
     resourcesForCommit(candidateResources);
     projection = p; draw();
@@ -177,6 +181,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       if (lost) return Promise.resolve(fail('ContextLost','Context lost'));
       if (livePending || (pending && !pending.from)) return Promise.resolve(fail('Busy','Operation in progress'));
       if (!projection) return Promise.resolve(fail('InvalidProjection','No projection'));
+      if (projection.renderProfile) return Promise.resolve(fail('Unavailable','Artwork replacement is unsupported for source mesh profiles'));
       let replacement: typeof input;
       try { replacement=copy(input); } catch { return Promise.resolve(fail('InvalidProjection','Invalid artwork')); }
       if (!replacement || !Array.isArray(replacement.stickers) || Array.from(replacement.stickers).some(s=>!s || typeof s.id !== 'string' || !s.id)) return Promise.resolve(fail('InvalidProjection','Invalid artwork'));
