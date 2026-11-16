@@ -68,6 +68,6 @@ test('explicit layer widths map a complete source grid without a picture asset',
 
 test('conflicting independent layer and picture widths are rejected',async()=>{
  const {validateProjection}=await import('../dist/contract.js'),faces={U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'};
- const p={pieces:[],presentation:{size:3,nominalEdge:4.2,layerWidths:[1.6,1,1.6]},picture:{widths:[1,1,1],faces}};
- assert.equal(validateProjection(p).error.code,'InvalidProjection');
+ const p={pieces:[{id:'p',transform:{position:[0,0,1],rotation:identity},stickers:[{id:'s',transform:{position:[0,0,.5],rotation:identity},size:[.87,.87],color:'#ffffff',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[1,1,2]}}]}],presentation:{size:3,nominalEdge:4.2,layerWidths:[1.6,1,1.6]},picture:{widths:[1,1,1],faces}};
+ const error=validateProjection(p).error;assert.equal(error.code,'InvalidProjection');assert.equal(error.path,'presentation');assert.equal(validateProjection({...p,presentation:{...p.presentation,layerWidths:[1,1,1]}}).ok,true);
 });

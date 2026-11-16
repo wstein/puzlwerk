@@ -187,3 +187,9 @@ test('layer profile presents Core slots at native nonuniform layer centers',()=>
  const centers=[...new Set(result.value.projection.pieces.map(p=>p.transform.position[0]))].sort((a,b)=>a-b);assert.equal(centers.length,3);for(let i=0;i<3;i++)assert.ok(Math.abs(centers[i]-[-1.3,0,1.3][i])<1e-12);
  for(const bad of [[1,1],[1,-1,1],[1,1,2]])assert.equal(open(definition,state,appearance,{palette,defaultColor:'#ffffff',presentation:{...presentation,layerWidths:bad}}).error.code,'InvalidPresentation');
 });
+
+test('layered stickers use native local cell depth and face dimensions',()=>{
+ const definition=definitionText(3),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d)),appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube3',stickers:[]}),palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const presentation={cellSize:1,bodyGap:.01,bodyRadius:.08,bodyKind:'twoRadius',bodyInnerRadius:.04,size:3,nominalEdge:4.2,layerWidths:[1.6,1,1.6],stickerWidth:.87,stickerRadius:.055,stickerOffset:.502};const result=open(definition,state,appearance,{palette,defaultColor:'#ffffff',presentation});assert.equal(result.ok,true);
+ const corner=result.value.projection.pieces.find(p=>p.geometry.cellSize.every(v=>v===1.6)),sticker=corner.stickers[0];assert.ok(Math.abs(Math.hypot(...sticker.transform.position)-.802)<1e-12);assert.deepEqual(sticker.size,[.87*1.6,.87*1.6]);assert.deepEqual(sticker.geometry.referenceSize,[.87,.87]);
+});
