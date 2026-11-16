@@ -24,6 +24,7 @@ class ExtractionTest(unittest.TestCase):
         self.assertIn('noindex,nofollow',out['acceptance/case/index.html'])
         self.assertIn('&lt;script&gt;',out['index.html'])
         self.assertEqual(out['assets/app.js'],'ok')
+        self.assertNotIn('.nojekyll',out)
     def test_unsafe_paths_and_duplicate_entries_rejected(self):
         for path in ['../outside', 'pr-preview/pr-73/index.html', '.git/config', 'acceptance/%2e%2e/index.html', 'CNAME']:
             with self.subTest(path=path), self.assertRaises(ValueError): self.run_archive([('index.html',HTML),(path,HTML)])
