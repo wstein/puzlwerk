@@ -21,7 +21,7 @@ const server = createServer(async (req, res) => {
   } catch { res.writeHead(404).end(); }
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-const browser = await chromium.launch({headless:true,args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const browser = await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{}),args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 try {
   const page = await browser.newPage({viewport:{width:1200,height:700},deviceScaleFactor:1});
   const errors=[]; page.on('pageerror', e=>errors.push(e.message));
@@ -40,16 +40,18 @@ try {
     // in this harness. onViewChanged only records the resulting presentation.
     const made=createCubeStage(document.querySelector('#target'),{
       resolveAsset:async id=>({ok:false,error:{code:'UnresolvedAsset',message:id}}),
+      rotationStorageKey:'parity-stage-mode',
       onViewChanged:v=>{window.targetView={...v,t:performance.now()}},
     });
     if (!made.ok) throw Error(JSON.stringify(made));
     const added=made.value.addCube({position:[0,0,0]}); if(!added.ok) throw Error(JSON.stringify(added));
     const scene=added.value, palette=Object.fromEntries(native.assets.images.filter(x=>x.kind==='color').map(x=>[x.id,x.color]));
-    const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff'},scene);
+    const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff',core:{center:[0,0,0],halfExtent:1}},scene);
     if (!opened.ok) throw Error(JSON.stringify(opened));
     const player=opened.value, set=await scene.setProjection(player.projection()); if (!set.ok) throw Error(JSON.stringify(set));
-    window.parity={source,scene,player,native,assets,parseMove,presentMove};
+    window.parity={source,stage:made.value,scene,player,native,assets,parseMove,presentMove};
   });
+  assert.equal(await page.locator('#target select[aria-label="View rotation mode"]').count(),1,"native rotation mode HUD must be present on the real shared stage");
   await page.waitForTimeout(500);
   const canvases=[page.locator('#native canvas'),page.locator('#target canvas')];
   // Compare change across the full frame, rather than a few fixed pixels. Each
@@ -94,19 +96,44 @@ try {
       return [0,500].map(x=>{const c=document.createElement('canvas');c.width=500;c.height=500;const ctx=c.getContext('2d');ctx.drawImage(i,x,0,500,500,0,0,500,500);return c.toDataURL().split(',')[1];});},screenshot);
   }
   const beforeTurn=await pair();
-  await page.evaluate(()=>{const p=window.parity; const move=p.parseMove('R');p.sourceTurn=p.source.animate(p.presentMove(p.native.target,move));p.targetTurn=p.player.turn('X',[1],-1,250);});
-  await page.waitForTimeout(125);const during=await pair();
-  await page.waitForTimeout(175);await page.evaluate(async()=>{const p=window.parity;await Promise.all([p.sourceTurn,p.targetTurn]);});
-  const after=await pair();
-  for(let i=0;i<2;i++) {
-    const first=await delta(Buffer.from(beforeTurn[i],'base64'),Buffer.from(during[i],'base64'));
-    const second=await delta(Buffer.from(during[i],'base64'),Buffer.from(after[i],'base64'));
-    assert.ok(first>0.05 && second>0.05, `${i?'target':'source'} turn must change before and after the shared mid-frame`);
+  await page.evaluate(async()=>{
+    const [{PhysicalCubeScene:Source},{PhysicalCubeScene:Target}]=await Promise.all([import('/assets/reference/packages/cube-viewer/src/physical-scene.js'),import('/assets/viewer/physical-scene.js')]);
+    const traces={source:[],target:[]};window.turnTraces=traces;
+    for(const [kind,Class] of [['source',Source],['target',Target]]){const begin=Class.prototype.beginTurn;Class.prototype.beginTurn=function(...args){const turn=begin.apply(this,args),update=turn.update,pivot=this.bodies.get(args[0][0]).parent;turn.update=progress=>{update(progress);traces[kind].push({progress,pose:pivot.quaternion.toArray()})};return turn;};}
+    const p=window.parity,move=p.parseMove('R');p.sourceTurn=p.source.animate(p.presentMove(p.native.target,move));p.targetTurn=p.player.turn('X',[1],-1,250);
+    await Promise.all([p.sourceTurn,p.targetTurn]);
+  });
+  const after=await pair(),traces=await page.evaluate(()=>window.turnTraces);
+  for(const [i,kind] of ['source','target'].entries()) {
+    assert.equal(traces[kind].at(-1)?.progress,1,`${kind} turn must reach its endpoint`);
+    const endpoint=traces[kind].at(-1).pose;assert.ok(traces[kind].some(({progress,pose})=>progress>0 && progress<1 && angle(pose,[0,0,0,1])>1e-4 && angle(pose,endpoint)>1e-4),`${kind} turn must present a real intermediate pose`);
+    const changed=await delta(Buffer.from(beforeTurn[i],'base64'),Buffer.from(after[i],'base64'));
+    assert.ok(changed>0.05,`${kind} rendered frame must change across the turn`);
   }
   await page.evaluate(()=>{const p=window.parity;p.beforeCancel=p.player.state();p.pendingCancel=p.player.turn('Y',[1],-1,1000);});
   await page.waitForTimeout(100);
   const cancel=await page.evaluate(async()=>{const p=window.parity;p.player.cancel();return {result:await p.pendingCancel,before:p.beforeCancel,after:p.player.state()};});
   assert.equal(cancel.result.error?.code,'Cancelled');assert.equal(cancel.before,cancel.after);
+  const hud=await page.evaluate(async()=>{
+    const select=document.querySelector('#target select[aria-label="View rotation mode"]');
+    const stage=window.parity.stage,initial=select.value;
+    const modeResult=stage.setRotationMode('free'),afterApi=select.value;
+    stage.setRotationMode('smart');let reject=false;
+    const policy=stage.setViewPolicy(()=>{if(reject)throw Error('policy denied');return {distance:12,far:100,groupScale:1}});
+    reject=true;select.value='classic';select.dispatchEvent(new Event('change',{bubbles:true}));
+    const afterDenied=select.value,storageAfterDenied=localStorage.getItem('parity-stage-mode');
+    reject=false;select.value='free';select.dispatchEvent(new Event('change',{bubbles:true}));
+    const storedMode=JSON.parse(localStorage.getItem('parity-stage-mode')).mode;
+    const fresh=document.createElement('div');fresh.className='testhost';document.body.append(fresh);
+    const {createCubeStage}=await import('/assets/viewer/index.js');
+    const rebuilt=createCubeStage(fresh,{resolveAsset:async()=>({ok:false,error:{code:'UnresolvedAsset',message:'unused'}}),rotationStorageKey:'parity-stage-mode'});
+    const restored=rebuilt.ok?fresh.querySelector('select[aria-label="View rotation mode"]').value:'ERROR';if(rebuilt.ok)rebuilt.value.dispose();fresh.remove();
+    const stylesheet=document.querySelector('#target').ownerDocument.querySelector('link[data-puzlwerk-rotation-css]');
+    const cssStatus=stylesheet?(await fetch(stylesheet.href)).status:0;
+    window.dispatchEvent(new Event('blur'));window.dispatchEvent(new Event('focus'));
+    return {initial,modeOk:modeResult.ok,afterApi,policyOk:policy.ok,afterDenied,storageAfterDenied,storedMode,restored,cssStatus};
+  });
+  assert.deepEqual(hud,{initial:'smart',modeOk:true,afterApi:'free',policyOk:true,afterDenied:'smart',storageAfterDenied:null,storedMode:'free',restored:'free',cssStatus:200});
   assert.deepEqual(failures,[],failures.join('; '));
   console.log('PASS classic 2x2 drag, coast, wheel, native/target turn and target cancellation');
 } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}
