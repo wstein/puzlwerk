@@ -1,0 +1,31 @@
+name: Notify acceptance previews
+on:
+  workflow_run:
+    workflows: [Reconcile acceptance previews]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: write
+jobs:
+  notify:
+    if: vars.PAGES_PREVIEWS_ENABLED == 'true' && github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - run: node scripts/pages/notify.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH_RUN: ${{ github.event.workflow_run.id }}
+          PUBLISH_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          PUBLISH_SHA: ${{ github.event.workflow_run.head_sha }}
+          PAGES_BOOTSTRAP_RUN: ${{ vars.PAGES_BOOTSTRAP_RUN }}
+          PAGES_BOOTSTRAP_ATTEMPT: ${{ vars.PAGES_BOOTSTRAP_ATTEMPT }}
+          PAGES_BOOTSTRAP_NONCE: ${{ vars.PAGES_BOOTSTRAP_NONCE }}
