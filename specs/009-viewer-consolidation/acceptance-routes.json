@@ -5912,10 +5912,11 @@
         "core/res/PwMove.resi"
       ],
       "productionViewer": [
-        "packages/viewer/src/index.ts#createCubeScene",
-        "packages/viewer/src/index.ts#createCubeStage"
+        "packages/viewer/src/index.ts#createCubeStage",
+        "packages/viewer/src/stage-host.ts#CubeStage",
+        "packages/viewer/src/stage.ts#StageView"
       ],
-      "productionPlay": "MISSING: shared PuzlWerk PlayController; source application retains its native implementation.",
+      "productionPlay": "MISSING: production orientation/gizmo binding and shared PlayController; source replay and native viewport remain separate.",
       "referenceEligibility": "BLOCKED: assess exact source, fixture, asset license and hosting eligibility.",
       "originalReference": "https://github.com/wstein/cubelab/blob/5ab482719a31b894bd32d78ea76c64609b89acb2/src/client/cube-gl.ts",
       "normalBase": "/puzlwerk/acceptance/cubelab-orientation-debug/",
@@ -5924,6 +5925,7 @@
         "Native setup: Use /dev/mock with source replay, or source orientation math fixture y quaternion (0, √½, 0, √½).",
         "Source action → expected: Axes at identity map x→R y→U z→F; after y map x→F y→U z→L; accepted y regrip plus matching flick must not apply twice. Gauge UI availability must be confirmed.",
         "Source evidence at pinned revision: test/client/cube-gl.test.ts:65; test/client/cube-gl.test.ts:84; src/client/converter.ts:2919.",
+        "Verify identity and y-quaternion axes against source math; a gauge or click-manipulable gizmo UI is not established and remains UNKNOWN. Distinguish camera orbit from physical pose and do not apply a regrip twice.",
         "Open /puzlwerk/acceptance/cubelab-orientation-debug/ and /puzlwerk/pr-preview/pr-72/acceptance/cubelab-orientation-debug/; record actual loads and assets.",
         "Compare equivalent native state and appearance through the production core/viewer interfaces; report BLOCKED where production mapping, play or original hosting is missing.",
         "Record separate architecture, functional and visual evidence with tested head, fixture, device and explicit owner decision."
@@ -6518,7 +6520,7 @@
       "sourceRoute": "/console/",
       "sourceRevision": "ebe7d32d0fd1f0b74c528cd38618afda3f5a991e",
       "sourceComponent": "src/adapters/three/sceneView.ts",
-      "sourceSymbol": "src/adapters/three/sceneView.ts:startSceneRenderLoop; src/adapters/three/orientationIndicator.ts:createOrientationIndicator",
+      "sourceSymbol": "createOrientationIndicator; startSceneRenderLoop; physical quaternion and virtual frame are separate",
       "sourceTests": [
         "src/adapters/three/sceneView.test.ts",
         "src/adapters/three/orientationIndicator.test.ts",
@@ -6540,10 +6542,11 @@
         "core/res/PwMove.resi"
       ],
       "productionViewer": [
-        "packages/viewer/src/index.ts#createCubeScene",
-        "packages/viewer/src/index.ts#createCubeStage"
+        "packages/viewer/src/index.ts#createCubeStage",
+        "packages/viewer/src/stage-host.ts#CubeStage",
+        "packages/viewer/src/stage.ts#StageView"
       ],
-      "productionPlay": "MISSING: shared PuzlWerk PlayController; source application retains its native implementation.",
+      "productionPlay": "MISSING: shared production gizmo/frame/replay bridge and shared PlayController; TwistyPlayer and Three source remain distinct.",
       "referenceEligibility": "BLOCKED: assess exact source, fixture, asset license and hosting eligibility.",
       "originalReference": "https://github.com/wstein/regrip/blob/ebe7d32d0fd1f0b74c528cd38618afda3f5a991e/src/adapters/three/sceneView.ts",
       "normalBase": "/puzlwerk/acceptance/regrip-gizmo/",
@@ -6552,6 +6555,7 @@
         "Native setup: Open /test/browser/gizmo-harness.html; await data-ready.",
         "Source action → expected: Canvas visible at width 320; axis pixel counts red, white and green each >30; no page errors. Physical pose and virtual frame are separate inputs.",
         "Source evidence at pinned revision: test/browser/gizmo.spec.ts:3; src/adapters/three/sceneView.ts:18.",
+        "Compare physical quaternion, virtual frame and view orientation separately through the source replay/scene adapters; device gyro and live visual acceptance require explicit device evidence.",
         "Open /puzlwerk/acceptance/regrip-gizmo/ and /puzlwerk/pr-preview/pr-72/acceptance/regrip-gizmo/; record actual loads and assets.",
         "Compare equivalent native state and appearance through the production core/viewer interfaces; report BLOCKED where production mapping, play or original hosting is missing.",
         "Record separate architecture, functional and visual evidence with tested head, fixture, device and explicit owner decision."
@@ -6581,7 +6585,8 @@
       "nativeScenario": {
         "setup": "Open /test/browser/gizmo-harness.html; await data-ready.",
         "actionExpected": [
-          "Canvas visible at width 320; axis pixel counts red, white and green each >30; no page errors. Physical pose and virtual frame are separate inputs."
+          "Canvas visible at width 320; axis pixel counts red, white and green each >30; no page errors. Physical pose and virtual frame are separate inputs.",
+          "Use the source replay/scene adapters to supply physical pose and virtual-frame inputs; compare axis labels and colors without applying a regrip twice. Replay evidence does not establish real-device gyro acceptance."
         ],
         "sourceEvidence": [
           "test/browser/gizmo.spec.ts:3; src/adapters/three/sceneView.ts:18"
@@ -7387,6 +7392,88 @@
         "setup": "Use rotation binding test fixture with a retained displayed quaternion.",
         "actionExpected": "Set document hidden → rotation freezes; show again → resume deadline excludes hidden time and pose remains unchanged.",
         "sourceEvidence": "tests/rotation-binding.test.mjs; packages/cube-viewer/src/rotation-binding.ts",
+        "result": "not run"
+      }
+    },
+    {
+      "id": "cube-assembler-orientation-gizmo",
+      "route": "acceptance/cube-assembler-orientation-gizmo/",
+      "sourceApp": "CubeAssembler",
+      "screen": "orientation-gizmo",
+      "sourceRoute": "/",
+      "sourceRevision": "8ac10f5ae65f68e56a08bad5bdb738efe0e5bd4f",
+      "sourceComponent": "src/client/view3d/axisGizmo.tsx",
+      "sourceSymbol": "AxisGizmo; gizmoAxes/gizmoCamera",
+      "sourceTests": [
+        "e2e/cubeView3D-controls.spec.ts"
+      ],
+      "sourceReference": "https://github.com/wstein/cube-assembler/blob/8ac10f5ae65f68e56a08bad5bdb738efe0e5bd4f/src/client/view3d/axisGizmo.tsx",
+      "sourceFixture": "Source E2E solved cube, 2×2, Front (F); e2e/cubeView3D-controls.spec.ts:50.",
+      "sourceDefault": "Open source /, select 2×2, Solved cube, 3D View and Front (F).",
+      "cube": "2x2 solved",
+      "camera": "Source useCubeCamera initializes ISOMETRIC_PITCH, ISOMETRIC_YAW and getDefaultZoom(puzzleSize); src/client/view3d/useCubeCamera.ts. Applicable 3D cases record actual viewport.",
+      "actions": "Gizmo shows X/Y/Z and has pointer-events none; touch passes through to the canvas.; Two-finger whole-cube y turn → history Moves: y and Z-axis color changes; 2D→3D retains that color; Undo and Reset each restore the original color.",
+      "assets": "MIT source; retain LICENSE and public/licenses notices; assess individual fixture/photos/fonts.",
+      "wireFixture": "BLOCKED: production mapping of source ReScript core to wire-v1 definition/state is not established.",
+      "appearanceFixture": "BLOCKED: production appearance-v1 adapter and exact sticker mapping not established.",
+      "coreContract": [
+        "specs/001-core-foundation/contracts/wire-v1.md",
+        "specs/001-core-foundation/contracts/appearance-v1.md",
+        "core/res/PwCodec.resi",
+        "core/res/PwMove.resi"
+      ],
+      "productionViewer": [
+        "packages/viewer/src/index.ts#createCubeStage",
+        "packages/viewer/src/stage-host.ts#CubeStage",
+        "packages/viewer/src/stage.ts#StageView"
+      ],
+      "productionPlay": "MISSING: shared PlayController and production gizmo binding at pinned PuzlWerk head.",
+      "referenceEligibility": "BLOCKED: assess this exact source, fixture and asset license and hosting eligibility.",
+      "originalReference": "https://github.com/wstein/cube-assembler/blob/8ac10f5ae65f68e56a08bad5bdb738efe0e5bd4f/src/client/view3d/axisGizmo.tsx",
+      "normalBase": "/puzlwerk/acceptance/cube-assembler-orientation-gizmo/",
+      "nestedBaseExample": "/puzlwerk/pr-preview/pr-72/acceptance/cube-assembler-orientation-gizmo/",
+      "checklist": [
+        "Native setup: Open source /, select 2×2, Solved cube, 3D View and Front (F).",
+        "Source action → expected: Gizmo shows X/Y/Z and has pointer-events none; touch passes through to the canvas.",
+        "Source action → expected: Two-finger whole-cube y turn → history Moves: y and Z-axis color changes; 2D→3D retains that color; Undo and Reset each restore the original color.",
+        "Separately orbit/drag the source canvas → axis projection follows source pitch/yaw; distinguish physical whole-cube y turn and display-only view rotation.",
+        "Source evidence: src/client/view3d/axisGizmo.tsx; e2e/cubeView3D-controls.spec.ts:50-118.",
+        "Open /puzlwerk/acceptance/cube-assembler-orientation-gizmo/ and /puzlwerk/pr-preview/pr-72/acceptance/cube-assembler-orientation-gizmo/; record source and production evidence for this case.",
+        "The shared viewer has view callbacks and reset, but a production gizmo and its binding are not established: BLOCKED. Do not synthesize a source click control.",
+        "Record architecture, functional and visual results with head, fixture, device, trace and explicit owner decision."
+      ],
+      "trace": null,
+      "evidence": [],
+      "status": {
+        "architecture": "blocked",
+        "functional": "not tested",
+        "visual": "not tested",
+        "owner": "not tested"
+      },
+      "kind": "application",
+      "implementation": "not implemented",
+      "resultRecord": {
+        "testedHead": null,
+        "fixtureIdentity": null,
+        "scope": null,
+        "deviceAndBrowser": null,
+        "architectureEvidence": null,
+        "functionalEvidence": null,
+        "visualEvidence": null,
+        "ownerDecision": null,
+        "ownerEvidence": null,
+        "stale": null
+      },
+      "nativeScenario": {
+        "setup": "Open source /, select 2×2, Solved cube, 3D View and Front (F).",
+        "actionExpected": [
+          "Gizmo shows X/Y/Z and has pointer-events none; touch passes through to the canvas.",
+          "Two-finger whole-cube y turn → history Moves: y and Z-axis color changes; 2D→3D retains that color; Undo and Reset each restore the original color."
+        ],
+        "sourceEvidence": [
+          "src/client/view3d/axisGizmo.tsx",
+          "e2e/cubeView3D-controls.spec.ts:50-118"
+        ],
         "result": "not run"
       }
     }
