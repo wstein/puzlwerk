@@ -1,0 +1,96 @@
+{
+  "renderer": "Chromium WebGL; RGBA8, identity model and MVP, pixel center",
+  "camera": [
+    0,
+    0,
+    6.6
+  ],
+  "key": [
+    1.5,
+    2.5,
+    2
+  ],
+  "fill": [
+    -2,
+    -1,
+    -2
+  ],
+  "samples": [
+    {
+      "normal": [
+        0,
+        0,
+        1
+      ],
+      "color": [
+        0.8,
+        0.2,
+        0.1
+      ],
+      "occlusion": 1,
+      "rgba": [
+        164,
+        44,
+        24,
+        255
+      ]
+    },
+    {
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "color": [
+        0.8,
+        0.2,
+        0.1
+      ],
+      "occlusion": 1,
+      "rgba": [
+        200,
+        50,
+        25,
+        255
+      ]
+    },
+    {
+      "normal": [
+        0,
+        0,
+        1
+      ],
+      "color": [
+        0.8,
+        0.2,
+        0.1
+      ],
+      "occlusion": 0.58,
+      "rgba": [
+        95,
+        25,
+        14,
+        255
+      ]
+    },
+    {
+      "normal": [
+        0,
+        0,
+        -1
+      ],
+      "color": [
+        0.11,
+        0.11,
+        0.12
+      ],
+      "occlusion": 1,
+      "rgba": [
+        21,
+        21,
+        23,
+        255
+      ]
+    }
+  ]
+}
