@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/wstein/cubistry",
+  "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+  "files": {
+    "LICENSE": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+    "src/apps/picture3/model.ts": "19f87020ce08cfebbfaaaccbe7f8be83b80a04085c9359e2407fc21d4f95a3e6",
+    "src/apps/picture3/editor.ts": "669ae99ab5e375bf63fcd18a808039d590a39350b6108eaa21d5a600f0dbabc4",
+    "src/apps/picture3/images.ts": "d96e4d63dab0ccbac304ce7e64302fa176e57c379efc9a5cb3c5d7e326d3eaa0",
+    "src/apps/picture3/presets.ts": "0730de7561d2a36b6bed6b593b8aa6d4def047d9d335a664faa7dac94f8e2f2f",
+    "src/apps/calendar/model.ts": "b460e4da9e2fadf31ca960a627e4fb10509eb4d2e0ce0e8c91b4cb43ece06f4d",
+    "src/apps/calendar/viewer.ts": "6be1bb37d5e79e028b05014010da045e50874482b0dc380408787843da4eb7ef",
+    "src/apps/calendar/artwork.ts": "ff05a4f9a4d52c1be303378fdcea24be47bc67bc5301c55882961cb08dddb3ad"
+  }
+}
