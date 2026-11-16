@@ -15,8 +15,8 @@ AGPL-3.0-or-later for the package. See LICENSE and CUBE_ASSEMBLER_LICENSE.txt
 (the latter preserves the Cubistry project's recorded MIT port terms).
 
 Three.js 0.187.0 is MIT licensed; see THREE_LICENSE.txt. Its matching
-@types/three 0.187.0 is a development dependency used for TypeScript checking;
-its transitive development dependencies are recorded in the root lockfile.
+@types/three 0.187.0 is a required dependency for the public TypeScript
+declarations; its transitive dependencies are recorded in the root lockfile.
 
 The following render-only sources are from the same Cubistry revision:
 
@@ -77,8 +77,9 @@ src/smart-rotation.ts: Cubistry packages/cube-viewer/src/smart-rotation.ts at
 revision efafcc1d97687eccea0cde87a230f447ce1b6c66, Git blob
 5da909bf3b087dee125f19f7884521882219e492, source SHA-256
 4ff65f4bc27917d5682401a54df0ed9f8e343108302b486fd742f3058904cd3f.
-Copied with an SPDX header; target SHA-256
-7f092498cecec25a64dd8f3626f1df99b7b782484119458b870249cb400f9d3b.
+Adapted with an SPDX header and a candidate clone for transaction rollback;
+target SHA-256
+54a994073449ced9723d63f2fb15dcf0fb489d5a215f801a07d1176e5653527b.
 The source attributes inertia to the CubeAssembler MIT port; its terms are
 retained in CUBE_ASSEMBLER_LICENSE.txt.
 
