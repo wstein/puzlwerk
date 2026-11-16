@@ -26,4 +26,12 @@ class ProductionTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             base=Path(tmp); new=base/'new'; new.mkdir(); (new/'index.html').write_text('new'); (new/'pr-preview').mkdir()
             with self.assertRaises(ValueError): production.prepare(new,base/'out','a'*40,12,1,'b'*32,None,legacy=True)
+    def test_cli_produces_receipt_for_legacy_dispatch(self):
+        import json, os, subprocess
+        with tempfile.TemporaryDirectory() as tmp:
+            base=Path(tmp); new=base/'new'; new.mkdir(); (new/'index.html').write_text('new')
+            env={**os.environ,'GITHUB_SHA':'a'*40,'GITHUB_RUN_ID':'12','GITHUB_RUN_ATTEMPT':'1'}
+            subprocess.run(['python3','-B',str(Path(__file__).parents[2]/'scripts/pages/production.py'),'--source',str(new),'--destination',str(base/'out'),'--legacy'],env=env,check=True)
+            receipt=json.loads((base/'out/.puzlwerk-publication.json').read_text())
+            self.assertEqual((receipt['sha'],receipt['run'],receipt['attempt']),('a'*40,12,1))
 if __name__=='__main__': unittest.main()
