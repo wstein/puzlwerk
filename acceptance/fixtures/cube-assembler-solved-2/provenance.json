@@ -16,5 +16,24 @@
       "yaw": -0.74
     }
   },
-  "status": "Native fixture and original source bundle only; candidate facelet mapping and live comparison remain unverified."
+  "status": "Native fixture and original source bundle are packaged; candidate visible facelet trace matches Core in a local integration test. Browser rendering and owner visual acceptance remain unverified.",
+  "candidateMapping": "Candidate IDs p0..p7 are assigned to known solved shell slots, sticker IDs pN.FACE to exposed faces; they are not CubeAssembler identities. The CA native facelet order is derived from CubeViewState.res#getFaceletColor.",
+  "moveMapping": [
+    {
+      "native": "R +1",
+      "core": "X layer 1, -1"
+    },
+    {
+      "native": "U +1",
+      "core": "Y layer 1, -1"
+    },
+    {
+      "native": "R -1",
+      "core": "X layer 1, +1"
+    },
+    {
+      "native": "U -1",
+      "core": "Y layer 1, +1"
+    }
+  ]
 }
