@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Pivot grouping adapted from Cubistry physical-scene.ts; see NOTICE.
 import * as THREE from 'three';
+import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import {createTwoRadiusBody} from './two-radius-body.js';
 import type { OuterSides } from './two-radius-body.js';
-import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile, stickerRadiusFor } from './presentation-preset.js';
+import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile, stickerRadiusFor, bodyRadiusFor, innerRadiusFor } from './presentation-preset.js';
 import { createPresentationStudio } from './studio.js';
 import { sourceBody, pictureTexture } from './artwork-scene.js';
 import { stickerWindow } from './projected-uv.js';
@@ -16,7 +18,7 @@ type Pending = { controller: AbortController; finish(result: Result<void>): void
 const copy = <T>(x: T): T => structuredClone(x);
 const sameProjection = (a: CubeProjection, b: CubeProjection) => {
   const normalize = (p: CubeProjection) => [...p.pieces].sort((x,y) => x.id.localeCompare(y.id)).map(x => ({...x, stickers: [...x.stickers].sort((s,t) => s.id.localeCompare(t.id))}));
-  return sameValues(normalize(a), normalize(b)) && sameValues(a.presentation,b.presentation) && sameValues(a.core,b.core) && sameValues(a.appearance,b.appearance) && sameValues(a.picture,b.picture);
+  return sameValues(normalize(a), normalize(b)) && sameValues(a.geometryProfile,b.geometryProfile) && sameValues(a.presentation,b.presentation) && sameValues(a.core,b.core) && sameValues(a.appearance,b.appearance) && sameValues(a.picture,b.picture);
 };
 
 export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend, shared?: { scene: THREE.Scene; parent: THREE.Group }): CubeScene {
@@ -95,7 +97,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const width = offsets.length ? Math.max(.94, Math.min(.99, Math.min(...offsets) * 2 - .002)) : .94;
       const cell=piece.geometry?.cellSize ?? [width+.01,width+.01,width+.01], outer=piece.geometry?.outerSides ?? sides as OuterSides;
       const geometryKey=JSON.stringify([cell,outer]);let geometry=bodyGeometries.get(geometryKey);
-      if(!geometry){geometry=profile.body(cell as [number,number,number],outer);bodyGeometries.set(geometryKey,geometry);candidateResources.push(geometry);}
+      if(!geometry){const custom=p.geometryProfile?.body;if(custom){const size=cell.map(c=>c-custom.gap) as [number,number,number];geometry=custom.kind==='twoRadius'?createTwoRadiusBody({size,outer,big:bodyRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),small:innerRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),segments:custom.bevelSegments}):new RoundedBoxGeometry(...size,custom.bevelSegments,custom.radius);}else geometry=profile.body(cell as [number,number,number],outer);bodyGeometries.set(geometryKey,geometry);candidateResources.push(geometry);}
       const material = createPlasticMaterial(p.appearance?.frameColor ?? '#1b2431'); candidateResources.push(material);
       const tileTextures=new Map<string,THREE.Texture>();
       for (const sticker of piece.stickers) if (sticker.imageId) {
@@ -106,14 +108,15 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const mesh = new THREE.Mesh(surface.geometry, surface.material); mesh.castShadow = true; mesh.receiveShadow = true; body.add(mesh);
       for (const sticker of piece.stickers) {
         const radius=Math.min(p.presentation ? stickerRadiusFor(p.presentation.size,p.presentation.nominalEdge) : .055, ...sticker.size.map(x => x / 2));
-        const stickerKey=JSON.stringify([...sticker.size,radius]);let geo=stickerGeometries.get(stickerKey);
-        if(!geo){geo=createStickerGeometry(...sticker.size,radius);stickerGeometries.set(stickerKey,geo);candidateResources.push(geo);}
+        const base=sticker.geometry?.referenceSize??sticker.size,rounding=sticker.geometry?.cornerRadius??radius;
+        const stickerKey=JSON.stringify([...base,rounding]);let geo=stickerGeometries.get(stickerKey);
+        if(!geo){geo=createStickerGeometry(...base,rounding);stickerGeometries.set(stickerKey,geo);candidateResources.push(geo);}
         let texture=tileTextures.get(sticker.id); let color=sticker.color;
         if (sticker.picture && p.picture) { const win=stickerWindow(p.picture.widths,.87,sticker.picture.face,sticker.picture.layerIndex,sticker.size); texture=pictureTexture(pictureTextures.get(sticker.picture.face)!,win,candidateResources); color='#ffffff'; }
         const mat = createStickerMaterial(texture ?? null, color); if (texture && !sticker.picture && !sticker.sourceFace) mat.transparent = true; candidateResources.push(mat);
         const mesh = new THREE.Mesh(geo, mat); mesh.name = sticker.id;
         mesh.castShadow = true; mesh.receiveShadow = true; mesh.visible = p.appearance?.construction !== 'stickerless' || !sticker.sourceFace;
-        mesh.position.set(...sticker.transform.position); mesh.quaternion.set(...sticker.transform.rotation); body.add(mesh);
+        mesh.position.set(...sticker.transform.position); mesh.quaternion.set(...sticker.transform.rotation); if(sticker.geometry)mesh.scale.set(sticker.size[0]/base[0],sticker.size[1]/base[1],1); body.add(mesh);
       }
       staging.add(body);
     }
@@ -183,7 +186,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       if (byId.size!==existing.length || existing.some(s=>!byId.has(s.id))) return Promise.resolve(fail('InvalidProjection','Sticker IDs differ'));
       const decorate=(p: CubeProjection): CubeProjection => ({...p,appearance:replacement.appearance,picture:replacement.picture,pieces:p.pieces.map(piece=>({...piece,stickers:piece.stickers.map(sticker=>{
         const entry=byId.get(sticker.id)!;
-        return {id:sticker.id,transform:sticker.transform,size:sticker.size,color:entry.color,...(entry.imageId!==undefined?{imageId:entry.imageId}:{}),...(entry.sourceFace!==undefined?{sourceFace:entry.sourceFace}:{}),...(entry.picture!==undefined?{picture:entry.picture}:{})};
+        return {id:sticker.id,transform:sticker.transform,size:sticker.size,...(sticker.geometry?{geometry:sticker.geometry}:{}),color:entry.color,...(entry.imageId!==undefined?{imageId:entry.imageId}:{}),...(entry.sourceFace!==undefined?{sourceFace:entry.sourceFace}:{}),...(entry.picture!==undefined?{picture:entry.picture}:{})};
       })}))});
       const candidate=decorate(projection), validation=validateProjection(candidate); if (!validation.ok) return Promise.resolve(validation);
       if(candidate.picture && referenceWidths && !sameValues(candidate.picture.widths,referenceWidths)) return Promise.resolve(fail('InvalidProjection','Picture reference widths differ'));

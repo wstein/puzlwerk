@@ -1,0 +1,53 @@
+{
+  "revision": "efafcc1d97687eccea0cde87a230f447ce1b6c66",
+  "widths": [
+    1.6,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1.6
+  ],
+  "gap": 0.001233082706766917,
+  "bevelSegments": 2,
+  "bodyPosition": [
+    3.3000000000000007,
+    4.440892098500626e-16,
+    3.3000000000000007
+  ],
+  "stickerPosition": [
+    0,
+    0,
+    0.802
+  ],
+  "stickerRotation": [
+    0,
+    0,
+    0,
+    1
+  ],
+  "stickerScale": [
+    1.6,
+    1,
+    1
+  ],
+  "body": {
+    "position": "b40f56d21169a0889e956cecc004188c4de32aece1297114e23f7bfdc95e8718",
+    "normal": "427381224ce11a329985279f89db24dd4c0c7893944a8fc4c1ac137201ed39ad",
+    "uv": "edf9111d1e03c1069eae21b23ac6aa86c32543bad998b6bfce38e26a4b80bccd",
+    "index": "3faeadadfce60038445c09611f3f7375d2072d46ea83f4705005bef89db0f440"
+  },
+  "sticker": {
+    "position": "9b87313c666b7f7595a7779a63c96b6be031d0dbf0a53b617890cef985d892f2",
+    "normal": "67011d70320083e785d3265d03596c6ac1a6351d6667b92b9fe5e332eb5b6d35",
+    "uv": "72b9d2e1af6131ec36b47c1bd868def2a93619a6268cca6e7cb0d60114c66c3a",
+    "index": "31304dcaec03382e200d89aaaa989201819fc3c7c1205e76b15e0e1ebc1abcad"
+  },
+  "rounded": {
+    "position": "1d264fa43beb8959bb7de2f2c0bf7991cafc7163875a85b6921ea35b74550a93",
+    "normal": "798d023d48e7588ba6cd6cdaf15631e65d49293524eb95271be32c93cc91dcb4",
+    "uv": "1c3565b30fd2783d6df38d97ba4ad6e7250bc14c85a7fe980ffdbf2940deddea",
+    "index": null
+  }
+}
