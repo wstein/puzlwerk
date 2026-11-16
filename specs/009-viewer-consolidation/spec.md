@@ -555,3 +555,27 @@ state and moves; viewer projections and interpolated frames are not. The suite
 must use the production shared viewer and, once available, a shared production
 play controller; a parallel TypeScript mechanics engine or simulated play does
 not demonstrate this architecture.
+
+
+## Orientation indicator acceptance
+
+The acceptance inventory includes source-specific orientation indicators and
+controls: CubeAssembler's noninteractive X/Y/Z overlay follows the view and its
+virtual face frame; Regrip's labelled axes receive physical quaternion and virtual
+frame data; CubeLab's orientation calculations and replay have a separate case.
+The [acceptance inventory](acceptance-matrix.md) and route manifest specify native
+setups and observed expectations. View orbit and display reset must not silently
+change canonical puzzle state; physical turns, gyro/replay events and virtual
+frame changes are compared in their own frames and must not apply a regrip twice.
+
+For an actual production gizmo integration, demonstrate that display drag/orbit,
+resize and reset keep any rendered indicator synchronized with the stage's
+`StageView`, while preserving physical state. Check pointer cancellation, disposal
+and touch only against the corresponding actual source and implemented control;
+CubeAssembler's overlay passes pointer events through and its separate canvas
+accepts touch. A clickable or draggable gizmo control is **UNKNOWN**, not an
+established source feature. The current shared stage exposes `onViewChanged`,
+`resetDisplayOrientation` and interaction surfaces; a production gizmo and its
+binding to physical/virtual frames have not been established and remain BLOCKED.
+No rendered diagnostic, replay or single source case alone proves app parity,
+live hardware behavior or owner visual acceptance.
