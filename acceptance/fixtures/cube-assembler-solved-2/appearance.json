@@ -1,0 +1,128 @@
+{
+  "schema": "puzlwerk.appearance",
+  "revision": 1,
+  "id": "cube-assembler-solved-2-colors",
+  "definitionId": "cube-assembler-solved-2",
+  "stickers": [
+    {
+      "id": "p0.D",
+      "color": "Y",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p0.L",
+      "color": "O",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p0.B",
+      "color": "B",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p1.F",
+      "color": "G",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p1.D",
+      "color": "Y",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p1.L",
+      "color": "O",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p2.U",
+      "color": "W",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p2.L",
+      "color": "O",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p2.B",
+      "color": "B",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p3.U",
+      "color": "W",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p3.F",
+      "color": "G",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p3.L",
+      "color": "O",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p4.R",
+      "color": "R",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p4.D",
+      "color": "Y",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p4.B",
+      "color": "B",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p5.R",
+      "color": "R",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p5.F",
+      "color": "G",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p5.D",
+      "color": "Y",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p6.U",
+      "color": "W",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p6.R",
+      "color": "R",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p6.B",
+      "color": "B",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p7.U",
+      "color": "W",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p7.R",
+      "color": "R",
+      "symmetry": "C4"
+    },
+    {
+      "id": "p7.F",
+      "color": "G",
+      "symmetry": "C4"
+    }
+  ]
+}
