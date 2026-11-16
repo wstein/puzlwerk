@@ -41,7 +41,7 @@ export function nativeFrames(projection:CubeProjection):Result<{frames:PhysicalS
    // The native face index requires exact axes; only already-validated cardinal frames enter here.
    const exact=(v:Vector3)=>v.toArray().map(x=>Math.abs(x)<1e-8?0:Math.sign(x)) as unknown as Vec3;
    const n=exact(normal),u=exact(up);
-   frames.push({id:sticker.id,cubie:piece.id,p:position,n,up:u,...(sticker.geometry?{offset:depth,scale:[sticker.size[0]/sticker.geometry.referenceSize[0],sticker.size[1]/sticker.geometry.referenceSize[1]] as const}:{})});
+   frames.push({id:sticker.id,cubie:piece.id,p:position,n,up:u,...(sticker.picture?{pictureIndex:sticker.picture.layerIndex}:{}),...(sticker.geometry?{offset:depth,scale:[sticker.size[0]/sticker.geometry.referenceSize[0],sticker.size[1]/sticker.geometry.referenceSize[1]] as const}:{})});
   }
  }
  return ok({frames,bodies,stickerSize:size,stickerOffset:offset,stickerRadius:radius,bodyGeometry,layerWidths:widths});

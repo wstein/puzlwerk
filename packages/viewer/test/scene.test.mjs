@@ -784,8 +784,24 @@ test('failed staged picture update preserves native UV, textures, materials and 
  const reuse=PhysicalCubeScene.prototype.reuseProjectionTextures;PhysicalCubeScene.prototype.reuseProjectionTextures=function(previous){this.projectionTextures[0].flipY=!this.projectionTextures[0].flipY;return reuse.call(this,previous)};
  try{assert.equal((await scene.setArtwork(artwork)).ok,true);}finally{PhysicalCubeScene.prototype.reuseProjectionTextures=reuse;}frame(now);
  const samplerMap=rendered.getObjectByName(pieces[0].stickers[0].id).material.map;assert.notEqual(samplerMap,oldMaps[0],'changed sampler replaces texture');assert.equal(samplerMap.flipY,true);
- let disposed=0;samplerMap.addEventListener('dispose',()=>disposed++);image={width:16,height:16};
+ assert.equal((await scene.setArtwork(artwork)).ok,true);frame(now);const sourceMap=rendered.getObjectByName(pieces[0].stickers[0].id).material.map;assert.equal(sourceMap.flipY,false);
+ let disposed=0;sourceMap.addEventListener('dispose',()=>disposed++);image={width:16,height:16};
  assert.equal((await scene.setArtwork(artwork)).ok,true);frame(now);
- assert.notEqual(rendered.getObjectByName(pieces[0].stickers[0].id).material.map,samplerMap,'changed source image replaces texture');assert.equal(disposed,1);
+ assert.notEqual(rendered.getObjectByName(pieces[0].stickers[0].id).material.map,sourceMap,'changed source image replaces texture');assert.equal(disposed,1);
  scene.cancel();assert.equal((await pending).error.code,'Cancelled');scene.dispose();assert.equal(disposed,1,'transferred texture is disposed exactly once');
+});
+
+test('picture windows follow sticker reference through scrambled poses, live artwork and cancel',async()=>{
+ const THREE=await import('three');
+ for(const widths of [[1,1],[1,1.6]]){
+  const centers=[-widths[1]/2,widths[0]/2],sourcePosition=[centers[1],centers[0],centers[1]];let now=0,frame,rendered;const image={width:16,height:16};
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:image})},{now:()=>now,request:cb=>{frame=cb;return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  const sf={normal:[0,0,1],up:[0,1,0]},mapping={face:'F',layerIndex:[0,0,1]},sticker={id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#fff',sourceFace:sf,picture:mapping},picture={widths,faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
+  const from={pieces:[{id:'p',transform:t(sourcePosition),stickers:[sticker]},{id:'other',transform:t([centers[0],centers[1],centers[0]]),stickers:[]},{id:'support',transform:t([centers[1],centers[0],centers[0]]),stickers:[]}],picture};
+  assert.equal((await scene.setProjection(from)).ok,true);frame(0);const expected=(await import('../dist/projected-uv.js')).stickerWindow(widths,.87,'F',mapping.layerIndex,sticker.size);const check=()=>{const map=rendered.getObjectByName('s').material.map;assert.ok(Math.abs(map.offset.x-expected.offsetU)<1e-10,'reference U');assert.ok(Math.abs(map.offset.y-expected.offsetV)<1e-10,'reference V');};check();
+  const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI),end=new THREE.Vector3(...sourcePosition).applyQuaternion(q);const to={...from,pieces:[{...from.pieces[0],transform:t(end.toArray(),q.toArray())},...from.pieces.slice(1)]};
+  // A 180-degree turn only maps a nonuniform grid to itself for the equal-width case.
+  if(widths[0]===widths[1]){const result=await scene.transition({from,to,pieceIds:['p'],axis:[0,0,1],signedAngleRadians:Math.PI,pivot:[0,0,0],durationMs:0});assert.equal(result.ok,true,JSON.stringify(result));frame(0);const artwork={picture,stickers:[{id:'s',color:'#fff',sourceFace:sf,picture:mapping}]};assert.equal((await scene.setArtwork(artwork)).ok,true);frame(0);check();const turning=scene.transition({from:to,to:from,pieceIds:['p'],axis:[0,0,1],signedAngleRadians:-Math.PI,pivot:[0,0,0],durationMs:100});now=50;frame(now);scene.cancel();assert.equal((await turning).error.code,'Cancelled');frame(now);check();}
+  scene.dispose();
+ }
 });

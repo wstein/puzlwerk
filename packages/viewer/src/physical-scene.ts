@@ -17,6 +17,7 @@ export interface PhysicalStickerFrame {
   readonly up: Vec3;
   readonly offset?: number;
   readonly scale?: readonly [number, number];
+  readonly pictureIndex?: Vec3;
 }
 export const stickerFrame = (normal: Vec3, up: Vec3): THREE.Matrix4 =>
   new THREE.Matrix4().makeBasis(
@@ -114,7 +115,7 @@ export class PhysicalCubeScene {
   private readonly artwork: { id: string; surface: THREE.MeshStandardMaterial; source: THREE.MeshStandardMaterial; fallback: string; projected?: boolean }[] = [];
   private readonly stickers: THREE.Mesh[] = [];
   /** Projected picture mode: every sticker with its tile material, normal and cubie position; the clones this scene made. */
-  private readonly stickerInfo = new Map<string, { mesh: THREE.Mesh; base: THREE.Material; n: Vec3; up: Vec3; p: Vec3; size: readonly [number, number] }>();
+  private readonly stickerInfo = new Map<string, { mesh: THREE.Mesh; base: THREE.Material; n: Vec3; up: Vec3; p: Vec3; pictureIndex?: Vec3; size: readonly [number, number] }>();
   private projectionTextures: THREE.Texture[] = [];
   private projectionMaterials: THREE.Material[] = [];
   private axisCoordinates: number[][] = [[], [], []];
@@ -287,7 +288,7 @@ export class PhysicalCubeScene {
       const own = sticker.geometry.userData.size as readonly [number, number] | undefined;
       sticker.geometry.computeBoundingBox();
       const box = sticker.geometry.boundingBox!;
-      this.stickerInfo.set(s.id, { mesh: sticker, base: materials.get(s.id)!, n: s.n, up: s.up, p: s.p, size: [(own?.[0] ?? box.max.x - box.min.x) * sticker.scale.x, (own?.[1] ?? box.max.y - box.min.y) * sticker.scale.y] });
+      this.stickerInfo.set(s.id, { mesh: sticker, base: materials.get(s.id)!, n: s.n, up: s.up, p: s.p, pictureIndex: s.pictureIndex, size: [(own?.[0] ?? box.max.x - box.min.x) * sticker.scale.x, (own?.[1] ?? box.max.y - box.min.y) * sticker.scale.y] });
       sticker.castShadow = sticker.receiveShadow = true;
       body.add(sticker);
       this.stickers.push(sticker);
@@ -372,12 +373,12 @@ export class PhysicalCubeScene {
     demand(this.axisCoordinates.every((c) => c.length === n), "Picture projection needs a cube");
     const widths = this.layers?.widths ?? Array<number>(n).fill(1);
     demand(widths.length === n, "Layer widths do not fit the cube");
-    const windowOf = (info: { n: Vec3; up: Vec3; p: Vec3; size: readonly [number, number] }, share: number, own = false): { face: FaceKey; win: StickerWindow } => {
+    const windowOf = (info: { n: Vec3; up: Vec3; p: Vec3; pictureIndex?: Vec3; size: readonly [number, number] }, share: number, own = false): { face: FaceKey; win: StickerWindow } => {
       const face = faceOfNormal(info.n);
       demand(PROJECTED_FACES[face].up.every((c, i) => c === info.up[i]), "Picture projection needs the cube model's face frame");
       const texture = projection.faces.get(face);
       demand(texture !== undefined, `Picture projection needs the face image of ${face}`);
-      const index = info.p.map((c, axis) => this.axisCoordinates[axis].indexOf(c)) as unknown as Vec3;
+      const index = info.pictureIndex ?? info.p.map((c, axis) => this.axisCoordinates[axis].indexOf(c)) as unknown as Vec3;
       return { face, win: stickerWindow(widths, share, face, index, own ? info.size : undefined) };
     };
     for (const info of this.stickerInfo.values()) {
