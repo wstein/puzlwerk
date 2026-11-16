@@ -1,4 +1,5 @@
-import {createCubeScene} from '../viewer/index.js';
+import * as THREE from 'three';
+import {createCubeStage} from '../viewer/index.js';
 import {createPlayer} from '../packages/core-viewer-bridge/src/index.mjs';
 import {visibleColorsMatch} from './facelet-compare.mjs';
 
@@ -30,23 +31,29 @@ function originalFrame(host,referenceBase) {
 
 export async function mountCubeAssembler(root,fixtureBase,referenceBase) {
   const base=new URL(fixtureBase,location.href),reference=new URL(referenceBase,location.href);
-  const [native,definition,state,appearance,projector]=await Promise.all([
-    read(new URL('native.json',base)),read(new URL('definition.json',base)),read(new URL('state.json',base)),read(new URL('appearance.json',base)),import(new URL('facelets.mjs',base).href)
+  const [native,definition,state,appearance,provenance,projector]=await Promise.all([
+    read(new URL('native.json',base)),read(new URL('definition.json',base)),read(new URL('state.json',base)),read(new URL('appearance.json',base)),read(new URL('provenance.json',base)),import(new URL('facelets.mjs',base).href)
   ]);
   const add=(tag,text,parent=root)=>{const element=document.createElement(tag);if(text)element.textContent=text;parent.append(element);return element;};
   add('p','CubeAssembler solved 2×2: the source state contains colors only. Candidate piece and sticker IDs label known home slots; they are not source identities.');
-  add('p','Visible facelet equality is checked after each move. Matching geometry, camera, gestures, touch turns, animation and owner visual acceptance remain open.');
+  add('p','Visible facelet equality is checked after each move. The source camera and numeric geometry/light parameters are applied. The viewer uses different bevel geometry and a different material shader; visual equivalence, gestures, touch turns, animation and owner acceptance remain open.');
   const panes=add('div');panes.className='comparison';const originalPane=add('section','',panes),candidatePane=add('section','',panes);
   add('h3','Original CubeAssembler',originalPane);const originalHost=add('div','',originalPane);
   add('h3','PuzlWerk Core and Viewer',candidatePane);const candidateHost=add('div','',candidatePane);candidateHost.className='scene';
   const status=add('output');status.textContent='Loading';
   const inspector=add('details');add('summary','Definition, state, appearance and color assets',inspector);const output=add('pre','',inspector);
-  output.textContent=JSON.stringify({definition,state,appearance,palette},null,2);
+  output.textContent=JSON.stringify({definition,state,appearance,palette,presentation:provenance.presentation},null,2);
   const original=originalFrame(originalHost,reference);
-  const sceneResult=createCubeScene(candidateHost,{resolveAsset:async id=>({ok:false,error:{code:'UnresolvedAsset',message:`No asset mapping for ${id}`}})});
-  if(!sceneResult.ok)throw Error(sceneResult.error.message);
-  const scene=sceneResult.value;
-  const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff'},scene);
+  const {camera,stickeredGeometry:g,lighting:l}=provenance.presentation;
+  const rgb=g.bodyColorRgb.map(v=>Math.round(v*255).toString(16).padStart(2,'0')).join('');
+  const presentation={cellSize:1,bodyGap:1-2*g.cubieHalfExtent,bodyRadius:g.bodyRadius,stickerWidth:2*g.stickerHalfExtent,stickerRadius:g.stickerRadius,stickerOffset:g.cubieHalfExtent+g.stickerOffsetEpsilon,frameColor:`#${rgb}`};
+  const orientation=new THREE.Quaternion().setFromEuler(new THREE.Euler(camera.pitchRadians,camera.yawRadians,0,'XYZ')).toArray();
+  const directional=(position,intensity,visible=true)=>({color:'#ffffff',intensity,visible,position,target:[0,0,0]});
+  const lighting={ambient:{color:'#ffffff',intensity:l.ambient,visible:true},hemisphere:{sky:'#ffffff',ground:'#ffffff',intensity:0,visible:false,position:[0,1,0]},key:directional(l.keyDirection,l.keyDiffuse),fill:directional(l.fillDirection,l.fillDiffuse),rim:directional([0,1,1],0,false),shadowFill:directional([0,1,1],0,false),extraDirectionals:[],keyShadowStrength:0,shadowFillStrength:0,floorOpacity:0,contactShadow:false,fineShadowEdges:false,colorTemperature:false,toneMapping:'neutral',exposure:1};
+  const created=createCubeStage(candidateHost,{resolveAsset:async id=>({ok:false,error:{code:'UnresolvedAsset',message:`No asset mapping for ${id}`}}),fovDegrees:camera.fieldOfViewDegrees,zoom:1,initialOrientation:orientation,mode:'classic',sensitivity:.004,dragThreshold:0,reducedMotion:false,casterEnvelope:{radius:2,clearance:.08},viewPolicy:()=>({distance:camera.distance,far:camera.far,groupScale:1}),lighting});
+  if(!created.ok)throw Error(created.error.message);const stage=created.value;
+  const added=stage.addCube({position:[0,0,0]});if(!added.ok)throw Error(added.error.message);const scene=added.value;
+  const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff',presentation},scene);
   if(!opened.ok)throw Error(JSON.stringify(opened.error));const player=opened.value;
   const loaded=await scene.setProjection(player.projection());if(!loaded.ok)throw Error(JSON.stringify(loaded.error));
   const projected=()=>projector.faceletsFromWire(definition,JSON.parse(player.state()),appearance);
@@ -61,5 +68,5 @@ export async function mountCubeAssembler(root,fixtureBase,referenceBase) {
       finally {if(!failed)for(const b of controls.children)b.disabled=false;}
     };
   }
-  return {player,original,dispose(){player.dispose();original.request('dispose').finally(()=>original.dispose());}};
+  return {player,original,dispose(){player.dispose();stage.dispose();original.request('dispose').finally(()=>original.dispose());}};
 }
