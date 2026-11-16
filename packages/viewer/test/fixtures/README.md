@@ -100,7 +100,17 @@ node packages/viewer/test/fixtures/generate-cubistry-names-geometry.mjs /path/to
 ```
 
 `cubistry-stage-names-pixels.json` records five source browser samples from
-Cubistry at the pinned revision using synthetic solid face colors, Names light,
+Cubistry at the pinned revision using a synthetic asymmetric Canvas glyph and miter, Names light,
 plasticity 0.6, Chromium SwiftShader, DPR 1 and a 1440×900 viewport. The stage
-browser test checks each channel within six values; this is a bounded sample,
-not a claim of whole-image equality or printed-calendar parity.
+browser test checks each channel within six values. Cubistry
+`src/apps/calendar7/names-exposure.ts:15-16` reports six for a different
+source-fill-versus-token measurement at the default pose; this test compares
+individual source-versus-stage pixels instead. It is a bounded sample, not a
+claim of whole-image equality, source production-test execution or printed-calendar parity.
+
+`cubistry-names-plasticity.json` records source material, shadow, floor and
+exposure values for 0, 0.6 and 1. Regenerate with:
+
+```sh
+node packages/viewer/test/fixtures/generate-cubistry-plasticity.mjs /path/to/cubistry
+```
