@@ -12,3 +12,11 @@ test('pose comparison checks identity, position, and full orientation',()=>{
  const n2={cubies:[...n.cubies,{...n.cubies[0],id:8}]};
  assert.equal(comparePoses(n2,{poses:[p,p]}),false);
 });
+
+test('visible facelet comparison checks all six arrays and every position',async()=>{
+ const {visibleColorsMatch}=await import('../acceptance/runtime/facelet-compare.mjs');
+ const value=Object.fromEntries(['u','r','f','d','l','b'].map((k,i)=>[k,Array(4).fill(i)]));
+ assert.equal(visibleColorsMatch(value,structuredClone(value)),true);
+ for(const face of Object.keys(value)){const changed=structuredClone(value);changed[face][3]=99;assert.equal(visibleColorsMatch(value,changed),false);}
+ assert.equal(visibleColorsMatch(value,{...value,b:[1]}),false);
+});
