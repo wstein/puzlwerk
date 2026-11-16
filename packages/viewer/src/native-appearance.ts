@@ -49,7 +49,7 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
   if (key !== undefined && storage) initialValue = readAppearance(storage, key);
   let value = DEFAULT_APPEARANCE; let pending = false, disposed = false;
   let pendingChoice: { readonly available: boolean; readonly mode: PictureMode } | undefined;
-  let defaultColor = "#202329";
+  let defaultColor = "#202329", pendingDefaultColor: string | undefined;
   // A host that names a dock region (`data-appearance-dock`) gets the panel as a collapsed section of that region
   // instead of an overlay on the stage. Pages without it keep the floating panel.
   const dockName = (host as { dataset?: DOMStringMap }).dataset?.appearanceDock;
@@ -193,19 +193,20 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
     let result: void | boolean | Promise<void | boolean>;
     pending = true;
     try { result = change(candidate, pictureChosen ? { pictureChosen } : undefined); }
-    catch { pending = false; pendingChoice = undefined; refresh(); return; }
+    catch { pending = false; pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); return; }
     const finish = (accepted: void | boolean) => {
       if (disposed) return;
       pending = false;
-      if (accepted === false) { pendingChoice = undefined; refresh(); return; }
+      if (accepted === false) { pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); return; }
       value = candidate;
+      if (pendingDefaultColor !== undefined) { defaultColor = pendingDefaultColor; pendingDefaultColor = undefined; }
       if (pendingChoice) { picturesWrap.style.display = pendingChoice.available ? "" : "none"; shownMode = pendingChoice.mode; pendingChoice = undefined; }
       refresh();
       try { if (persist && key !== undefined) storage?.setItem(key, JSON.stringify({ version: 1, ...value })); } catch { /* Presentation remains usable. */ }
     };
     if (result && typeof (result as Promise<void | boolean>).then === "function") {
       pending = true; refresh();
-      Promise.resolve(result).then(finish, () => { if (!disposed) { pending = false; pendingChoice = undefined; refresh(); } });
+      Promise.resolve(result).then(finish, () => { if (!disposed) { pending = false; pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); } });
     } else finish(result as void | boolean);
   };
   // Stickerless is always projected: the checkbox shows it checked and disabled.
@@ -221,7 +222,7 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
   refresh(); update(initialValue, false, false);
   return {
     panel,
-    setDefaultColor(color: string) { defaultColor = color; refresh(); },
+    setDefaultColor(color: string) { if (disposed) return; if (pending) { pendingDefaultColor = color; return; } defaultColor = color; refresh(); },
     /** Shows or hides the Pictures choice and shows the mode in effect; never a user choice, nothing is stored. */
     setPictureChoice(choice: { readonly available: boolean; readonly mode: PictureMode }) {
       if (disposed) return;
