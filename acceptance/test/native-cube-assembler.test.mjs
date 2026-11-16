@@ -5,7 +5,11 @@ const base = new URL('../fixtures/cube-assembler-solved-2/',import.meta.url);
 test('source-native solved cube and R action match recorded colors', async () => {
  const {createSolvedCube} = await import('../references/cube-assembler/src/cube/CapturedFaceMatching.res.mjs');
  const {applyCubeMove} = await import('../references/cube-assembler/src/cube/CubeMoves.res.mjs');
- const fixture=JSON.parse(await readFile(new URL('native.json',base),'utf8'));
+ const bytes=await readFile(new URL('native.json',base));
+ const {createHash}=await import('node:crypto');
+ const provenance=JSON.parse(await readFile(new URL('provenance.json',base),'utf8'));
+ assert.equal(createHash('sha256').update(bytes).digest('hex'),provenance.nativeSha256);
+ const fixture=JSON.parse(bytes);
  assert.deepEqual(fixture.home,createSolvedCube(2));
  const moved=applyCubeMove(fixture.home,2,'R',1);
  assert.deepEqual(moved,fixture.trace[0].state);
