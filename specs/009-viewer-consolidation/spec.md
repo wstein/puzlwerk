@@ -160,3 +160,121 @@ source formulas with targeted mutations. A public browser gallery captures the
 same source and adapter setups, stationary and midturn as applicable. Record
 settings, source revision and limits. Artwork, projected pictures, multiple
 cubes and full owner HQ acceptance remain open; no consumer migration is implied.
+
+## Stage 1 source artwork and picture slice
+
+The viewer extracts Cubistry's original `body-artwork.ts`, `cut-faces.ts`,
+`projected-uv.ts`, and the relevant material, construction and picture-builder
+paths of `physical-scene.ts` at revision
+`efafcc1d97687eccea0cde87a230f447ce1b6c66`. These run under the existing
+generic snapshot and motion wrapper; the full PhysicalCubeScene class has not
+been extracted. No application state, legality or notation is inferred.
+
+Opt-in snapshot fields, with names fixed for this slice:
+
+- `appearance?: { construction: 'stickered' | 'stickerless'; bodyColor?: string;
+  coreColor?: string; frameColor?: string | null; miterCutFaces?: boolean; planarFaceUv?: boolean }`. Colors
+  are six-digit hexadecimal; a null or omitted frameColor selects the original
+  plastic color, distinct from cut-face bodyColor and stickerless coreColor.
+  Source defaults apply to omitted optional fields.
+  Without any new opt-in fields, legacy rendering is unchanged. If appearance
+  is omitted while other opt-ins are present, construction defaults to
+  stickered; explicit picture remains active.
+- `Sticker.sourceFace?: { normal: Vec3; up: Vec3; edgeColors?: FaceEdgeColors }`.
+  Normal and up are perpendicular signed Cartesian unit axes in the piece-local
+  construction frame. Within one piece, annotated normals are unique. Edge
+  names are `left`, `right`, `top`, `bottom`; a value is a six-digit hexadecimal
+  color or a dense, nonempty array of `{to: number; color: string}` with finite
+  `to`. Preserve source order and last-stop fallback; do not impose a fabricated
+  range or coverage rule. Unannotated stickers keep legacy decal behavior and
+  are never assigned source faces by inference.
+- `picture?: { widths: readonly number[]; faces: { U: string; R: string;
+  F: string; D: string; L: string; B: string } }` supplies six opaque image IDs
+  and positive finite dense layer widths. If `presentation` exists, width count
+  equals its size. `Sticker.picture?: { face: 'U' | 'R' | 'F' | 'D' | 'L' |
+  'B'; layerIndex: Vec3 }` opts an annotated sticker into picture projection;
+  indices are dense integers in `[0, widths.length)`. Its explicit sourceFace
+  must match the source `PROJECTED_FACES` normal and up for that face. Picture
+  metadata on a sticker requires projection picture data; picture data requires
+  at least one participating sticker. Nonparticipating stickers retain legacy
+  appearance; empty and sticker-free projections remain valid without picture.
+
+Three body groups 0..5 mean +X, -X, +Y, -Y, +Z, -Z. The source face right
+vector is up cross normal. Face IDs and indices refer to immutable construction
+frames, not current world slots. Pose-only turns never rebind them. Body poses,
+sticker local poses and sizes remain caller-provided. All new fields are
+validated and deep-snapshotted before resolution, remain invariant between
+transition endpoints, and participate in projection matching.
+
+Picture face resolver results are caller-owned `CanvasImageSource` pixels in
+the Cubistry bottom-left convention, already oriented like the source loader's
+flipped ImageBitmap. Picture textures set `flipY=false`; do not add an implicit
+second flip. Existing per-sticker imageId/Resolver semantics remain unchanged.
+The viewer owns texture clones, cut textures, materials and geometries, never
+closes or disposes caller images. Validate and stage all six assets and the
+complete detached candidate before replacing the visible projection; errors,
+cancellation, late resolution or disposal release the candidate only and keep
+the previously committed projection. This boundary adapts source's
+clear-before-demand sequence without changing its projection or miter formulas.
+
+Acceptance: source-derived, hash-pinned identical-input fixtures and browser
+captures for native 2×2, 3×3 and 7×7, representative unequal layers,
+stickered and stickerless, multistop miter, asymmetric six-face picture,
+rest and midturn, desktop and mobile. Test existing arbitrary free poses and
+no-sticker/empty projections, atomic asset failure/cancel/late completion,
+picture removal and resource ownership. Every new behavioral check needs a
+targeted mutation that fails for the intended reason. Multi-viewport, consumer
+migration and full owner HQ acceptance remain separate open work.
+
+Activation: sourceFace alone is valid immutable body-art metadata. Edge colors
+affect cut faces only when miterCutFaces is enabled; planarFaceUv affects only
+the source stickerless path. Sticker.picture requires both projection.picture
+and sourceFace. Incompatible new field combinations fail atomically with
+InvalidProjection; never infer their flags from poses.
+
+### Live appearance during a turn: proposed contract for review
+
+Cubistry permits appearance, picture mode and per-sticker image override changes
+while a turn is active. The shared viewer needs an independent `setArtwork`
+operation; removing the existing setProjection Busy guard is not sufficient.
+The operation accepts a complete decoration replacement: projection appearance
+and picture data plus per-sticker `{id, color, imageId?, sourceFace?, picture?}` for
+all currently presented sticker IDs. The app selects opaque IDs; the viewer does
+not interpret facelets, notation or puzzle state. Piece IDs, piece geometry,
+body poses, sticker IDs, local poses and sticker sizes cannot change. Validate
+the complete result using the same projection checks and snapshot it before any
+asset resolution. Return the existing Result form asynchronously.
+
+On success the new decoration is part of the committed source projection and,
+if a turn is active, both that turn's stored source and target projections. The
+caller can reconstruct the next `transition.from` by applying the successful
+replacement to the corresponding physical endpoint; there is no invisible
+render-only equality state. A successful change remains on turn completion or
+cancel, while cancel restores the exact physical source pose. Existing cancel
+behavior with no live change remains identical. Projected picture mode keeps
+its cloned projected surfaces when a base tile image is overridden; the updated
+base tile appears when projected mode is later removed, as in Cubistry.
+
+Exactly one live decoration operation may be pending. Without a committed
+projection, setArtwork returns InvalidProjection; while setProjection or its
+asset build is pending, it returns Busy. During a turn it is permitted. A second one, a new
+setProjection or a new transition returns Busy while it resolves; an already
+active turn continues. If the turn finishes during loading, apply to its current
+endpoint when resolution succeeds, preserving elapsed progress and endpoint.
+`cancel` intentionally aborts both an active turn and any pending decoration;
+`dispose` aborts and ignores late results. A failed, invalid or late update by
+itself does not change visible materials or abort a turn. There is no implicit queue. Candidate
+materials, geometry variants and cloned windows are built detached and
+validated before one commit to the existing bodies and stickers, including those
+under a pivot. No caller image is closed; replaced viewer-owned resources are
+released exactly once without removing retained scene objects or their pivot.
+
+Acceptance includes actual Cubistry timing-callback fixtures: change appearance,
+picture mode and tile override at midturn, verify progress/poses and successful
+completion, and verify successful decoration persists after turn cancellation.
+Cover pending asset resolution across turn completion, explicit cancel/dispose,
+late/failed resolution, two simultaneous updates, Busy interactions, repeated
+replacement/resource counts, projected override restoration and next
+transition.from equality. Each new behavior requires a targeted mutation for
+its intended failure. This proposal needs independent review before live-code
+implementation; the existing no-live API remains unchanged until then.

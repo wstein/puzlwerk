@@ -52,3 +52,20 @@ The source-versus-adapter captures use Chromium with SwiftShader at DPR 1,
 pinned studio. Desktop and mobile viewport captures are local test artifacts,
 not physical-device or full HQ acceptance. Artwork, picture projection and
 multiple cubes remain outside this slice.
+
+
+Optional appearance, source-face and picture metadata select the source
+stickerless, miter and projected-picture builders. Picture faces use opaque
+asset IDs whose returned pixels are already in Cubistry's bottom-left
+orientation; legacy per-sticker imageId behavior is unchanged. Source-face
+frames and picture indices are immutable construction references, not current
+world positions. `setArtwork` applies a complete decoration replacement
+during a turn without changing physical poses; successful updates survive
+cancellation. Asset failure and late completion leave the committed scene
+unchanged. See spec 009 for validation, ownership and concurrency rules.
+
+The local `artwork-gallery.html` shows 2×2, 3×3, 7×7 and unequal profiles
+in tile, plain stickerless, miter, picture-sticker and picture-body modes. It
+renders each view with WebGL, copies the finished frame to a display canvas and
+releases the context before rendering the next view. This gallery does not
+establish full Stage 1 HQ acceptance or migrate any application.

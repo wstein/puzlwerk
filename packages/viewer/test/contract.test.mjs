@@ -55,3 +55,39 @@ test('presentation and independent core metadata are validated and invariant', (
   assert.equal(validateTransition({...turn,from:withMeta,to:{...to,...metadata,core:{...metadata.core,halfExtent:4}}}).error.code,'InvalidTransition');
   assert.equal(validateTransition({...turn,from:withMeta,to:{...to,...metadata,presentation:{size:7,nominalEdge:7.1}}}).error.code,'InvalidTransition');
 });
+
+test('explicit artwork metadata validates source frames, edge stops and picture associations',()=>{
+ const sticker={id:'art',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff',sourceFace:{normal:[0,0,1],up:[0,1,0],edgeColors:{left:[{to:.3,color:'#ffffff'},{to:1,color:'#ff0000'}]}},picture:{face:'F',layerIndex:[0,1,1]}};
+ const picture={widths:[1,1],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
+ const p={pieces:[{id:'p',transform:t(),stickers:[sticker]}],appearance:{construction:'stickerless',miterCutFaces:true},picture};
+ assert.equal(validateProjection(p).ok,true);
+ for(const patch of [{sourceFace:{normal:[0,0,1],up:[0,0,1]}},{sourceFace:{normal:[0,0,1],up:[0,1,0],edgeColors:{left:[]}}},{picture:{face:'F',layerIndex:[0,,1]}},{picture:{face:'R',layerIndex:[0,1,1]}}]) {
+  const changed={...p,pieces:[{...p.pieces[0],stickers:[{...sticker,...patch}]}]};assert.equal(validateProjection(changed).error.code,'InvalidProjection');
+ }
+ assert.equal(validateProjection({...p,picture:undefined}).error.code,'InvalidProjection');
+ assert.equal(validateProjection({...p,picture:{...picture,faces:{...picture.faces,B:''}}}).error.code,'InvalidProjection');
+ assert.equal(validateProjection({...p,appearance:{construction:'invalid'}}).error.code,'InvalidProjection');
+ assert.equal(validateProjection({pieces:[]}).ok,true);
+});
+
+test('artwork and picture metadata cannot change during a transition',()=>{
+ const s={...piece('a',[1,0,0]),stickers:[{...piece('a',[1,0,0]).stickers[0],sourceFace:{normal:[0,0,1],up:[0,1,0]}}]};
+ const src={pieces:[s],appearance:{construction:'stickered'}};
+ const dst={pieces:[{...s,transform:t([-1,0,0],[0,0,1,0])}],appearance:{construction:'stickerless'}};
+ assert.equal(validateTransition({from:src,to:dst,pieceIds:['a'],axis:[0,0,1],signedAngleRadians:Math.PI,pivot:[0,0,0],durationMs:100}).error.code,'InvalidTransition');
+});
+
+test('source-face-only annotations require perpendicular axes and dense nonempty stops',()=>{
+ const valid={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:{normal:[0,0,1],up:[0,1,0]}};
+ const make=sourceFace=>({pieces:[{id:'p',transform:t(),stickers:[{...valid,sourceFace}]}]});
+ assert.equal(validateProjection(make(valid.sourceFace)).ok,true);
+ assert.equal(validateProjection(make({normal:[0,0,1],up:[0,0,1]})).error.code,'InvalidProjection');
+ assert.equal(validateProjection(make({normal:[0,0,1],up:[0,1,0],edgeColors:{left:[]}})).error.code,'InvalidProjection');
+ assert.equal(validateProjection(make({normal:[0,0,1],up:[0,1,0],edgeColors:{left:[,{to:1,color:'#ffffff'}]}})).error.code,'InvalidProjection');
+});
+
+test('picture faces must be six explicit own IDs',()=>{
+ const faces=Object.assign(Object.create({B:'b'}),{U:'u',R:'r',F:'f',D:'d',L:'l',other:'x'});
+ const s={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[0,0,0]}};
+ assert.equal(validateProjection({pieces:[{id:'p',transform:t(),stickers:[s]}],picture:{widths:[1],faces}}).error.code,'InvalidProjection');
+});

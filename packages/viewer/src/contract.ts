@@ -1,31 +1,42 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Quaternion as Q, Vector3 } from 'three';
+import { PROJECTED_FACES, FACE_KEYS, type FaceKey } from './projected-uv.js';
 
 export type Vec3 = readonly [number, number, number];
 export type Quaternion = readonly [number, number, number, number];
 export type ViewerError = { readonly code: 'InvalidProjection' | 'InvalidTransition' | 'UnresolvedAsset' | 'Busy' | 'Disposed' | 'Unavailable' | 'ContextLost' | 'Cancelled'; readonly message: string; readonly path?: string };
 export type Result<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: ViewerError };
 export type Transform = { readonly position: Vec3; readonly rotation: Quaternion };
-export type Sticker = { readonly id: string; readonly transform: Transform; readonly size: readonly [number, number]; readonly color: string; readonly imageId?: string };
+export type FaceEdgeColors = Partial<Record<'left'|'right'|'top'|'bottom', string | readonly {readonly to:number; readonly color:string}[]>>;
+export type SourceFace = { readonly normal: Vec3; readonly up: Vec3; readonly edgeColors?: FaceEdgeColors };
+export type Sticker = { readonly id: string; readonly transform: Transform; readonly size: readonly [number, number]; readonly color: string; readonly imageId?: string; readonly sourceFace?: SourceFace; readonly picture?: {readonly face:FaceKey; readonly layerIndex:Vec3} };
 export type PieceGeometry = { readonly cellSize: Vec3; readonly outerSides: readonly [readonly [boolean, boolean], readonly [boolean, boolean], readonly [boolean, boolean]] };
 export type Piece = { readonly id: string; readonly transform: Transform; readonly stickers: readonly Sticker[]; readonly geometry?: PieceGeometry };
-export type CubeProjection = { readonly pieces: readonly Piece[]; readonly presentation?: { readonly size: number; readonly nominalEdge: number }; readonly core?: { readonly center: Vec3; readonly halfExtent: number } };
+export type Appearance = {readonly construction:'stickered'|'stickerless'; readonly bodyColor?:string; readonly coreColor?:string; readonly frameColor?:string|null; readonly miterCutFaces?:boolean; readonly planarFaceUv?:boolean};
+export type Picture = {readonly widths:readonly number[]; readonly faces:Readonly<Record<FaceKey,string>>};
+export type CubeProjection = { readonly appearance?:Appearance; readonly picture?:Picture; readonly pieces: readonly Piece[]; readonly presentation?: { readonly size: number; readonly nominalEdge: number }; readonly core?: { readonly center: Vec3; readonly halfExtent: number } };
 export type Transition = { readonly from: CubeProjection; readonly to: CubeProjection; readonly pieceIds: readonly string[]; readonly axis: Vec3; readonly signedAngleRadians: number; readonly pivot: Vec3; readonly durationMs: number };
 export type AssetResolver = (imageId: string, signal: AbortSignal) => Promise<Result<CanvasImageSource>>;
 export type ViewerOptions = { readonly resolveAsset: AssetResolver };
-export interface CubeScene { setProjection(projection: CubeProjection): Promise<Result<void>>; transition(transition: Transition): Promise<Result<void>>; cancel(): Result<void>; invalidate(): Result<void>; dispose(): void }
+export type ArtworkReplacement = { readonly appearance?: Appearance; readonly picture?: Picture; readonly stickers: readonly {readonly id:string; readonly color:string; readonly imageId?:string; readonly sourceFace?:SourceFace; readonly picture?:Sticker['picture']}[] };
+export interface CubeScene { setArtwork(artwork: ArtworkReplacement): Promise<Result<void>>; setProjection(projection: CubeProjection): Promise<Result<void>>; transition(transition: Transition): Promise<Result<void>>; cancel(): Result<void>; invalidate(): Result<void>; dispose(): void }
 export const ok = <T>(value: T): Result<T> => ({ ok: true, value });
 export const fail = (code: ViewerError['code'], message: string, path?: string): Result<never> => ({ ok: false, error: { code, message, ...(path ? { path } : {}) } });
 const tol = 1e-6;
 const array = (v: unknown, n: number): v is number[] => Array.isArray(v) && v.length === n && v.every(Number.isFinite);
 const unit = (v: readonly number[]) => Math.abs(Math.hypot(...v) - 1) <= tol;
 const id = (v: unknown): v is string => typeof v === 'string' && v.length > 0;
+const hex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
+const dense = (v: unknown, n?: number): v is unknown[] => Array.isArray(v) && (n === undefined || v.length === n) && Array.from(v).every(x => x !== undefined);
+const axis = (v: unknown): v is number[] => dense(v,3) && v.every(x => typeof x === 'number' && [-1,0,1].includes(x)) && v.filter(x => x !== 0).length === 1;
 const transform = (v: Transform) => v && array(v.position, 3) && array(v.rotation, 4) && unit(v.rotation);
 export function validateProjection(p: CubeProjection): Result<void> {
   if (!p || !Array.isArray(p.pieces)) return fail('InvalidProjection', 'Expected pieces', 'pieces');
   if (p.presentation !== undefined && (!p.presentation || !Number.isInteger(p.presentation.size) || p.presentation.size < 2 || p.presentation.size > 7 || !Number.isFinite(p.presentation.nominalEdge) || p.presentation.nominalEdge <= 0)) return fail('InvalidProjection', 'Invalid presentation', 'presentation');
   if (p.core !== undefined && (!p.core || !array(p.core.center, 3) || Array.from(p.core.center).some(x => !Number.isFinite(x)) || !Number.isFinite(p.core.halfExtent) || p.core.halfExtent <= 0)) return fail('InvalidProjection', 'Invalid core', 'core');
-  const ids = new Set<string>();
+  const a=p.appearance; if (a !== undefined && (!a || !['stickered','stickerless'].includes(a.construction) || (a.bodyColor !== undefined && !hex(a.bodyColor)) || (a.coreColor !== undefined && !hex(a.coreColor)) || (a.frameColor != null && !hex(a.frameColor)) || (a.miterCutFaces !== undefined && typeof a.miterCutFaces !== 'boolean') || (a.planarFaceUv !== undefined && typeof a.planarFaceUv !== 'boolean'))) return fail('InvalidProjection','Invalid appearance','appearance');
+  const picture=p.picture; if (picture !== undefined && (!picture || !dense(picture.widths) || picture.widths.length === 0 || !picture.widths.every(x => typeof x === 'number' && Number.isFinite(x) && x > 0) || (p.presentation && picture.widths.length !== p.presentation.size) || !picture.faces || Object.keys(picture.faces).length !== 6 || !FACE_KEYS.every(k => Object.hasOwn(picture.faces,k) && id(picture.faces[k])))) return fail('InvalidProjection','Invalid picture','picture');
+  let participating=0; const ids = new Set<string>();
   for (const [i, piece] of p.pieces.entries()) {
     if (!piece || !id(piece.id) || ids.has(piece.id) || !transform(piece.transform) || !Array.isArray(piece.stickers)) return fail('InvalidProjection', 'Invalid piece', `pieces[${i}]`);
     ids.add(piece.id);
@@ -33,11 +44,22 @@ export function validateProjection(p: CubeProjection): Result<void> {
       const g = piece.geometry;
       if (!g || !array(g.cellSize,3) || Array.from(g.cellSize).some((x: unknown) => typeof x !== 'number' || !Number.isFinite(x)) || g.cellSize.some((x: number) => x <= 1 - .99) || !Array.isArray(g.outerSides) || g.outerSides.length !== 3 || !Array.from(g.outerSides).every((side: unknown) => Array.isArray(side) && side.length === 2 && Array.from(side).every((v: unknown) => typeof v === 'boolean'))) return fail('InvalidProjection','Invalid piece geometry',`pieces[${i}].geometry`);
     }
+    const normals=new Set<string>();
     for (const [j, s] of piece.stickers.entries()) {
       if (!s || !id(s.id) || ids.has(s.id) || !transform(s.transform) || !array(s.size, 2) || s.size.some((x: number) => x <= 0) || !id(s.color) || (s.imageId !== undefined && !id(s.imageId))) return fail('InvalidProjection', 'Invalid sticker', `pieces[${i}].stickers[${j}]`);
       ids.add(s.id);
+      if (s.sourceFace !== undefined) {
+        const f=s.sourceFace; if (!f || !axis(f.normal) || !axis(f.up) || f.normal.reduce((sum:number,x:number,i:number)=>sum+x*f.up[i],0)!==0 || normals.has(f.normal.join(','))) return fail('InvalidProjection','Invalid source face',`pieces[${i}].stickers[${j}].sourceFace`);
+        normals.add(f.normal.join(','));
+        if (f.edgeColors !== undefined && (!f.edgeColors || Object.entries(f.edgeColors).some(([k,v]) => !['left','right','top','bottom'].includes(k) || !(hex(v) || (dense(v) && v.length>0 && v.every((stop:unknown)=>!!stop && typeof stop==='object' && Number.isFinite((stop as {to:number}).to) && hex((stop as {color:string}).color))))))) return fail('InvalidProjection','Invalid face edges');
+      }
+      if (s.picture !== undefined) {
+        const q=s.picture, f=s.sourceFace; if (!picture || !q || !FACE_KEYS.includes(q.face) || !dense(q.layerIndex,3) || !q.layerIndex.every((n:unknown)=>typeof n==='number' && Number.isInteger(n) && n>=0 && n<picture.widths.length) || !f || !sameValues(f.normal,PROJECTED_FACES[q.face as FaceKey].normal) || !sameValues(f.up,PROJECTED_FACES[q.face as FaceKey].up)) return fail('InvalidProjection','Invalid picture mapping');
+        participating++;
+      }
     }
   }
+  if (picture && !participating) return fail('InvalidProjection','Picture has no participating stickers');
   return ok(undefined);
 }
 function canonical(value: unknown): unknown {
@@ -51,7 +73,7 @@ export function validateTransition(t: Transition): Result<void> {
   const fromValidation = validateProjection(t.from); if (!fromValidation.ok) return fromValidation;
   const toValidation = validateProjection(t.to); if (!toValidation.ok) return toValidation;
   if (!array(t.axis, 3) || !unit(t.axis) || !array(t.pivot, 3) || !Number.isFinite(t.signedAngleRadians) || !Number.isFinite(t.durationMs) || t.durationMs < 0 || !Array.isArray(t.pieceIds) || new Set(t.pieceIds).size !== t.pieceIds.length) return fail('InvalidTransition', 'Invalid turn');
-  if (!sameValues(t.from.presentation, t.to.presentation) || !sameValues(t.from.core, t.to.core)) return fail('InvalidTransition', 'Scene metadata differs');
+  if (!sameValues(t.from.presentation, t.to.presentation) || !sameValues(t.from.core, t.to.core) || !sameValues(t.from.appearance,t.to.appearance) || !sameValues(t.from.picture,t.to.picture)) return fail('InvalidTransition', 'Scene metadata differs');
   const targets = new Map(t.to.pieces.map(p => [p.id, p]));
   const selected = new Set(t.pieceIds);
   if (targets.size !== t.from.pieces.length || [...selected].some(k => !targets.has(k) || !t.from.pieces.some(p => p.id === k))) return fail('InvalidTransition', 'Piece IDs differ');
