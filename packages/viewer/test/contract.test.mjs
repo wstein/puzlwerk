@@ -101,3 +101,9 @@ test('source edge colors must be a record of source edge values',()=>{
  const s={id:'s',transform:t(),size:[.8,.8],color:'#fff',sourceFace:{normal:[0,0,1],up:[0,1,0],edgeColors:7}};
  assert.equal(validateProjection({pieces:[{id:'p',transform:t(),stickers:[s]}]}).error.code,'InvalidProjection');
 });
+
+test('explicit source face color is independently validated',()=>{
+ const s={id:'s',transform:t(),size:[.8,.8],color:'blue',sourceFace:{normal:[0,0,1],up:[0,1,0],color:'#ff0000'}};
+ assert.equal(validateProjection({pieces:[{id:'p',transform:t(),stickers:[s]}]}).ok,true);
+ assert.equal(validateProjection({pieces:[{id:'p',transform:t(),stickers:[{...s,sourceFace:{...s.sourceFace,color:'red'}}]}]}).error.code,'InvalidProjection');
+});

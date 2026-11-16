@@ -8,7 +8,7 @@ export type ViewerError = { readonly code: 'InvalidProjection' | 'InvalidTransit
 export type Result<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: ViewerError };
 export type Transform = { readonly position: Vec3; readonly rotation: Quaternion };
 export type FaceEdgeColors = Partial<Record<'left'|'right'|'top'|'bottom', string | readonly {readonly to:number; readonly color:string}[]>>;
-export type SourceFace = { readonly normal: Vec3; readonly up: Vec3; readonly edgeColors?: FaceEdgeColors };
+export type SourceFace = { readonly normal: Vec3; readonly up: Vec3; readonly color?:string; readonly edgeColors?: FaceEdgeColors };
 export type Sticker = { readonly id: string; readonly transform: Transform; readonly size: readonly [number, number]; readonly color: string; readonly imageId?: string; readonly sourceFace?: SourceFace; readonly picture?: {readonly face:FaceKey; readonly layerIndex:Vec3} };
 export type PieceGeometry = { readonly cellSize: Vec3; readonly outerSides: readonly [readonly [boolean, boolean], readonly [boolean, boolean], readonly [boolean, boolean]] };
 export type Piece = { readonly id: string; readonly transform: Transform; readonly stickers: readonly Sticker[]; readonly geometry?: PieceGeometry };
@@ -51,6 +51,7 @@ export function validateProjection(p: CubeProjection): Result<void> {
       if (s.sourceFace !== undefined) {
         const f=s.sourceFace; if (!f || !axis(f.normal) || !axis(f.up) || f.normal.reduce((sum:number,x:number,i:number)=>sum+x*f.up[i],0)!==0 || normals.has(f.normal.join(','))) return fail('InvalidProjection','Invalid source face',`pieces[${i}].stickers[${j}].sourceFace`);
         normals.add(f.normal.join(','));
+        if(f.color !== undefined && !hex(f.color)) return fail('InvalidProjection','Invalid source face color');
         if (f.edgeColors !== undefined && (!f.edgeColors || typeof f.edgeColors !== 'object' || Array.isArray(f.edgeColors) || Object.entries(f.edgeColors).some(([k,v]) => !['left','right','top','bottom'].includes(k) || !(hex(v) || (dense(v) && v.length>0 && v.every((stop:unknown)=>!!stop && typeof stop==='object' && Number.isFinite((stop as {to:number}).to) && hex((stop as {color:string}).color))))))) return fail('InvalidProjection','Invalid face edges');
       }
       if (s.picture !== undefined) {

@@ -466,7 +466,7 @@ test('live tile override retains projected surfaces until picture is removed',as
  const sf={normal:[0,0,1],up:[0,1,0]},sp={face:'F',layerIndex:[0,1,1]},picture={widths:[1,1],faces:{U:'u',R:'r',F:'f',D:'d',L:'l',B:'b'}};
  const p={pieces:[{id:'p',transform:t(),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff',imageId:'old',sourceFace:sf,picture:sp}]}],appearance:{construction:'stickerless'},picture};
  await scene.setProjection(p);frames.shift()(0);const stickerMap=rendered.getObjectByName('s').material.map,bodyMap=rendered.getObjectByName('p').children[0].material[4].map;let stickerDisposed=0,bodyDisposed=0;stickerMap.addEventListener('dispose',()=>stickerDisposed++);bodyMap.addEventListener('dispose',()=>bodyDisposed++);
- const replacement={appearance:p.appearance,picture,stickers:[{id:'s',color:'#ffffff',imageId:'new',sourceFace:sf,picture:sp}]};assert.equal((await scene.setArtwork(replacement)).ok,true);frames.shift()(0);
+ const replacement={appearance:p.appearance,picture,stickers:[{id:'s',color:'#ffffff',imageId:'new',sourceFace:{...sf,color:'#ff0000',edgeColors:{left:'#ffffff'}},picture:sp}]};assert.equal((await scene.setArtwork(replacement)).ok,true);frames.shift()(0);
  assert.equal(rendered.getObjectByName('s').material.map,stickerMap);assert.equal(rendered.getObjectByName('p').children[0].material[4].map,bodyMap);assert.equal(stickerDisposed,0);assert.equal(bodyDisposed,0);
  assert.equal((await scene.setArtwork({appearance:p.appearance,stickers:[{id:'s',color:'#ffffff',imageId:'new',sourceFace:sf}]})).ok,true);frames.shift()(0);
  assert.notEqual(rendered.getObjectByName('s').material.map,stickerMap);assert.equal(rendered.getObjectByName('p').children[0].material[4].map,rendered.getObjectByName('s').material.map);assert.equal(stickerDisposed,1);assert.equal(bodyDisposed,1);scene.dispose();
@@ -581,4 +581,55 @@ test('successful setProjection starts new artwork construction references',async
  const make=width=>({pieces:[{id:'p',transform:t(),stickers:[{...sticker,picture:{face:'F',layerIndex:[0,0,0]}}]}],picture:{widths:[width],faces}});
  assert.equal((await scene.setProjection(make(1))).ok,true);assert.equal((await scene.setProjection(make(2))).ok,true);
  assert.equal((await scene.setArtwork({picture:{widths:[2],faces},stickers:[{id:'s',color:'#fff',sourceFace:frame,picture:{face:'F',layerIndex:[0,0,0]}}]})).ok,true);scene.dispose();
+});
+
+test('source face colors preserve frame order, normalize CSS and remain independent of image tint',async()=>{
+ let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const make=(front,top,extra={})=>({pieces:[{id:'p',transform:t(),stickers:[{id:'front',transform:t([0,0,.5]),size:[.8,.8],color:front,sourceFace:{normal:[0,0,1],up:[0,1,0],...extra}},{id:'top',transform:t([0,.5,0],[-Math.SQRT1_2,0,0,Math.SQRT1_2]),size:[.8,.8],color:top,sourceFace:{normal:[0,1,0],up:[0,0,-1]}}]}],appearance:{construction:'stickerless'}});
+ await scene.setProjection(make('#ff0000','#ffffff'));frames.shift()(0);let mats=rendered.getObjectByName('p').children[0].material;assert.equal(mats[0].color.getHexString(),'ff0000');assert.equal(mats[1].color.getHexString(),'ff0000');
+ const independent=make('#ffffff','#ffffff',{color:'#ff0000'});independent.pieces[0].stickers[0].imageId='tile';await scene.setProjection(independent);frames.shift()(0);mats=rendered.getObjectByName('p').children[0].material;assert.equal(mats[0].color.getHexString(),'ff0000');assert.equal(mats[4].color.getHexString(),'ffffff');
+ const css=make('#fff','blue');css.appearance.miterCutFaces=true;await scene.setProjection(css);frames.shift()(0);mats=rendered.getObjectByName('p').children[0].material;const {createHash}=await import('node:crypto');assert.equal(createHash('sha256').update(mats[0].map.image.data).digest('hex'),'b8d26b4e9b55f93e23759d40c8f04b0cfd3f26f8c67549423a70920273f85741');scene.dispose();
+});
+
+test('nonprojected planar UV uses the actual unequal body extent',async()=>{
+ const THREE=await import('three'),{planarBodyUv}=await import('../dist/body-artwork.js'),{createTwoRadiusBody}=await import('../dist/two-radius-body.js');let rendered;const frames=[];
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const sticker={id:'s',transform:t([0,0,.4]),size:[.8,.8],color:'#ffffff',sourceFace:{normal:[0,0,1],up:[0,1,0]}};
+ const p={pieces:[{id:'p',transform:t(),geometry:{cellSize:[1.4,1,.7],outerSides:[[false,true],[false,true],[false,true]]},stickers:[sticker]}],presentation:{size:3,nominalEdge:3},appearance:{construction:'stickerless',planarFaceUv:true}};
+ await scene.setProjection(p);frames.shift()(0);const actual=rendered.getObjectByName('p').children[0].geometry;
+ const base=createTwoRadiusBody({size:[1.39,.99,.69],outer:[[false,true],[false,true],[false,true]],big:.055,small:.033,segments:3});base.computeBoundingBox();const extent=base.boundingBox.getSize(new THREE.Vector3()).toArray();const expected=planarBodyUv(base,extent,new Set([0,1,2,3,4,5]));
+ assert.deepEqual([...actual.attributes.uv.array],[...expected.attributes.uv.array]);expected.dispose();base.dispose();scene.dispose();
+});
+
+test('source annotated tile alpha matches source while legacy tile remains transparent',async()=>{
+ let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const s={id:'s',transform:t(),size:[.8,.8],color:'#ffffff',imageId:'tile'};const p={pieces:[{id:'p',transform:t(),stickers:[s]}]};
+ await scene.setProjection(p);frames.shift()(0);assert.equal(rendered.getObjectByName('s').material.transparent,true);
+ await scene.setProjection({pieces:[{...p.pieces[0],stickers:[{...s,sourceFace:{normal:[0,0,1],up:[0,1,0]}}]}]});frames.shift()(0);assert.equal(rendered.getObjectByName('s').material.transparent,false);scene.dispose();
+});
+
+test('same body geometry with different source up frames retains distinct artwork UVs',async()=>{
+ const {createHash}=await import('node:crypto');let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const make=(id,up)=>({id,transform:t(),geometry:{cellSize:[1,1,1],outerSides:[[false,false],[false,true],[false,true]]},stickers:[{id:`${id}s`,transform:t(),size:[.8,.8],color:'#ffffff',sourceFace:{normal:[0,0,1],up}}]});
+ await scene.setProjection({pieces:[make('a',[0,1,0]),make('b',[1,0,0])]});frames.shift()(0);const a=rendered.getObjectByName('a').children[0].geometry,b=rendered.getObjectByName('b').children[0].geometry;
+ const hash=g=>createHash('sha256').update(Buffer.from(g.attributes.uv.array.buffer)).digest('hex');assert.notEqual(hash(a),hash(b));let ad=0,bd=0;a.addEventListener('dispose',()=>ad++);b.addEventListener('dispose',()=>bd++);scene.dispose();assert.equal(ad,1);assert.equal(bd,1);
+});
+
+test('source exterior frame order survives transition sticker reordering and live replacement',async()=>{
+ let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const front={id:'z-front',transform:t([0,0,.5]),size:[.8,.8],color:'#ff0000',sourceFace:{normal:[0,0,1],up:[0,1,0]}},top={id:'a-top',transform:t([0,.5,0],[-Math.SQRT1_2,0,0,Math.SQRT1_2]),size:[.8,.8],color:'#ffffff',sourceFace:{normal:[0,1,0],up:[0,0,-1]}};
+ const from={pieces:[{id:'piece',transform:t(),stickers:[front,top]}],appearance:{construction:'stickerless'}};await scene.setProjection(from);frames.shift()(0);
+ const reordered={...from,pieces:[{...from.pieces[0],stickers:[top,front]}]};assert.equal((await scene.transition({from:reordered,to:reordered,pieceIds:[],axis:[0,0,1],signedAngleRadians:0,pivot:[0,0,0],durationMs:0})).ok,true);frames.shift()(0);
+ assert.equal((await scene.setArtwork({appearance:from.appearance,stickers:[{id:top.id,color:top.color,sourceFace:top.sourceFace},{id:front.id,color:front.color,sourceFace:front.sourceFace}]})).ok,true);frames.shift()(0);
+ assert.equal(rendered.getObjectByName('piece').children[0].material[0].color.getHexString(),'ff0000');scene.dispose();
+});
+
+test('projected planar UV uses source cell-share extent for unequal layers',async()=>{
+ const {planarBodyUv}=await import('../dist/body-artwork.js'),{createTwoRadiusBody}=await import('../dist/two-radius-body.js');let rendered;const frames=[];
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const s={id:'s',transform:t([0,0,.4]),size:[.8,.8],color:'#ffffff',sourceFace:{normal:[0,0,1],up:[0,1,0]},picture:{face:'F',layerIndex:[0,0,2]}};
+ const p={pieces:[{id:'p',transform:t(),geometry:{cellSize:[1.4,1,.7],outerSides:[[false,true],[false,true],[false,true]]},stickers:[s]}],presentation:{size:3,nominalEdge:3},appearance:{construction:'stickerless'},picture:{widths:[1.4,1,.7],faces:{U:'i',R:'i',F:'i',D:'i',L:'i',B:'i'}}};
+ await scene.setProjection(p);frames.shift()(0);const actual=rendered.getObjectByName('p').children[0].geometry;
+ const base=createTwoRadiusBody({size:[1.39,.99,.69],outer:[[false,true],[false,true],[false,true]],big:.055,small:.033,segments:3}),expected=planarBodyUv(base,[1.4*.99,.99,.7*.99],new Set([4]));
+ assert.deepEqual([...actual.attributes.uv.array],[...expected.attributes.uv.array]);expected.dispose();base.dispose();scene.dispose();
 });

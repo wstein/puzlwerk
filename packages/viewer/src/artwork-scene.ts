@@ -27,11 +27,12 @@ export function sourceBody(piece: Piece, p: CubeProjection, base: THREE.BufferGe
   if (!geometry) {geometry=orientBodyArtwork(base,frames);if(geometry!==base)resources.push(geometry);cache.artwork.set(artworkKey,geometry);}
   if (p.appearance?.construction !== 'stickerless') return {geometry,material:plastic};
   const materials: (THREE.MeshPhysicalMaterial|null)[]=Array(6).fill(null);
-  const exterior: (string|null)[]=Array(6).fill(null);
+  const exterior: (string|null)[]=Array(6).fill(null), orderedExterior:{index:number;color:string}[]=[];
   for (const sticker of annotated) {
     const index=sourceFaceIndex(sticker.sourceFace!.normal); const material=plastic.clone(); resources.push(material);
-    material.color.set(sticker.color); exterior[index]=sticker.color;
-    const tile=tileTextures.get(sticker.id); if (tile) material.map=tile;
+    const faceColor=sticker.sourceFace!.color ?? `#${new THREE.Color(sticker.color).getHexString()}`;
+    material.color.set(faceColor); exterior[index]=faceColor; orderedExterior.push({index,color:faceColor});
+    const tile=tileTextures.get(sticker.id); if (tile) {material.map=tile;material.color.set(sticker.color);}
     if (sticker.picture && p.picture) {
       const win=stickerWindow(p.picture.widths,.99,sticker.picture.face,sticker.picture.layerIndex);
       material.map=pictureTexture(pictureTextures.get(sticker.picture.face)!,win,resources); material.color.set('#ffffff');
@@ -41,7 +42,7 @@ export function sourceBody(piece: Piece, p: CubeProjection, base: THREE.BufferGe
   const axes=p.appearance?.miterCutFaces ? faceUvAxes(geometry) : undefined;
   for (let index=0;index<6;index++) {
     if (materials[index]) continue;
-    const border=exterior.find((color,k)=>color && (k>>1)!==(index>>1)) ?? exterior.find(Boolean) ?? '#3a3d42';
+    const border=orderedExterior.find(face=>(face.index>>1)!==(index>>1))?.color ?? orderedExterior[0]?.color ?? '#3a3d42';
     let color=p.appearance?.bodyColor ?? border; let miter:THREE.MeshPhysicalMaterial|undefined;
     if (axes) {
       const edgeColors:(string|null)[]=Array(6).fill(null), profiles:(EdgeProfile|null)[]=Array(6).fill(null);
@@ -50,7 +51,7 @@ export function sourceBody(piece: Piece, p: CubeProjection, base: THREE.BufferGe
         const f=sticker.sourceFace!, k=sourceFaceIndex(f.normal), right=cross(f.up,f.normal), d=(v:Vec3)=>dot(v,toward);
         const edge=d(f.up)===1?'top':d(f.up)===-1?'bottom':d(right)===1?'right':d(right)===-1?'left':null;
         const spec=edge ? f.edgeColors?.[edge] : undefined;
-        edgeColors[k]=typeof spec==='string'?spec:Array.isArray(spec)?spec[0].color:sticker.color;
+        edgeColors[k]=typeof spec==='string'?spec:Array.isArray(spec)?spec[0].color:exterior[k];
         if (Array.isArray(spec)) profiles[k]={stops:spec,dir:edge==='left'||edge==='right'?f.up:right};
       }
       const edges=cutFaceEdges(index,edgeColors,axes,profiles), flat=flatCutColor(edges);
@@ -67,7 +68,8 @@ export function sourceBody(piece: Piece, p: CubeProjection, base: THREE.BufferGe
   }
   if (p.appearance?.planarFaceUv || p.picture) {
     const groups=p.picture?new Set(annotated.filter(s=>s.picture).map(s=>sourceFaceIndex(s.sourceFace!.normal))):new Set([0,1,2,3,4,5]);
-    const cell=piece.geometry?.cellSize ?? [1,1,1]; const extent=cell.map(c=>c*.99) as [number,number,number];
+    const cell=piece.geometry?.cellSize ?? [1,1,1];
+    geometry.computeBoundingBox(); const extent=p.picture ? cell.map(c=>c*.99) as [number,number,number] : geometry.boundingBox!.getSize(new THREE.Vector3()).toArray() as [number,number,number];
     const planarKey=geometry.uuid+'|'+extent.join(',')+'|'+[...groups].sort().join(',');
     let planar=cache.planar.get(planarKey);if(!planar){planar=planarBodyUv(geometry,extent,groups);resources.push(planar);cache.planar.set(planarKey,planar);}geometry=planar;
   }
