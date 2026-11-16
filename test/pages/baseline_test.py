@@ -36,4 +36,26 @@ class ReceiptTest(unittest.TestCase):
             for args in [('bad',12,2,'b'*32),('a'*40,0,2,'b'*32),('a'*40,12,0,'b'*32),('a'*40,12,2,'bad')]:
                 with self.assertRaises(ValueError): baseline.make_receipt(root,*args)
 
+
+class StageTest(unittest.TestCase):
+    def test_stage_copies_only_public_files_and_writes_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/'source'; root.mkdir(); (root/'index.html').write_text('published')
+            (root/'.private').write_text('not published')
+            (root/'assets').mkdir(); (root/'assets/site.css').write_text('style')
+            dest=Path(tmp)/'staged'
+            baseline.stage(root,dest,'a'*40,42,1,'b'*32)
+            self.assertFalse((dest/'.private').exists())
+            self.assertEqual((dest/'assets/site.css').read_text(),'style')
+            import json
+            receipt=json.loads((dest/baseline.RECEIPT).read_text())
+            self.assertEqual(receipt['root'],baseline.digest(dest))
+    def test_stage_rejects_existing_destination_and_links(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)/'source'; root.mkdir(); (root/'index.html').write_text('published')
+            dest=Path(tmp)/'staged'; dest.mkdir()
+            with self.assertRaises(ValueError): baseline.stage(root,dest,'a'*40,42,1,'b'*32)
+            dest.rmdir(); (root/'link').symlink_to('index.html')
+            with self.assertRaises(ValueError): baseline.stage(root,dest,'a'*40,42,1,'b'*32)
+
 if __name__=='__main__': unittest.main()
