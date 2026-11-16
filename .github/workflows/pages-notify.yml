@@ -3,6 +3,8 @@ on:
   workflow_run:
     workflows: [Reconcile acceptance previews]
     types: [completed]
+  pull_request_target:
+    types: [synchronize, unlabeled, closed, reopened]
 permissions:
   contents: read
   actions: read
@@ -10,8 +12,11 @@ permissions:
   issues: write
 jobs:
   notify:
-    if: vars.PAGES_PREVIEWS_ENABLED == 'true' && github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_run' && vars.PAGES_PREVIEWS_ENABLED == 'true' && github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    concurrency:
+      group: puzlwerk-pages-notify
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -29,3 +34,22 @@ jobs:
           PAGES_BOOTSTRAP_RUN: ${{ vars.PAGES_BOOTSTRAP_RUN }}
           PAGES_BOOTSTRAP_ATTEMPT: ${{ vars.PAGES_BOOTSTRAP_ATTEMPT }}
           PAGES_BOOTSTRAP_NONCE: ${{ vars.PAGES_BOOTSTRAP_NONCE }}
+  clear-stale:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: puzlwerk-pages-notify
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - run: node scripts/pages/notify.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTIFY_MODE: clear
+          PR_NUMBER: ${{ github.event.pull_request.number }}
