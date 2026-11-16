@@ -115,3 +115,32 @@ test('child material settings survive artwork replacement and remain child-local
  assert.equal(a.setMaterial({specularIntensity:.03,roughness:.65,clearcoat:.01,receiveShadow:false}).ok,true);assert.equal((await a.setArtwork({stickers:[{id:'tile',color:'#ff0000'}]})).ok,true);h.step(0);
  const tiles=[];h.scene.traverse(o=>{if(o.name==='tile')tiles.push(o)});const red=tiles.find(o=>o.material.color.getHexString()==='ff0000'),white=tiles.find(o=>o.material.color.getHexString()==='ffffff');assert.equal(red.material.specularIntensity,.03);assert.equal(red.receiveShadow,false);assert.notEqual(white.material.specularIntensity,.03);h.stage.dispose();
 });
+const directional=(position,intensity)=>({color:'#ffffff',intensity,visible:true,position,target:[0,0,0]});
+const namesLighting=()=>({ambient:{color:'#ffffff',intensity:.8,visible:true},hemisphere:{sky:'#ffffff',ground:'#77808d',intensity:0,visible:true,position:[0,1,0]},key:directional([1,2.5,6.5],2.4),fill:directional([-4,1,2],.85),rim:directional([1,3,-4],1.3),shadowFill:directional([-1,7,3],1),extraDirectionals:[directional([-8,1.5,1.5],.9)],keyShadowStrength:.6,shadowFillStrength:.33,floorOpacity:.5,contactShadow:true,fineShadowEdges:false,colorTemperature:false,toneMapping:'softShoulder',exposure:s=>s.lights.ambient});
+test('candidate lighting reaches exposure and fitted caster direction without accumulating',()=>{
+ const h=harness();h.stage.addCube({position:[-1.4,0,0]});h.stage.addCube({position:[1.4,0,0]});const cfg=namesLighting();assert.equal(h.stage.setLighting(cfg).ok,true);h.step(0);
+ const ambient=h.scene.children.find(o=>o.isAmbientLight),key=h.scene.children.find(o=>o.isDirectionalLight&&o.castShadow),floor=h.scene.getObjectByName('studio-shadow-receiver');assert.equal(ambient.intensity,.8);assert.equal(key.intensity,2.4);assert.ok(key.position.distanceTo(new THREE.Vector3(1,2.5,6.5).normalize().multiplyScalar(20))<1e-12);assert.equal(key.shadow.intensity,.6);assert.equal(floor.material.opacity,.5);assert.equal(h.view.exposure,.8);
+ assert.equal(h.stage.setLighting(cfg).ok,true);assert.equal(key.shadow.intensity,.6);const invalid={...cfg,key:{...cfg.key,intensity:NaN}};assert.equal(h.stage.setLighting(invalid).error.code,'InvalidLighting');assert.equal(key.intensity,2.4);h.stage.dispose();
+});
+test('lighting uses candidate target direction and rolls back on invalid exposure',()=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});const cfg=namesLighting();assert.equal(h.stage.setLighting(cfg).ok,true);h.step(0);
+ const key=h.scene.children.find(o=>o.isDirectionalLight&&o.castShadow),previous=key.position.clone(),bad={...cfg,key:{...cfg.key,intensity:9},exposure:()=>NaN};assert.equal(h.stage.setLighting(bad).error.code,'InvalidLighting');assert.equal(key.intensity,2.4);assert.ok(key.position.equals(previous));
+ const shifted={...cfg,key:{...cfg.key,position:[2,3.5,7.5],target:[1,1,1]}};assert.equal(h.stage.setLighting(shifted).ok,true);const direction=key.position.clone().sub(key.target.position).normalize();assert.ok(direction.distanceTo(new THREE.Vector3(1,2.5,6.5).normalize())<1e-12);h.stage.dispose();
+});
+test('configured light colors survive temperature toggles and match exposure snapshot',()=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});const cfg=namesLighting(),red={...cfg,key:{...cfg.key,color:'#ff0000'},exposure:s=>s.lights.directionals[0].amount};
+ assert.equal(h.stage.setLighting(red).ok,true);h.step(0);const key=h.scene.children.find(o=>o.isDirectionalLight&&o.castShadow);assert.equal(key.color.getHexString(),'ff0000');assert.ok(Math.abs(h.view.exposure-2.4*.2126)<1e-12);
+ assert.equal(h.stage.setLighting({...red,colorTemperature:true}).ok,true);assert.equal(key.color.getHexString(),'fff3e3');assert.equal(h.stage.setLighting(red).ok,true);assert.equal(key.color.getHexString(),'ff0000');h.stage.dispose();
+});
+test('caller caster envelope scales with view and invalid envelopes preserve floor',()=>{
+ const h=harness();h.stage.addCube({position:[0,1,0]});assert.equal(h.stage.setViewPolicy(()=>({distance:10,far:100,groupScale:.5})).ok,true);assert.equal(h.stage.setCasterEnvelope({radius:2,clearance:.2}).ok,true);h.step(0);const floor=h.scene.getObjectByName('studio-shadow-receiver');assert.ok(Math.abs(floor.position.y-(-.6))<1e-12);
+ assert.equal(h.stage.setCasterEnvelope({radius:0,clearance:.2}).error.code,'InvalidView');assert.ok(Math.abs(floor.position.y-(-.6))<1e-12);h.stage.dispose();
+});
+test('removing a child refits the remaining layout',async()=>{
+ const h=harness(),a=h.stage.addCube({position:[-2,0,0]}).value,b=h.stage.addCube({position:[2,0,0]}).value;await a.setProjection(projection);await b.setProjection(projection);
+ assert.equal(h.stage.setViewPolicy(v=>({distance:10,far:100,groupScale:v.placements.length===1?.5:1})).ok,true);h.step(0);a.dispose();h.step(0);assert.equal(h.scene.getObjectByName('same').getWorldPosition(new THREE.Vector3()).x,1);h.stage.dispose();
+});
+test('stage disposal does not refit or draw while removing children',()=>{
+ let views=0,draws=0,id=0;const frames=new Map(),clock={now:()=>0,request:cb=>{frames.set(++id,cb);return id},cancel:id=>frames.delete(id)};
+ const stage=createStageForTest({resolveAsset:async()=>({ok:false})},clock,{render(){draws++},setView(){views++},dispose(){}});stage.addCube({position:[-1,0,0]});stage.addCube({position:[1,0,0]});const before=views;stage.dispose();assert.equal(views,before);assert.equal(draws,0);assert.equal(frames.size,0);
+});
