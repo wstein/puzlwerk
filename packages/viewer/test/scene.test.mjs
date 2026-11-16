@@ -172,3 +172,43 @@ test('renderer enables bounded PCF shadows and neutral output', async () => {
   assert.equal(renderer.outputColorSpace,THREE.SRGBColorSpace);
   assert.equal(renderer.toneMapping,THREE.NeutralToneMapping);
 });
+
+test('source 2x2 profile retains Cubistry widths and two-radius geometry', async () => {
+  const {presentationLayerProfile,presentationWidths}=await import('../dist/presentation-preset.js');
+  const {readFile}=await import('node:fs/promises'); const {createHash}=await import('node:crypto');
+  const fixture=JSON.parse(await readFile(new URL('./fixtures/cubistry-2x2-profile.json',import.meta.url)));
+  const widths=presentationWidths(2); assert.deepEqual(widths,fixture.widths);
+  const profile=presentationLayerProfile(widths,2);
+  const geometry=profile.body([widths[0],widths[0],widths[0]],[[true,false],[true,false],[true,false]]);
+  geometry.computeBoundingBox();
+  assert.ok(Math.abs(geometry.boundingBox.max.x-geometry.boundingBox.min.x-1.002)<1e-6);
+  const hash=a=>createHash('sha256').update(Buffer.from(a.buffer,a.byteOffset,a.byteLength)).digest('hex');
+  for (const name of ['position','normal','uv']) assert.equal(hash(geometry.getAttribute(name).array),fixture[name]);
+  assert.equal(hash(geometry.index.array),fixture.index);
+  geometry.dispose();
+});
+
+test('valid empty and sticker-free projections remain renderable', async () => {
+  let rendered; const frames=[];
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  assert.equal((await scene.setProjection({pieces:[]})).ok,true); frames.shift()(0);
+  const bare={pieces:[{id:'free-id',transform:t([.3,.4,.5],[0,0,0,1]),stickers:[]}]};
+  assert.equal((await scene.setProjection(bare)).ok,true); frames.shift()(0);
+  assert.ok(rendered.getObjectByName('free-id')); scene.dispose();
+});
+
+test('free sticker frame and non-axis turn preserve supplied poses around a nonzero pivot', async () => {
+  const THREE=await import('three'); let now=0; const frames=[]; let rendered;
+  const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>now,request:cb=>{frames.push(cb);return frames.length},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+  const rotation=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,1,0).normalize(),.37);
+  const from={pieces:[{id:'piece/α',transform:t([1,2,3]),stickers:[{id:'art/β',transform:t([.1,.2,.3],rotation.toArray()),size:[.5,.7],color:'#fff'}]}]};
+  const axis=new THREE.Vector3(1,1,1).normalize(), pivot=new THREE.Vector3(.2,.3,.4), angle=1.2;
+  const q=new THREE.Quaternion().setFromAxisAngle(axis,angle), end=new THREE.Vector3(1,2,3).sub(pivot).applyQuaternion(q).add(pivot);
+  const to={pieces:[{...from.pieces[0],transform:t(end.toArray(),q.toArray())}]};
+  await scene.setProjection(from); frames.shift()(0);
+  const sticker=rendered.getObjectByName('art/β'); assert.ok(sticker.quaternion.angleTo(rotation)<1e-7); assert.deepEqual(sticker.position.toArray(),[.1,.2,.3]);
+  const turn=scene.transition({from,to,pieceIds:['piece/α'],axis:axis.toArray(),pivot:pivot.toArray(),signedAngleRadians:angle,durationMs:100});
+  now=50; frames.shift()(now); const expected=new THREE.Vector3(1,2,3).sub(pivot).applyAxisAngle(axis,angle/2).add(pivot);
+  assert.ok(rendered.getObjectByName('piece/α').getWorldPosition(new THREE.Vector3()).distanceTo(expected)<1e-6);
+  now=100; frames.shift()(now); assert.equal((await turn).ok,true); scene.dispose();
+});

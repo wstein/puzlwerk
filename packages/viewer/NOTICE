@@ -26,7 +26,7 @@ Copied unchanged.
 
 src/presentation-preset.ts: Git blob 0d02cc60f6aa3eb0fee4a7818d5b00fcd1572140;
 source SHA-256 6ae77f5c4579689272106d21de91a1de23ed9dcfa762e30ad9e36944f784466b.
-The layer-profile and default-geometry functions and their imports are omitted;
+The default-geometry function and its import are omitted;
 the sticker material accepts a null map for color-only projections, and the
 default zero metallic factor is implicit.
 
@@ -36,6 +36,13 @@ The import extension and SPDX header were adapted. These files retain the
 Cubistry package's AGPL-3.0-or-later terms.
 
 Adapted target SHA-256 values at this revision:
-src/presentation-preset.ts a4b6f48df1f15fd8b1fbe627cd45ea4843b1dcb783d02fdf2c00fcfc9a55eabc
+src/presentation-preset.ts bb791c66c95a02931d7b05cffa182c9b64e13cfacd27454615edab20b9beb7de
 src/studio.ts 00ffac466351db90b5754de1da4c0d90eb4aea127835ab34fc77cfd49a1435fd
-src/scene.ts f01d7b2e4c63c53db32e355fb78c9a79642f458a277d98d885a93ded178742c7
+src/scene.ts 3c744092feb5f595fd955fd0c8486039a4e788ef8df57d1672acb824b1ce9710
+
+src/layer-widths.ts: Git blob c0239c3830f4177f8ef30f616c39e6e93977c48b;
+source SHA-256 0977d80f09a4e939d471b74c867c6e7a76a19dbdfc8cc1243cafed4ba7ff7416.
+The core validation import is replaced by a local throwing assertion; target
+SHA-256 64bae58e9c3c64689a19d718691c119036b29a4ceced00e00ee0cddae124f261.
+The source presentation layer-profile and widths functions are restored and
+the scene routes body geometry through that builder with its existing inputs.

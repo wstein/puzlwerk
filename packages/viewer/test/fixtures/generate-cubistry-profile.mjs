@@ -1,0 +1,10 @@
+import {createHash} from 'node:crypto';
+import {writeFile} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+if (!process.argv[2]) throw new Error('Pass the pinned Cubistry presentation-preset.ts path');
+const {presentationLayerProfile,presentationWidths}=await import(pathToFileURL(process.argv[2]));
+const widths=presentationWidths(2), outer=[[true,false],[true,false],[true,false]];
+const g=presentationLayerProfile(widths,2).body([widths[0],widths[0],widths[0]],outer);
+const hash=a=>createHash('sha256').update(Buffer.from(a.buffer,a.byteOffset,a.byteLength)).digest('hex');
+const fixture={source:'Cubistry packages/cube-viewer/src/presentation-preset.ts at efafcc1d97687eccea0cde87a230f447ce1b6c66',widths,outer,position:hash(g.attributes.position.array),normal:hash(g.attributes.normal.array),uv:hash(g.attributes.uv.array),index:hash(g.index.array)};
+await writeFile('packages/viewer/test/fixtures/cubistry-2x2-profile.json',JSON.stringify(fixture,null,2)+'\n');g.dispose();

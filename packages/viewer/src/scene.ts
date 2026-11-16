@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Pivot grouping adapted from Cubistry physical-scene.ts; see NOTICE.
 import * as THREE from 'three';
-import { createTwoRadiusBody, type OuterSides } from './two-radius-body.js';
-import { createStickerGeometry, createPlasticMaterial, createStickerMaterial } from './presentation-preset.js';
+import type { OuterSides } from './two-radius-body.js';
+import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile } from './presentation-preset.js';
 import { createPresentationStudio } from './studio.js';
 import { fail, ok, sameValues, validateProjection, validateTransition } from './contract.js';
 import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
@@ -20,6 +20,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
   const scene = new THREE.Scene();
   const root = new THREE.Group(); scene.add(root);
   const studio = createPresentationStudio(scene);
+  const profile = presentationLayerProfile([1,1],2);
   let projection: CubeProjection | undefined, pending: Pending | undefined, disposed = false, lost = false;
   let frame: number | undefined, animation: ((now: number) => boolean) | undefined;
   let pausedAt: number | undefined, pausedDuration = 0, dirty = false;
@@ -58,7 +59,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       }
       const offsets = piece.stickers.map(s => Math.hypot(...s.transform.position)).filter(n => n > .1);
       const width = offsets.length ? Math.max(.94, Math.min(.99, Math.min(...offsets) * 2 - .002)) : .94;
-      const geometry = createTwoRadiusBody({size:[width,width,width],outer:sides as OuterSides,big:.03,small:.018,segments:3});
+      const geometry = profile.body([width+.01,width+.01,width+.01],sides as OuterSides);
       const material = createPlasticMaterial('#1b2431'); resources.push(geometry, material);
       const mesh = new THREE.Mesh(geometry, material); mesh.castShadow = true; body.add(mesh);
       for (const sticker of piece.stickers) {
