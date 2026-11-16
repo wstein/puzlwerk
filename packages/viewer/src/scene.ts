@@ -9,7 +9,7 @@ import {createPresentationGeometry} from './presentation-preset.js';
 import type { OuterSides } from './two-radius-body.js';
 import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile, stickerRadiusFor, bodyRadiusFor, innerRadiusFor } from './presentation-preset.js';
 import { createPresentationStudio } from './studio.js';
-import { fail, ok, sameValues, validateProjection, validateTransition } from './contract.js';
+import { fail, ok, sameValues, validViewerMaterials, validateProjection, validateTransition } from './contract.js';
 import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
 import {validateAppearance,type ViewerAppearance} from './native-appearance.js';
 import {animateTimedProgress,type MotionTimingSource} from './motion-timing.js';
@@ -25,6 +25,8 @@ const sameProjection = (a: CubeProjection, b: CubeProjection) => {
 };
 
 export function createSceneForTest(options: ViewerOptions, clock: Clock, backend: Backend, shared?: { scene: THREE.Scene; parent: THREE.Group }): CubeScene & {prepareViewerAppearance(value:ViewerAppearance):Promise<Result<PreparedAppearance>>;cancelViewerAppearancePreparation():void;setInitialViewerAppearance(value:ViewerAppearance):void} {
+  if(!validViewerMaterials(options.materials))throw Error('Invalid viewer materials');
+  const materialOptions=structuredClone(options.materials??{});
   const scene = shared?.scene ?? new THREE.Scene();
   const parent = shared?.parent ?? scene;
   const root = new THREE.Group(); parent.add(root);
@@ -89,19 +91,19 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
         const layers=presentationLayerProfile(data.layerWidths,p.presentation?.nominalEdge);
         nativeGeometry.layers={...layers,sticker:data.stickerSize?()=>createStickerGeometry(data.stickerSize![0],data.stickerSize![1],(data.stickerRadius ?? stickerRadiusFor(p.presentation?.size,p.presentation?.nominalEdge))):layers.sticker};
       }
-      const plastic=createPlasticMaterial(p.appearance?.frameColor ?? '#202329');candidateResources.push(plastic);
+      const plastic=createPlasticMaterial(p.appearance?.frameColor ?? '#202329',materialOptions.plasticRoughness);candidateResources.push(plastic);
       const materials=new Map<string,THREE.Material>();
       for(const piece of p.pieces)for(const sticker of piece.stickers){
         let texture:THREE.Texture|null=null;
-        if(sticker.imageId){texture=new THREE.Texture(assets.get(sticker.imageId) as TexImageSource);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;candidateResources.push(texture);}
-        const material=createStickerMaterial(texture,sticker.color);material.transparent=Boolean(texture && !sticker.sourceFace);materials.set(sticker.id,material);candidateResources.push(material);
+        if(sticker.imageId){texture=new THREE.Texture(assets.get(sticker.imageId) as TexImageSource);texture.colorSpace=THREE.SRGBColorSpace;texture.flipY=options.textureOrigin!=='bottom-left';texture.needsUpdate=true;candidateResources.push(texture);}
+        const material=createStickerMaterial(texture,sticker.color,materialOptions.stickers?.[sticker.id]?.roughness ?? materialOptions.stickerRoughness);material.transparent=Boolean(texture && !sticker.sourceFace);materials.set(sticker.id,material);candidateResources.push(material);
       }
       const bodyOnly=data.bodies.filter(body=>!data.frames.some(frame=>frame.cubie===body.id));
       const profile=presentationLayerProfile(Array(p.presentation?.size ?? 2).fill(1),p.presentation?.nominalEdge);
       const geometryCache=new Map<string,THREE.BufferGeometry>();
       for(const [id,value] of data.bodyGeometry){const key=JSON.stringify(value);let geometry=geometryCache.get(key);if(!geometry){
         const custom=p.geometryProfile?.body;
-        if(custom){const size=value.cellSize.map(c=>c-custom.gap) as [number,number,number];geometry=custom.kind==='twoRadius'?createTwoRadiusBody({size,outer:value.outerSides as OuterSides,big:bodyRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),small:innerRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),segments:custom.bevelSegments}):new RoundedBoxGeometry(...size,custom.bevelSegments,custom.radius);}
+        if(custom){const size=value.cellSize.map(c=>c-custom.gap) as [number,number,number];geometry=custom.kind==='twoRadius'?createTwoRadiusBody({size,outer:value.outerSides as OuterSides,big:custom.bigRadius ?? bodyRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),small:custom.smallRadius ?? innerRadiusFor(p.presentation!.size,p.presentation!.nominalEdge),segments:custom.bevelSegments}):new RoundedBoxGeometry(...size,custom.bevelSegments,custom.radius);}
         else geometry=profile.body(value.cellSize,value.outerSides as OuterSides);
         geometryCache.set(key,geometry);}bodyGeometry.set(id,geometry);}
       const stickerCache=new Map<string,THREE.BufferGeometry>();

@@ -17,3 +17,9 @@ const timing:MotionTimingSource=()=>({endAt:200,durationMs:100,revision:1});
 timedScene.transition(transition,timing);
 // @ts-expect-error timing is a source callback, not a timing object
 timedScene.transition(transition,{endAt:200,durationMs:100,revision:1});
+
+const materialOptions:StageOptions={...options,textureOrigin:'bottom-left',materials:{plasticRoughness:.45,stickerRoughness:.7,stickers:{'sticker:s0':{roughness:.4}}}};
+void materialOptions;
+// @ts-expect-error origin must be explicit and known
+const invalidOrigin:StageOptions={...options,textureOrigin:'sideways'};
+void invalidOrigin;

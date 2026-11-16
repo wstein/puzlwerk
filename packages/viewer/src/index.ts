@@ -2,10 +2,11 @@
 import * as THREE from 'three';
 import { configurePresentationRenderer } from './presentation-preset.js';
 import { createStageForTest } from './stage.js';
-import { fail, ok } from './contract.js';
+import { fail, ok, validViewerMaterials } from './contract.js';
 import type { CubeScene, Result, ViewerOptions } from './contract.js';
-export type { BodyProfile, StickerGeometry, SourceMesh, Appearance, ArtworkReplacement, FaceEdgeColors, Picture, SourceFace, AssetResolver, CubeProjection, CubeScene, Piece, PieceGeometry, Quaternion, Result, Sticker, Transform, Transition, Vec3, ViewerError, ViewerOptions } from './contract.js';
+export type { BodyProfile, StickerGeometry, SourceMesh, Appearance, ArtworkReplacement, FaceEdgeColors, Picture, SourceFace, AssetResolver, CubeProjection, CubeScene, Piece, PieceGeometry, Quaternion, Result, Sticker, Transform, Transition, Vec3, ViewerError, ViewerMaterialOptions, ViewerOptions } from './contract.js';
 export function createCubeScene(host: HTMLElement, options: ViewerOptions): Result<CubeScene> {
+  if(!validViewerMaterials(options.materials) || (options.textureOrigin!==undefined && !['top-left','bottom-left'].includes(options.textureOrigin)))return fail('InvalidProjection','Invalid viewer presentation options');
   let renderer: THREE.WebGLRenderer;
   try { renderer = new THREE.WebGLRenderer({antialias:true, alpha:true}); } catch { return fail('Unavailable','WebGL is unavailable'); }
   configurePresentationRenderer(renderer, null);
@@ -16,7 +17,7 @@ export function createCubeScene(host: HTMLElement, options: ViewerOptions): Resu
   let stage:ReturnType<typeof createStageForTest>;
   const onLost = (event: Event) => { event.preventDefault(); stage.contextLost(); };
   const backend = {render(scene: THREE.Scene) { const w=Math.max(1,host.clientWidth), h=Math.max(1,host.clientHeight); renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.render(scene,camera); },dispose() { observer?.disconnect(); renderer.domElement.removeEventListener('webglcontextlost',onLost); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove(); }};
-  stage=createStageForTest({...options,singleCompatibility:true},clock,backend);
+  stage=createStageForTest({...options,singleCompatibility:true,studioHost:host},clock,backend);
   const added=stage.addCube({position:[0,0,0]});
   if(!added.ok){stage.dispose();return fail('Unavailable','Unable to create scene');}
   const child=added.value;
@@ -35,3 +36,4 @@ export {weightedFaceExposure} from './weighted-exposure.js';
 export type {ExposureLights} from './weighted-exposure.js';
 
 export type {MotionTiming,MotionTimingSource} from './motion-timing.js';
+export {groupZoom} from './zoom-policy.js';

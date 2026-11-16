@@ -162,3 +162,13 @@ test('player forwards optional application timing to the shared scene without ch
  let supplied;const scene={transition(_transition,timing){supplied=timing;return Promise.resolve({ok:true});},cancel(){return {ok:true}},dispose(){}};const player=createPlayer(definition,state,appearance,{palette,defaultColor:'#ffffff'},scene).value;
  const timing=()=>({endAt:200,durationMs:100,revision:7});assert.equal((await player.turn('X',[1],-1,100,timing)).ok,true);assert.equal(supplied,timing);assert.notEqual(player.state(),state);const after=player.state(),invalid=await player.turn('X',[1],1,100,{});assert.equal(invalid.ok,false);assert.equal(invalid.error.code,'InvalidMove');assert.equal(player.state(),after);
 });
+
+test('generic presentation configuration carries native two-radius cube geometry into core projections',()=>{
+ const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d)),appearance=JSON.stringify({schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]}),palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const presentation={cellSize:1.012,bodyGap:.01,bodyRadius:.03,stickerWidth:.87,stickerRadius:.055,stickerOffset:.508,bodyKind:'twoRadius',bodyInnerRadius:.018,size:2,nominalEdge:2};const result=open(definition,state,appearance,{palette,defaultColor:'#fff',presentation});assert.equal(result.ok,true);assert.deepEqual(result.value.projection.presentation,{size:2,nominalEdge:2});assert.deepEqual(result.value.projection.geometryProfile.body,{kind:'twoRadius',gap:.01,bevelSegments:3,bigRadius:.03,smallRadius:.018});assert.ok(result.value.projection.pieces.every(piece=>piece.geometry.cellSize[0]===1.012));
+});
+
+test('renderer configuration maps explicit source face colors without changing appearance data',()=>{
+ const definition=definitionText(2),d=Codec.decodeDefinition(definition)._0,state=Codec.encodeState(Codec.homeState(d)),doc={schema:'puzlwerk.appearance',revision:1,id:'a',definitionId:'cube2',stickers:[]},palette={white:'#ffffff',yellow:'#ffffff',green:'#ffffff',blue:'#ffffff',red:'#ff0000',orange:'#ffffff'};
+ const result=open(definition,state,JSON.stringify(doc),{palette,defaultColor:'#ffffff',sourceFaceColors:{'DBR.R':'#fffdf6'}});assert.equal(result.ok,true);const sticker=result.value.projection.pieces.flatMap(piece=>piece.stickers).find(item=>item.id==='sticker:DBR.R');assert.equal(sticker.sourceFace.color,'#fffdf6');assert.deepEqual(result.value.appearance,doc);const invalid=open(definition,state,JSON.stringify(doc),{palette,defaultColor:'#ffffff',sourceFaceColors:{'DBR.R':'bad'}});assert.equal(invalid.ok,false);assert.equal(invalid.error.code,'InvalidPresentation');
+});

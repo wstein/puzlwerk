@@ -837,3 +837,29 @@ test('application timing revisions rebase an already running native turn',async(
 test('a failing application timing callback restores the previous core-driven scene',async()=>{
  const h=harness();assert.equal((await h.scene.setProjection(projection)).ok,true);h.step(0);let shouldFail=false;const pending=h.scene.transition(turn(Math.PI,100),()=>{if(shouldFail)throw Error('timing failed');return {endAt:100,durationMs:100,revision:1}});h.step(50);h.step(0);assert.ok(Math.abs(h.draws.at(-1).y-1)<1e-6);shouldFail=true;h.step(1);const result=await pending;assert.equal(result.error.code,'Unavailable');h.step(0);assert.ok(Math.abs(h.draws.at(-1).x-1)<1e-9);assert.equal(h.frames.size,0);h.scene.dispose();
 });
+
+test('asset texture origin is explicit and preserves native bottom-left images',async()=>{
+ let rendered;const frames=[],image={width:8,height:8},clock={now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},backend={render:s=>{rendered=s},dispose(){}};
+ for(const [origin,expected] of [[undefined,true],['top-left',true],['bottom-left',false]]){const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:image}),...(origin?{textureOrigin:origin}:{})},clock,backend),p={pieces:[{id:'p',transform:t(),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#fff',imageId:'image'}]}]};assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0);assert.equal(rendered.getObjectByName('s').material.map.flipY,expected,origin??'default');scene.dispose();}
+});
+
+test('renderer material configuration preserves shared and per-sticker roughness',async()=>{
+ let rendered;const frames=[];const scene=createSceneForTest({resolveAsset:async()=>({ok:false}),materials:{plasticRoughness:.35,stickerRoughness:.7,stickers:{top:{roughness:.25}}}},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const p={pieces:[{id:'p',transform:t(),stickers:[{id:'front',transform:t([0,0,.5]),size:[.87,.87],color:'#fff'},{id:'top',transform:t([0,.5,0],[-Math.SQRT1_2,0,0,Math.SQRT1_2]),size:[.87,.87],color:'#fff'}]}]};assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0);assert.equal(rendered.getObjectByName('p').children[0].material.roughness,.35);assert.equal(rendered.getObjectByName('front').material.roughness,.7);assert.equal(rendered.getObjectByName('top').material.roughness,.25);scene.dispose();
+});
+
+test('renderer material configuration validates and snapshots source settings',async()=>{
+ const clock={now:()=>0,request:()=>1,cancel(){}},backend={render(){},dispose(){}};for(const materials of [{stickerRoughness:-.1},{plasticRoughness:NaN},{stickers:{s:{roughness:1.1}}}])assert.throws(()=>createSceneForTest({resolveAsset:async()=>({ok:false}),materials},clock,backend),/Invalid viewer materials/);
+ let rendered;const frames=[],materials={stickerRoughness:.7,stickers:{s:{roughness:.25}}},scene=createSceneForTest({resolveAsset:async()=>({ok:false}),materials},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:value=>{rendered=value},dispose(){}});materials.stickers.s.roughness=.9;
+ const p={pieces:[{id:'p',transform:t(),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#fff'}]}]};assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0);assert.equal(rendered.getObjectByName('s').material.roughness,.25);scene.dispose();
+});
+
+test('explicit two-radius profiles reach native body geometry',async()=>{
+ const {createTwoRadiusBody}=await import('../dist/two-radius-body.js');let rendered;const frames=[];
+ const scene=createSceneForTest({resolveAsset:async()=>({ok:false})},{now:()=>0,request:cb=>{frames.push(cb);return 1},cancel(){}},{render:s=>{rendered=s},dispose(){}});
+ const outer=[[false,true],[false,true],[false,true]];
+ const p={pieces:[{id:'p',transform:t(),geometry:{cellSize:[1.4,1,.7],outerSides:outer},stickers:[]}],presentation:{size:3,nominalEdge:3},geometryProfile:{body:{kind:'twoRadius',gap:.01,bevelSegments:3,bigRadius:.04,smallRadius:.012}}};
+ assert.equal((await scene.setProjection(p)).ok,true);frames.shift()(0);
+ const actual=rendered.getObjectByName('p').children[0].geometry;const expected=createTwoRadiusBody({size:[1.39,.99,.69],outer,big:.04,small:.012,segments:3});
+ assert.deepEqual([...actual.attributes.position.array],[...expected.attributes.position.array]);expected.dispose();scene.dispose();
+});
