@@ -35,6 +35,7 @@ export async function stage(api,number,id,attempt,destination) {
     for (const route of record.routes) { const entry=await lstat(join(extracted,route,'index.html')); if (!entry.isFile() || entry.isSymbolicLink()) throw Error('Missing preview route'); }
     const again=await current(api,number,id,attempt);
     if (again.head.sha!==pr.head.sha) throw Error('Build is not current');
+    await writeFile(join(extracted,'preview-info.json'),JSON.stringify({number,sha:pr.head.sha,run:id,attempt}));
     await rename(extracted,destination);
     return {number,sha:pr.head.sha,run:id,attempt};
   } finally { await rm(temp,{recursive:true,force:true}); }
