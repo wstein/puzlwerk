@@ -144,3 +144,11 @@ test('stage disposal does not refit or draw while removing children',()=>{
  let views=0,draws=0,id=0;const frames=new Map(),clock={now:()=>0,request:cb=>{frames.set(++id,cb);return id},cancel:id=>frames.delete(id)};
  const stage=createStageForTest({resolveAsset:async()=>({ok:false})},clock,{render(){draws++},setView(){views++},dispose(){}});stage.addCube({position:[-1,0,0]});stage.addCube({position:[1,0,0]});const before=views;stage.dispose();assert.equal(views,before);assert.equal(draws,0);assert.equal(frames.size,0);
 });
+test('configured FOV and successful view callback use immutable snapshots',()=>{
+ const observed=[],clock={now:()=>0,request:()=>1,cancel(){}};const stage=createStageForTest({resolveAsset:async()=>({ok:false}),fovDegrees:28,onViewChanged:v=>observed.push(v)},clock,{render(){},dispose(){}});
+ assert.equal(stage.setViewPolicy(v=>({distance:v.fovDegrees,far:100,groupScale:1})).ok,true);assert.equal(observed.at(-1).fovDegrees,28);assert.ok(Object.isFrozen(observed.at(-1)));assert.ok(Object.isFrozen(observed.at(-1).placements));const count=observed.length;assert.equal(stage.setViewPolicy(()=>({distance:0,far:100,groupScale:1})).error.code,'InvalidView');assert.equal(observed.length,count);stage.dispose();
+});
+test('shared stage owns one visibility listener for multiple children',()=>{
+ const listeners=new Set(),clock={now:()=>0,request:()=>1,cancel(){},onVisibility:cb=>{listeners.add(cb);return()=>listeners.delete(cb)}};const stage=createStageForTest({resolveAsset:async()=>({ok:false})},clock,{render(){},dispose(){}});
+ stage.addCube({position:[0,0,0]});stage.addCube({position:[2,0,0]});assert.equal(listeners.size,1);stage.dispose();assert.equal(listeners.size,0);
+});
