@@ -29,3 +29,11 @@ void consumer;
 import type { Player } from '../../packages/core-viewer-bridge/src/index.mjs';
 declare const timedPlayer: Player;
 timedPlayer.turn('X', [1], 1, 100, () => ({endAt: 200, durationMs: 100, revision: 1}));
+
+import type { Options as ViewerBridgeOptions } from '../../packages/core-viewer-bridge/src/index.mjs';
+const sourceClockOptions: ViewerBridgeOptions = {
+  palette: {white: '#ffffff'}, defaultColor: '#ffffff', sourceFaceColors: {tile: '#ffffff'},
+  core: {center: [0,0,0], halfExtent: 1},
+  presentation: {cellSize: 1, bodyGap: .01, bodyRadius: .03, bodyKind: 'twoRadius', bodyInnerRadius: .018, size: 2, nominalEdge: 2, bodyBevelSegments: 3, stickerWidth: .87, stickerRadius: .055, stickerOffset: .502},
+};
+void sourceClockOptions;
