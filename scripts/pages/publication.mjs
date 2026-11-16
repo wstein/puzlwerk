@@ -116,7 +116,8 @@ export async function readWriterLedger(api,receipt,{bootstrap,context}={}) {
  for(const [workflow,jobName] of workflows) {
   const runs=await api.pages(`actions/workflows/${workflow}/runs`,'workflow_runs');
   if(!Array.isArray(runs) || runs.length>5000) throw Error('Incomplete writer runs');
-  for(const run of runs) {
+  for(const listed of runs) {
+   const run=listed;
    if(!run || !positive(run.id) || !positive(run.run_attempt) || run.run_attempt>100 || !validTime(run.created_at) || seen.has(run.id)) throw Error('Invalid writer run list');
    seen.add(run.id);
    if(run.created_at<anchor.created_at || run.head_branch!=='main') continue;
@@ -125,11 +126,14 @@ export async function readWriterLedger(api,receipt,{bootstrap,context}={}) {
     if(!(workflow==='documentation.yml' && ['push','pull_request'].includes(run.event) && run.path===`.github/workflows/${workflow}` && run.repository?.full_name===REPOSITORY)) throw Error('Untrusted writer run');
    }
    const artifacts=await api.pages(`actions/runs/${run.id}/artifacts`,'artifacts');
-   for(let attempt=1;attempt<=run.run_attempt;attempt++) {
+   for(let attempt=1;attempt<=listed.run_attempt;attempt++) {
+    const run=await api.request(`actions/runs/${listed.id}/attempts/${attempt}`);
+    if(!run || run.id!==listed.id || run.run_attempt!==attempt || run.path!==listed.path || run.event!==listed.event || run.head_branch!==listed.head_branch || run.head_sha!==listed.head_sha || run.repository?.full_name!==REPOSITORY || run.head_repository?.full_name!==listed.head_repository?.full_name) throw Error('Invalid writer attempt identity');
     const jobs=await api.pages(`actions/runs/${run.id}/attempts/${attempt}/jobs`,'jobs');
     const selected=jobs.filter(j=>j.name===jobName);
     if(selected.length!==1) throw Error('Missing or ambiguous writer job');
     if(selected[0].status==='completed' && selected[0].conclusion==='skipped') continue;
+    if(run.head_repository?.full_name!==REPOSITORY) throw Error('Untrusted writer repository');
     if(run.event==='pull_request_target') throw Error('Signal run activated publisher job');
     const load=async kind=>{
      const matches=artifacts.filter(a=>a.name===`pages-writer-${kind}-${attempt}`);
@@ -222,7 +226,7 @@ export async function readVerifiedSnapshot(api,{destination,fetch:request=fetch,
  if(typeof destination!=='string' || !destination) throw Error('Missing snapshot destination');
  const receipt=await readPublication({fetch:request});
  if(!receipt) return null;
- const run=await api.request(`actions/runs/${receipt.run}`);
+ const run=await api.request(`actions/runs/${receipt.run}/attempts/${receipt.attempt}`);
  const failedCandidate=Boolean(run && run.id===receipt.run && run.run_attempt===receipt.attempt && run.head_sha===receipt.sha && run.head_branch==='main' && run.repository?.full_name===REPOSITORY && run.head_repository?.full_name===REPOSITORY && run.path==='.github/workflows/pages-publish.yml' && ['workflow_dispatch','workflow_run'].includes(run.event) && run.status==='completed' && run.conclusion==='failure');
  if(!trustedPublisher(run,receipt,{context}) && !failedCandidate) throw Error('Untrusted publication run');
  await readWriterLedger(api,receipt,{bootstrap,context});
