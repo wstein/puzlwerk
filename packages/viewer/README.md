@@ -97,3 +97,5 @@ appearance and `open` options with the standard layer widths; `cubeStateFromWire
 turns; `faceStickerIds(size, face)` lists the viewer sticker IDs of one face. A facelet-only state has no piece
 identity, so the appearance carries each slot's color. `CubeStage.setStickerHighlight(child, ids)` outlines those
 stickers (static view; reapply it after `setProjection`).
+`createCubeStage` takes `appearanceControls: 'hidden'` for hosts that supply their own controls (default
+`'floating'`); the panel is still created, only not shown.
