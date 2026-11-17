@@ -39,3 +39,12 @@ test('demo index distinguishes runnable comparisons from the source inventory',a
 test('local comparison index links the real clock and calendar routes',async()=>{
  const {renderDemoIndex,renderNativeDemo}=await import('../build.mjs'),html=renderDemoIndex('/nested/');for(const id of ['clock-2','clock-3','calendar7-standard','calendar7-names','calendar7-names-any']){assert.ok(html.includes(`/nested/demo/${id}/`));assert.ok(renderNativeDemo(id,'/nested/').includes(`/nested/assets/runtime/${id.startsWith('clock')?'clock':'calendar7'}.mjs`));}
 });
+test('cube-assembler case import map resolves every bare import of the shared viewer',async()=>{
+ const {readdir}=await import('node:fs/promises'),c=manifest.cases.find(x=>x.runtime==='cube-assembler'),html=renderCase(c,'/puzlwerk/');
+ const map=JSON.parse(/<script type="importmap">(.*?)<\/script>/s.exec(html)[1]).imports,keys=Object.keys(map);
+ const resolvable=s=>keys.some(k=>k===s||(k.endsWith('/')&&s.startsWith(k)));
+ const dir=new URL('../../packages/viewer/src/',import.meta.url),bare=new Set();
+ for(const f of (await readdir(dir)).filter(n=>n.endsWith('.ts')))for(const m of (await readFile(new URL(f,dir),'utf8')).matchAll(/from '([^.'][^']*)'/g))bare.add(m[1]);
+ assert.ok(bare.has('three/addons/lines/LineSegments2.js'));
+ assert.deepEqual([...bare].filter(s=>!resolvable(s)),[]);
+});
