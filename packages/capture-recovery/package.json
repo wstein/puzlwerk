@@ -3,7 +3,7 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "license": "EUPL-1.2",
+  "license": "EUPL-1.2 OR AGPL-3.0-or-later",
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -14,6 +14,7 @@
     "lib/",
     "source/",
     "LICENSE",
+    "AGPL-3.0-or-later.txt",
     "NOTICE",
     "CUBE_ASSEMBLER_LICENSE.txt",
     "provenance.json",

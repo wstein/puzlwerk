@@ -1,6 +1,8 @@
 PuzlWerk capture recovery, Copyright (c) 2026 Werner Stein.
-Core and generated bindings: EUPL-1.2, following the owner decision SM11 in
-specs/006-shared-model/plan.md (2026-11-12). This private package does not change
+Core and generated bindings: EUPL-1.2 OR AGPL-3.0-or-later, following the owner decisions SM11 in
+specs/006-shared-model/plan.md (EUPL-1.2, 2026-11-12; EUPL-1.2 OR AGPL-3.0-or-later, 2026-11-17). The text of
+the EUPL is in LICENSE, that of the AGPL in AGPL-3.0-or-later.txt. Archives distributed before 2026-11-17
+(0.1.0, 0.3.0) were distributed under EUPL-1.2 and stay so; the second choice adds an option. This private package does not change
 any solver or viewer package license and does not authorize publication.
 
 Wizard decision filtering and canonical target order adapt the pure ReScript
