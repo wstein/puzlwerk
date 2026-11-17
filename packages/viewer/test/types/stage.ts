@@ -34,3 +34,7 @@ const indicator:IndicatorSettings={physicalOrientation:[0,0,0,1],solverFrame:[0,
 const interaction:InteractionMode='play';if(result.ok){result.value.setOrientationIndicator(indicator);result.value.setInteractionMode(interaction);result.value.clearOrientationIndicator();}
 // @ts-expect-error Interaction mode is independent of the source rotation mode.
 const invalidInteraction:InteractionMode='classic';void invalidInteraction;
+
+import {cubePresentationRadius,presentationCameraRadius} from '../../src/index.js';
+const fitted:number=presentationCameraRadius(1,cubePresentationRadius(3.5),18);
+void fitted;
