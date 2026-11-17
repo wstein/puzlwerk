@@ -37,7 +37,7 @@ export async function mountCubeAssembler(root,fixtureBase,referenceBase) {
   ]);
   const add=(tag,text,parent=root)=>{const element=document.createElement(tag);if(text)element.textContent=text;parent.append(element);return element;};
   add('p','CubeAssembler solved 2×2: the source state contains colors only. Candidate piece and sticker IDs label known home slots; they are not source identities.');
-  add('p','Status: BLOCKED. The shared native scene does not yet render the CubeAssembler source mesh, so the candidate pane is not drawn and no visible-facelet comparison runs. Source-derived geometry, material and shadow in the shared viewer, gestures, touch turns, animation, visual equivalence and owner acceptance remain open.');
+  add('p','Visible facelet equality is checked after each move. The candidate uses source-derived geometry, material and shadow in the shared viewer. Visual equivalence, gestures, touch turns, animation and owner acceptance remain open.');
   const panes=add('div');panes.className='comparison';panes.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:1rem';const originalPane=add('section','',panes),candidatePane=add('section','',panes);
   add('h3','Original CubeAssembler',originalPane);const originalHost=add('div','',originalPane);
   add('h3','PuzlWerk Core and Viewer',candidatePane);const candidateHost=add('div','',candidatePane);candidateHost.className='scene';candidateHost.style.background='transparent';
@@ -55,14 +55,7 @@ export async function mountCubeAssembler(root,fixtureBase,referenceBase) {
   const added=stage.addCube({position:[0,0,0]});if(!added.ok)throw Error(added.error.message);const scene=added.value;
   const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff',renderProfile},scene);
   if(!opened.ok)throw Error(JSON.stringify(opened.error));const player=opened.value;
-  const loaded=await scene.setProjection(player.projection());
-  if(!loaded.ok){
-    if(loaded.error.code==='Unavailable'){
-      status.textContent='BLOCKED: source mesh requires a shared native geometry capability.';
-      return {player,original,dispose(){player.dispose();stage.dispose();original.request('dispose').finally(()=>original.dispose());}};
-    }
-    throw Error(JSON.stringify(loaded.error));
-  }
+  const loaded=await scene.setProjection(player.projection());if(!loaded.ok)throw Error(JSON.stringify(loaded.error));
   const projected=()=>projector.faceletsFromWire(definition,JSON.parse(player.state()),appearance);
   const initial=await original.ready;
   const show=(nativeState,label)=>{const equal=visibleColorsMatch(nativeState,projected());status.textContent=equal?`Visible facelets match ${label}`:`Visible facelets differ ${label}`;return equal;};

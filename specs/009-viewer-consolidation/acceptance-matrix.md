@@ -176,15 +176,13 @@ preferences must be fixed for reproducible browser comparison. Original and
 candidate rendering, touch, visual acceptance and independent review remain
 open. The 7×7 orientation-recovery workflow is outside this case.
 
-**Current status: blocked.** The shared native scene rejects source mesh profiles
-(`Independent mesh profiles require a shared native capability`), so the case
-page shows `BLOCKED: source mesh requires a shared native geometry capability.`
-and no candidate rendering or facelet comparison runs. CI asserts this block with
-`acceptance/test/cube-assembler-blocked-browser.mjs`. The earlier browser checks
-`cube-assembler-browser.mjs` (facelet equality after each move) and
-`cube-assembler-appearance-browser.mjs` are kept in the repository but are not run
-by CI; they are to be restored with a follow-up issue that adds source mesh
-support to the shared scene. No parity with CubeAssembler is claimed.
+**Current status: source mesh rendered.** The shared native scene renders the
+source mesh profile (`renderProfile`) as data: each body keeps its source surface,
+painted with the projection sticker colors, with the source shadow and the Core
+body poses. The browser checks `cube-assembler-browser.mjs` (facelet equality at
+start and after four moves) and `cube-assembler-appearance-browser.mjs` (changed
+appearance changes candidate pixels) run in CI. No parity with CubeAssembler is
+claimed beyond the compared visible facelets.
 
 ### CubeAssembler capture-recovery proposal
 

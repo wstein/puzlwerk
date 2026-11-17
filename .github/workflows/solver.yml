@@ -32,7 +32,8 @@ jobs:
           server_pid=$!
           trap 'kill "$server_pid"' EXIT
           timeout 30 bash -c 'until curl -fsS http://127.0.0.1:8765/puzlwerk/ >/dev/null; do :; done'
-          node acceptance/test/cube-assembler-blocked-browser.mjs http://127.0.0.1:8765/puzlwerk/acceptance/cube-assembler-solved-2/
+          node acceptance/test/cube-assembler-browser.mjs http://127.0.0.1:8765/puzlwerk/acceptance/cube-assembler-solved-2/
+          node acceptance/test/cube-assembler-appearance-browser.mjs http://127.0.0.1:8765/puzlwerk/acceptance/cube-assembler-solved-2/ "$RUNNER_TEMP/acceptance-test/puzlwerk/assets/fixtures/cube-assembler-solved-2/appearance.json"
           node acceptance/test/cube-assembler-profile-shadow-browser.mjs http://127.0.0.1:8765/puzlwerk/assets/viewer/cube-assembler-profile.js acceptance/fixtures/cube-assembler-solved-2/shadow-oracle.json
           node acceptance/test/cube-assembler-profile-surface-browser.mjs http://127.0.0.1:8765/puzlwerk/assets/viewer/cube-assembler-profile.js acceptance/fixtures/cube-assembler-solved-2/surface-gpu-samples.json
       - run: npm run test:package
