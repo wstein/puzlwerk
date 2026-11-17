@@ -7568,8 +7568,7 @@
       "productionPlay": "Not required for capture-only review. Existing bridge createPlayer is not a recovery port or consumer migration.",
       "referenceEligibility": "BLOCKED: PR #56 source is pinned but not merged; original local metadata hash matches committed assembly regression. Photographs, rights, other scenario fixtures and executable paired recovery integration remain unestablished.",
       "originalReference": "https://github.com/wstein/cube-assembler/blob/bab97177a0d4b860d47308f57df20963dfdc9946/test/fixtures/cube-4x4-2026-11-16T19-08-19.assembly.json",
-      "normalBase": "/puzlwerk/acceptance/cube-assembler-capture-recovery/",
-      "nestedBaseExample": "/puzlwerk/pr-preview/pr-81/acceptance/cube-assembler-capture-recovery/",
+      "localUrlExample": "http://127.0.0.1:4174/acceptance/cube-assembler-capture-recovery/",
       "checklist": [
         "Proposal only: follow CR1-CR10 in acceptance-matrix.md; no PuzlWerk recovery runtime, original hosting or owner acceptance is established.",
         "Correct guide capture in both mirror modes retains source IDs, all guide steps and explicit capture-to-canonical transform; wrong order/rotation never causes silent replacement.",
