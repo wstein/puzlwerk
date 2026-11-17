@@ -181,6 +181,11 @@ browser plan.
       conformance fixtures from this repository carry AGPL-3.0-or-later in their provenance files.
     - Open for the check (**U**): the license of generated code emitted into Cubacle (AGPL) and into ReScript consumers;
       whether any existing `core/` file carries another license notice.
+    - **O** 2026-11-17 (source: owner decision; research: all `core/` commits are by the owner, no foreign headers):
+      Core is the owner's own code and is licensed `EUPL-1.2 OR AGPL-3.0-or-later`. SM11 (EUPL-1.2) stays; the second
+      choice extends it. Every `core/res/*.res` and `*.resi` file carries `// SPDX-License-Identifier: EUPL-1.2 OR
+      AGPL-3.0-or-later` in its first line. Archives distributed earlier (`@puzlwerk/capture-recovery` 0.1.0 and 0.3.0)
+      were distributed under EUPL-1.2 and stay so. The `@puzlwerk/viewer` package uses the AGPL-3.0-or-later choice.
 
 ## 5. Not verified
 

@@ -199,10 +199,9 @@ see CUBE_ASSEMBLER_LICENSE.txt).
 
 The subpath `@puzlwerk/viewer/bridge` (dist/bridge) carries the Core-to-viewer bridge
 (packages/core-viewer-bridge/src, AGPL-3.0-or-later) and the compiled ReScript modules of
-PuzlWerk Core that it imports (dist/bridge/core). Core is licensed EUPL-1.2 by owner decision
-SM11 (specs/006-shared-model/plan.md); its text is in CORE_EUPL_LICENSE.txt. The SPDX lines of the
-sources of the shipped modules differ: core/res/PwColorFrame.res says AGPL-3.0-or-later, the other ten
-modules carry no SPDX line (PwCapture.res and PwRecovery.res, which are not shipped here, say EUPL-1.2).
-Which license applies to PwColorFrame is an open owner question. This package makes no
-claim about the combined work beyond stating these facts; production distribution of a combination
-with CubeAssembler remains an owner gate. The runtime dependency @rescript/runtime is MIT licensed.
+PuzlWerk Core that it imports (dist/bridge/core). Core is licensed EUPL-1.2 OR AGPL-3.0-or-later by owner
+decisions SM11 (specs/006-shared-model/plan.md; EUPL-1.2 on 2026-11-12, the second choice on 2026-11-17);
+every Core source file says so in its first line. This package uses Core under the AGPL-3.0-or-later choice;
+the EUPL-1.2 text is kept in CORE_EUPL_LICENSE.txt for those who take the other choice, the AGPL text is
+LICENSE. Production distribution of a combination with CubeAssembler remains an owner gate. The runtime
+dependency @rescript/runtime is MIT licensed.
