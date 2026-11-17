@@ -16,7 +16,6 @@ export function createOrientationIndicator(host:HTMLElement,options:OrientationI
  const element=(tag:string)=>doc.createElementNS(ns,tag);
  const svg=element('svg');svg.setAttribute('viewBox','0 0 64 64');svg.setAttribute('role','img');svg.setAttribute('aria-label','Cube orientation axes X, Y and Z');
  Object.assign(svg.style,{position:'absolute',width:`${size}px`,height:`${size}px`,maxWidth:'calc(100% - 16px)',maxHeight:'calc(100% - 16px)',pointerEvents:'none',overflow:'hidden',...(anchor?{left:`calc(${anchor[0]*100}% - ${size/2}px)`,top:`calc(${anchor[1]*100}% - ${size/2}px)`}:{right:'8px',bottom:'8px'})});
- const disk=element('circle');disk.setAttribute('cx','32');disk.setAttribute('cy','32');disk.setAttribute('r','31');disk.setAttribute('fill','rgba(8,15,30,.68)');svg.append(disk);
  const axes=([['x',new THREE.Vector3(1,0,0)],['y',new THREE.Vector3(0,1,0)],['z',new THREE.Vector3(0,0,1)]] as const).map(([name,direction])=>{
   const group=element('g');group.setAttribute('data-axis',name);
   const outline=element('line'),line=element('line'),tip=element('polygon'),text=element('text');
