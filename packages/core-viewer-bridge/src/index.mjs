@@ -6,6 +6,7 @@ import * as Id from '../../../core/res/PwId.res.mjs';
 import * as Shell from '../../../core/res/PwShell.res.mjs';
 import * as Pose from '../../../core/res/PwPose.res.mjs';
 import * as Move from '../../../core/res/PwMove.res.mjs';
+import * as Notation from '../../../core/res/PwNotation.res.mjs';
 import * as Validate from '../../../core/res/PwValidate.res.mjs';
 import * as Orientation from '../../../core/res/PwOrientation.res.mjs';
 import { checkAppearance } from './appearance.mjs';
@@ -20,6 +21,13 @@ const stickerRotation = (normal, up) => {
   return new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(x,y,z)).toArray();
 };
 const error = value => ({ok:false,error:typeof value === 'string' ? {code:value} : value?.TAG ? {code:value.TAG,detail:value._0} : value});
+/** Parse exactly one Core notation move; policy is enforced when it is applied. */
+export function parseNotation(size,text) {
+ if(!Number.isSafeInteger(size)||typeof text!=='string')return error({code:'InvalidMove'});
+ const made=Shell.makeSize(size);if(made.TAG!=='Ok')return error({code:'InvalidMove'});
+ const parsed=Notation.parse(made._0,text);if(parsed.TAG!=='Ok' || parsed._0.length!==1)return error({code:'InvalidMove'});
+ const move=parsed._0[0];return {ok:true,value:{axis:Move.axis(move),layers:Move.layers(move),turns:Move.turns(move),rotation:rotation(Move.rotation(move))}};
+}
 export function open(definitionText,stateText,appearanceText,options) {
   const definition = Codec.decodeDefinition(definitionText);
   if (definition.TAG !== 'Ok') return error(definition._0);
