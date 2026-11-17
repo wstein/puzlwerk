@@ -1,4 +1,4 @@
-import {stripTypeScriptTypes} from 'node:module';
+import {compileTypeScript} from '../../compile-typescript.mjs';
 import {readdir,readFile,writeFile,mkdir,cp} from 'node:fs/promises';
 import {dirname,join,relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -12,7 +12,7 @@ export async function compileReference(out) {
         const dest=join(out,rel.replace(/\.ts$/,'.js'));
         await mkdir(dirname(dest),{recursive:true});
         const text=await readFile(path,'utf8');
-        const result=stripTypeScriptTypes(text,{mode:'transform'}).replace(/([\"'])(\.{1,2}\/[^\"']+)\.ts\1/g, '$1$2.js$1');
+        const result=compileTypeScript(text);
         await writeFile(dest,result);
       } else if (path.endsWith('.mjs')) {const dest=join(out,rel); await mkdir(dirname(dest),{recursive:true}); await cp(path,dest);}
     }
