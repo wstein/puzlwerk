@@ -691,13 +691,13 @@ test('production turn uses the extracted native scene turn',async()=>{
  } finally {PhysicalCubeScene.prototype.beginTurn=original;}
 });
 
-test('unsupported raw mesh profile returns Unavailable and retains the committed native scene',async()=>{
+test('source mesh profile replaces the committed native scene with the source surface',async()=>{
  let frame,rendered;const clock={now:()=>0,request:cb=>{frame=cb;return 1},cancel:()=>{}};
  const scene=createSceneForTest({resolveAsset:async()=>({ok:true,value:{}})},clock,{render:s=>{rendered=s},dispose(){}});
  const valid={pieces:[{id:'a',transform:t([1,0,0]),stickers:[{id:'s',transform:t([0,0,.5]),size:[.87,.87],color:'#ffffff'}]}]};
  assert.equal((await scene.setProjection(valid)).ok,true);frame(0);const before=rendered.getObjectByName('s');
  const unsupported={...valid,renderProfile:{kind:'cubeAssemblerV1',size:2,meshes:[{pieceId:'a',positions:[0,0,0,1,0,0,0,1,0],normals:[0,0,1,0,0,1,0,0,1],colors:[1,1,1,1,1,1,1,1,1],occlusion:[1,1,1],indices:[0,1,2],surfaces:[{role:'body',firstIndex:0,indexCount:3}]}]}};
- const result=await scene.setProjection(unsupported);assert.equal(result.ok,false);assert.equal(result.error.code,'Unavailable');assert.equal(rendered.getObjectByName('s'),before);scene.dispose();
+ const result=await scene.setProjection(unsupported);assert.equal(result.ok,true);frame(0);assert.notEqual(rendered.getObjectByName('s'),before);assert.equal(rendered.getObjectByName('s'),undefined);let surface;rendered.getObjectByName('a').traverse(x=>{if(x.isMesh&&x.geometry.getAttribute('occlusion'))surface=x;});assert.ok(surface);scene.dispose();
 });
 
 test('native production body uses the source geometry for explicit cell dimensions',async()=>{

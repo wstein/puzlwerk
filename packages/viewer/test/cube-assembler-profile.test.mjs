@@ -67,7 +67,7 @@ test('invalid source profiles are rejected before mutation and preserve lifecycl
 });
 
 // Two-piece source profile: the stickers are painted into the source meshes, at the body poses of the projection.
-const quarter=[0,0,Math.SQRT1_2,Math.SQRT1_2];
+const halfTurn=[0,0,1,0];
 const twoPieces=()=>{
  const stickerMesh=id=>({...mesh,pieceId:id,positions:[...mesh.positions],colors:[.1,.2,.3,.1,.2,.3,.1,.2,.3],surfaces:[{role:'sticker',face:'f',stickerId:`${id}.f`,firstIndex:0,indexCount:3}]});
  const piece=(id,x,color)=>({id,transform:{position:[x,0,0],rotation:[0,0,0,1]},stickers:[{id:`${id}.f`,transform:identity,size:[.8,.8],color}]});
@@ -89,8 +89,8 @@ test('source profile renders the source mesh at the body poses with the projecti
 });
 test('source profile bodies follow a Core transition',async()=>{
  const {scene,draw}=harness();const from=twoPieces();assert.equal((await scene.setProjection(from)).ok,true);draw();
- const to={...from,pieces:from.pieces.map(piece=>({...piece,transform:{position:[-piece.transform.position[0],0,0],rotation:quarter}}))};
+ const to={...from,pieces:from.pieces.map(piece=>({...piece,transform:{position:[-piece.transform.position[0],0,0],rotation:halfTurn}}))};
  assert.equal((await scene.transition({from,to,pieceIds:['a','b'],axis:[0,0,1],signedAngleRadians:Math.PI,pivot:[0,0,0],durationMs:0})).ok,true);const root=draw();
  assert.ok(Math.abs(root.getObjectByName('a').position.x-.5)<1e-9);assert.ok(Math.abs(root.getObjectByName('b').position.x+.5)<1e-9);
- assert.ok(Math.abs(root.getObjectByName('a').quaternion.z-Math.SQRT1_2)<1e-9);assert.ok(sourceSurface(root,'a'));scene.dispose();
+ assert.ok(Math.abs(root.getObjectByName('a').quaternion.z-1)<1e-9);assert.ok(sourceSurface(root,'a'));scene.dispose();
 });

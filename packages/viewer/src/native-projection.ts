@@ -7,7 +7,6 @@ import {layerCenters} from './layer-widths.js';
 
 /** Translate canonical presentation data into native render frames, never puzzle state. */
 export function nativeFrames(projection:CubeProjection):Result<{frames:PhysicalStickerFrame[];bodies:PhysicalBodyPose[];stickerSize:readonly [number,number]|undefined;stickerOffset:number|undefined;stickerRadius:number|undefined;bodyGeometry:ReadonlyMap<string,PieceGeometry>;layerWidths:readonly number[]|undefined}> {
- if(projection.renderProfile) return fail('Unavailable','Independent mesh profiles require a shared native capability');
  const widths=projection.presentation?.layerWidths ?? projection.picture?.widths;
  const centers=widths ? layerCenters(widths) : undefined;
  if(centers){
@@ -22,7 +21,8 @@ export function nativeFrames(projection:CubeProjection):Result<{frames:PhysicalS
   let position=piece.transform.position;
   if(centers){const indices=position.map(value=>centers.findIndex(center=>Math.abs(center-value)<1e-8));if(indices.some(index=>index<0))return fail('Unavailable','Body position does not match the native layer grid');position=indices.map(index=>index-(centers.length-1)/2) as unknown as Vec3;}
   bodies.push({id:piece.id,position,rotation:piece.transform.rotation});
-  if(!piece.stickers.length)continue;
+  // A source mesh profile carries its stickers inside the body surface: no separate sticker frames.
+  if(projection.renderProfile || !piece.stickers.length)continue;
   for(const sticker of piece.stickers){
    const explicit=sticker.geometry!==undefined;
    if(explicitGeometry!==undefined && explicitGeometry!==explicit)return fail('Unavailable','Mixed sticker geometry requires a shared native capability');

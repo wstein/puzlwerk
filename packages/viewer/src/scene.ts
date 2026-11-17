@@ -6,6 +6,7 @@ import {createTwoRadiusBody} from './two-radius-body.js';
 import {PhysicalCubeScene} from './physical-scene.js';
 import {nativeFrames} from './native-projection.js';
 import {createPresentationGeometry} from './presentation-preset.js';
+import {createCubeAssemblerGeometry,createCubeAssemblerMaterial,createCubeAssemblerShadow} from './cube-assembler-profile.js';
 import type { OuterSides } from './two-radius-body.js';
 import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile, stickerRadiusFor, bodyRadiusFor, innerRadiusFor } from './presentation-preset.js';
 import { createPresentationStudio } from './studio.js';
@@ -108,14 +109,22 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
         geometryCache.set(key,geometry);}bodyGeometry.set(id,geometry);}
       const stickerCache=new Map<string,THREE.BufferGeometry>();
       for(const piece of p.pieces)for(const sticker of piece.stickers)if(sticker.geometry){const shape=sticker.geometry,key=JSON.stringify(shape);let geometry=stickerCache.get(key);if(!geometry){geometry=createStickerGeometry(...shape.referenceSize,shape.cornerRadius);stickerCache.set(key,geometry);}stickerGeometry.set(sticker.id,geometry);}
+      const bodyMaterial=new Map<string,THREE.Material>();
+      if(p.renderProfile){
+        // Source mesh profile: each body keeps the source surface, painted with the projection sticker colors.
+        const sourceMaterial=createCubeAssemblerMaterial();candidateResources.push(sourceMaterial);
+        for(const mesh of p.renderProfile.meshes){const geometry=createCubeAssemblerGeometry(mesh,p.pieces.find(piece=>piece.id===mesh.pieceId)!);bodyGeometry.set(mesh.pieceId,geometry);bodyMaterial.set(mesh.pieceId,sourceMaterial);}
+      }
       const faceColors=new Map(p.pieces.flatMap(piece=>piece.stickers.filter(sticker=>sticker.sourceFace?.color).map(sticker=>[sticker.id,sticker.sourceFace!.color!] as const)));
       const faceEdgeColors=new Map(p.pieces.flatMap(piece=>piece.stickers.filter(sticker=>sticker.sourceFace?.edgeColors).map(sticker=>[sticker.id,sticker.sourceFace!.edgeColors!] as const)));
-      const next=new PhysicalCubeScene(staging,data.frames,materials,plastic,1,nativeGeometry,faceColors,{...p.appearance,bodies:bodyOnly,bodyGeometry,stickerGeometry,faceEdgeColors,corePose:p.core});
+      const next=new PhysicalCubeScene(staging,data.frames,materials,plastic,1,nativeGeometry,faceColors,{...p.appearance,bodies:bodyOnly,bodyGeometry,bodyMaterial,stickerGeometry,faceEdgeColors,corePose:p.core});
       candidateResources.splice(candidateResources.indexOf(constructionGuard),1);candidateResources.push(next);
       next.syncBodyPoses(data.bodies);
       if(p.picture && projectPicture){const faces=new Map();for(const [face,id] of Object.entries(p.picture.faces)){const texture=new THREE.Texture(assets.get(id) as TexImageSource);texture.colorSpace=THREE.SRGBColorSpace;texture.flipY=false;texture.needsUpdate=true;faces.set(face,texture);candidateResources.push(texture);}next.setPictureProjection({faces});}
       if(p.appearance?.construction)next.setConstruction(p.appearance.construction);
-      return {p,staging,next,candidateResources,replacementTurn:undefined as ReturnType<PhysicalCubeScene["beginTurn"]>|undefined};
+      let shadow:ReturnType<typeof createCubeAssemblerShadow>|undefined;
+      if(p.renderProfile){shadow=createCubeAssemblerShadow(p.renderProfile.size,root);candidateResources.push(shadow);}
+      return {p,staging,next,shadow,candidateResources,replacementTurn:undefined as ReturnType<PhysicalCubeScene["beginTurn"]>|undefined};
     } catch(error) { for(const resource of candidateResources)resource.dispose(); throw error; }
   }
   type PreparedNative=ReturnType<typeof prepareNative>;
@@ -125,7 +134,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
   function discardNative(candidate:PreparedNative) { candidate.replacementTurn?.dispose();for(const resource of candidate.candidateResources)resource.dispose(); }
   function commitNative(candidate:PreparedNative,live:boolean,canonical=candidate.p) {
     if(live && native && candidate.p.picture && projection?.picture && sameValues(candidate.p.picture,projection.picture)) candidate.next.reuseProjectionTextures(native);
-    activeTurn?.dispose();clear();root.add(candidate.staging);resourcesForCommit(candidate.candidateResources);native=candidate.next;activeTurn=candidate.replacementTurn;projection=canonical;draw();
+    activeTurn?.dispose();clear();root.add(candidate.staging);if(candidate.shadow)scene.add(candidate.shadow.mesh);resourcesForCommit(candidate.candidateResources);native=candidate.next;activeTurn=candidate.replacementTurn;projection=canonical;draw();
   }
   function renderProjection(p:CubeProjection,value=viewerAppearance):CubeProjection {
     if(!value)return p;
