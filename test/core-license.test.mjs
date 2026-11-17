@@ -20,10 +20,11 @@ test('the viewer NOTICE says Core is dual licensed and that this package uses th
 });
 test('capture-recovery declares the dual license in package.json, NOTICE and provenance, and ships both texts',()=>{
   const pkg=JSON.parse(read('packages/capture-recovery/package.json')),notice=read('packages/capture-recovery/NOTICE'),build=read('packages/capture-recovery/build.mjs');
-  assert.equal(pkg.license,DUAL);assert.ok(notice.includes(DUAL));assert.ok(build.includes(`license:'${DUAL}'`));
+  assert.equal(pkg.license,DUAL);assert.ok(notice.split('\n')[1].startsWith(`Core and generated bindings: ${DUAL},`));
+  assert.equal(JSON.parse(read('package-lock.json')).packages['packages/capture-recovery'].license,DUAL);assert.ok(read('packages/capture-recovery/README.md').includes(`\`${DUAL}\` package`));assert.ok(build.includes(`license:'${DUAL}'`));
   assert.ok(!build.includes("license:'EUPL-1.2'"));
   assert.match(read('packages/capture-recovery/LICENSE'),/EUROPEAN UNION PUBLIC LICENCE/);
-  assert.match(read('packages/capture-recovery/AGPL-3.0-or-later.txt'),/GNU AFFERO GENERAL PUBLIC LICENSE/);
+  assert.equal(read('packages/capture-recovery/AGPL-3.0-or-later.txt'),read('packages/viewer/LICENSE'));
   for(const file of ['LICENSE','AGPL-3.0-or-later.txt'])assert.ok(pkg.files.includes(file),file);
 });
 test('SM11 records the dual-license decision and keeps the EUPL decision',()=>{
