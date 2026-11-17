@@ -26,3 +26,23 @@ report only the supplied wire state and profile, not capture identity. Reviewed
 color grids are separate revision-bound inputs and never rewrite raw observations.
 Use returns an atomic review/confirmation value for the caller to install; the
 caller owns external state, stale-event rejection and restoration on cancel.
+
+Version 0.3.0 adds `Recovery.resumeReview` and `backAndResumeReview` for an
+explicitly confirmed color-editor return. Their request actions are the respective
+function names, with a new `searchId` and the expected previous review revision.
+They carry only manually selected placements into the new enumeration before
+candidate retention. Back removes the last manual constraint before searching;
+ordinary `back` rejects a constraint baked into a resumed session.
+`canBack` queries whether the open review has a manual decision to undo. Editor Cancel
+keeps the previous review instead of calling either operation.
+
+The result reports copied `carriedDecisions`, explicit retired-source or joint
+constraint `conflicts`, and `status` (`candidatesAvailable`, `pending`, `conflicts`).
+A capped empty pool or inconclusive checker remains pending. Complete declared-domain
+rejection does not prove full NxN unreachability. A retake never rebinds an old
+photo ID by slot. The summary separates full-candidate `evaluated` assessments,
+`inconclusive` assessments, and prefix-node `workVisited` / `workLimit`. The latter
+limit is `min(700064, 7 * maxEvaluated + 64)` after validating the assessment budget;
+a work-limit stop also marks coverage truncated. Callers atomically install the
+returned review/session and reject stale worker results against their current
+capture context; pure values do not own external application state.

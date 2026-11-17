@@ -41,6 +41,9 @@ type retained = {
 type summary = {
   searchId: string,
   evaluated: int,
+  workVisited: int,
+  workLimit: int,
+  inconclusive: int,
   coverage: string,
   truncated: bool,
   candidates: array<retained>,
@@ -55,8 +58,12 @@ type item = {
 }
 type session = {
   capture: PwCapture.capture,
+  constraints: array<PwCapture.placement>,
   searchId: string,
   evaluated: int,
+  workVisited: int,
+  workLimit: int,
+  inconclusive: int,
   truncated: bool,
   candidates: array<item>,
   reviewedGrids: option<reviewed>,
@@ -153,7 +160,7 @@ let evaluate = (capture, candidate, reviewedGrids, checker) => {
   | _ => None
   }
 }
-let findMatchingCube = (capture, request: request, checker) => {
+let search = (capture, request: request, constraints: array<PwCapture.placement>, checker) => {
   let data = PwCapture.snapshot(capture)
   let request = {
     ...request,
@@ -209,72 +216,112 @@ let findMatchingCube = (capture, request: request, checker) => {
     PwCapture.Rejected({error: "OddCenterProfileRequired"})
   } else {
     let captureKey = PwSha256.hex(JSON.stringifyAny(data)->Option.getOrThrow)
+    // maxEvaluated is validated <= 100000; this bound cannot overflow.
+    let workLimit = min(700064, request.maxEvaluated * 7 + 64)
+    let workVisited = ref(0)
+    let inconclusive = ref(0)
     let evaluated = ref(0)
     let truncated = ref(false)
     let candidates: array<item> = []
     let rec visit = (depth, mapping: array<PwCapture.placement>) => {
       if !truncated.contents {
-        if depth == 6 {
-          if (
-            evaluated.contents >= request.maxEvaluated ||
-              Array.length(candidates) >= request.maxCandidates
-          ) {
-            truncated := true
-          } else {
-            let index = evaluated.contents
-            evaluated := index + 1
-            switch PwCapture.createCandidate(
-              capture,
-              {
-                candidateId: request.searchId ++ "/" ++ captureKey ++ "/" ++ Int.toString(index),
-                captureRevision: data.revision,
-                mappingFrame: "canonical",
-                canonicalTransform: None,
-                legacyTransform: None,
-                mapping,
-              },
-            ) {
-            | PwCapture.Rejected(_) => ()
-            | PwCapture.Accepted({value}) =>
-              switch evaluate(capture, value, request.reviewedGrids, checker) {
-              | None => ()
-              | Some(item) => candidates->Array.push(item)
-              }
-            }
-          }
+        if workVisited.contents >= workLimit {
+          truncated := true
         } else {
-          let target = faceOrder->Array.getUnsafe(depth)
-          data.observations->Array.forEach(photo => {
-            let middle = data.size / 2
-            let centerAllowed =
-              mod(data.size, 2) == 0 ||
-                request.centers->Array.some(center =>
-                  center.target == target &&
-                    request.reviewedGrids
-                    ->Option.flatMap(
-                      reviewed => reviewed.grids->Array.find(grid => grid.photoId == photo.photoId),
-                    )
-                    ->Option.mapOr(photo.sourceGrid, grid => grid.grid)
-                    ->Array.getUnsafe(middle)
-                    ->Array.getUnsafe(middle) == center.color
-                )
-            if centerAllowed && !(mapping->Array.some(entry => entry.photoId == photo.photoId)) {
-              for quarterTurns in 0 to 3 {
-                visit(
-                  depth + 1,
-                  [
-                    ...mapping,
-                    {
-                      photoId: photo.photoId,
-                      observationRevision: photo.revision,
-                      target,
-                      quarterTurns,
-                    },
-                  ],
-                )
+          workVisited := workVisited.contents + 1
+          if depth == 6 {
+            if (
+              evaluated.contents >= request.maxEvaluated ||
+                Array.length(candidates) >= request.maxCandidates
+            ) {
+              truncated := true
+            } else {
+              let index = evaluated.contents
+              evaluated := index + 1
+              switch PwCapture.createCandidate(
+                capture,
+                {
+                  candidateId: request.searchId ++ "/" ++ captureKey ++ "/" ++ Int.toString(index),
+                  captureRevision: data.revision,
+                  mappingFrame: "canonical",
+                  canonicalTransform: None,
+                  legacyTransform: None,
+                  mapping,
+                },
+              ) {
+              | PwCapture.Rejected(_) => ()
+              | PwCapture.Accepted({value}) =>
+                let inspected = ref(false)
+                let inspect = (candidate, projection) => {
+                  let assessed: assessment = checker(candidate, projection)
+                  let result = assessed.feasibility
+                  inspected :=
+                    (result.status == "pass" || result.status == "fail") &&
+                    result.checkerId != "" &&
+                    result.sourceRevision != "" &&
+                    result.scope != ""
+                  assessed
+                }
+                let result = evaluate(capture, value, request.reviewedGrids, inspect)
+                if !inspected.contents {
+                  inconclusive := inconclusive.contents + 1
+                }
+                switch result {
+                | None => ()
+                | Some(item) => candidates->Array.push(item)
+                }
               }
             }
-          })
+          } else {
+            let target = faceOrder->Array.getUnsafe(depth)
+            data.observations->Array.forEach(photo => {
+              let middle = data.size / 2
+              let centerAllowed =
+                mod(data.size, 2) == 0 ||
+                  request.centers->Array.some(center =>
+                    center.target == target &&
+                      request.reviewedGrids
+                      ->Option.flatMap(
+                        reviewed =>
+                          reviewed.grids->Array.find(grid => grid.photoId == photo.photoId),
+                      )
+                      ->Option.mapOr(photo.sourceGrid, grid => grid.grid)
+                      ->Array.getUnsafe(middle)
+                      ->Array.getUnsafe(middle) == center.color
+                  )
+              let sourceAllowed =
+                constraints->Array.every(decision =>
+                  (decision.target != target || decision.photoId == photo.photoId) &&
+                    (decision.photoId != photo.photoId || decision.target == target)
+                )
+              if (
+                centerAllowed &&
+                sourceAllowed &&
+                !(mapping->Array.some(entry => entry.photoId == photo.photoId))
+              ) {
+                for quarterTurns in 0 to 3 {
+                  if (
+                    constraints->Array.every(decision =>
+                      decision.target != target || decision.quarterTurns == quarterTurns
+                    )
+                  ) {
+                    visit(
+                      depth + 1,
+                      [
+                        ...mapping,
+                        {
+                          photoId: photo.photoId,
+                          observationRevision: photo.revision,
+                          target,
+                          quarterTurns,
+                        },
+                      ],
+                    )
+                  }
+                }
+              }
+            })
+          }
         }
       }
     }
@@ -282,8 +329,17 @@ let findMatchingCube = (capture, request: request, checker) => {
     PwCapture.Accepted({
       value: {
         capture,
+        constraints: constraints->Array.map((p): PwCapture.placement => {
+          photoId: p.photoId,
+          observationRevision: p.observationRevision,
+          target: p.target,
+          quarterTurns: p.quarterTurns,
+        }),
         searchId: request.searchId,
         evaluated: evaluated.contents,
+        workVisited: workVisited.contents,
+        workLimit,
+        inconclusive: inconclusive.contents,
         truncated: truncated.contents,
         candidates,
         reviewedGrids: request.reviewedGrids,
@@ -291,9 +347,13 @@ let findMatchingCube = (capture, request: request, checker) => {
     })
   }
 }
+let findMatchingCube = (capture, request, checker) => search(capture, request, [], checker)
 let describeSession = (session: session): summary => {
   searchId: session.searchId,
   evaluated: session.evaluated,
+  workVisited: session.workVisited,
+  workLimit: session.workLimit,
+  inconclusive: session.inconclusive,
   truncated: session.truncated,
   coverage: session.truncated ? "truncated" : "completeForDeclaredDomain",
   candidates: session.candidates->Array.map((item: item): retained => {
@@ -310,6 +370,7 @@ let describeSession = (session: session): summary => {
 }
 let beginReview = session => {session, revision: 0, decisions: [], closed: false}
 let revision = (review: review) => review.revision
+let canBack = (review: review) => !review.closed && Array.length(review.decisions) > 0
 let agrees = (a: PwCapture.placement, b: PwCapture.placement) =>
   a.photoId == b.photoId &&
   a.observationRevision == b.observationRevision &&
@@ -372,6 +433,12 @@ let select = (review: review, expectedRevision, decision) => {
 let back = (review: review, expectedRevision) => {
   if review.closed || review.revision != expectedRevision || Array.length(review.decisions) == 0 {
     PwCapture.Rejected({error: "StaleOrClosedReview"})
+  } else if (
+    review.session.constraints->Array.some(decision =>
+      agrees(decision, review.decisions->Array.getUnsafe(Array.length(review.decisions) - 1))
+    )
+  ) {
+    PwCapture.Rejected({error: "BackAndResumeRequired"})
   } else {
     PwCapture.Accepted({
       value: {
@@ -431,3 +498,99 @@ let projectCandidate = (session: session, candidateId) =>
     | PwCapture.Accepted({value}) => Some(value)
     }
   )
+
+@genType type resumeConflict = {decision: option<PwCapture.placement>, reason: string}
+@genType
+type resumed = {
+  session: session,
+  review: review,
+  carriedDecisions: array<PwCapture.placement>,
+  conflicts: array<resumeConflict>,
+  status: string,
+}
+let copyPlacement = (p: PwCapture.placement): PwCapture.placement => {
+  photoId: p.photoId,
+  observationRevision: p.observationRevision,
+  target: p.target,
+  quarterTurns: p.quarterTurns,
+}
+let resume = (capture, previous: review, expectedRevision, request: request, checker, undo) => {
+  let oldData = PwCapture.snapshot(previous.session.capture)
+  let data = PwCapture.snapshot(capture)
+  if previous.closed || previous.revision != expectedRevision {
+    PwCapture.Rejected({error: "StaleOrClosedReview"})
+  } else if request.action != (undo ? "backAndResumeReview" : "resumeReview") {
+    PwCapture.Rejected({error: "ExplicitResumeRequired"})
+  } else if request.searchId == previous.session.searchId {
+    PwCapture.Rejected({error: "NewSearchIdRequired"})
+  } else if (
+    data.captureId != oldData.captureId ||
+    data.size != oldData.size ||
+    data.revision < oldData.revision
+  ) {
+    PwCapture.Rejected({error: "CaptureContextMismatch"})
+  } else if undo && Array.length(previous.decisions) == 0 {
+    PwCapture.Rejected({error: "NoManualDecision"})
+  } else {
+    let history = undo
+      ? previous.decisions->Array.filterWithIndex((_, i) =>
+          i < Array.length(previous.decisions) - 1
+        )
+      : previous.decisions
+    let conflicts: array<resumeConflict> = []
+    let carried =
+      history
+      ->Array.filter(decision => {
+        let oldPhoto = oldData.observations->Array.find(p => p.photoId == decision.photoId)
+        let newPhoto = data.observations->Array.find(p => p.photoId == decision.photoId)
+        let unchanged = switch (oldPhoto, newPhoto) {
+        | (Some(a), Some(b)) =>
+          JSON.stringifyAny(a) == JSON.stringifyAny(b) && b.revision == decision.observationRevision
+        | _ => false
+        }
+        if !unchanged {
+          conflicts->Array.push({
+            decision: Some(copyPlacement(decision)),
+            reason: "SourceChangedOrRetired",
+          })
+        }
+        unchanged
+      })
+      ->Array.map(copyPlacement)
+    switch search(capture, {...request, action: "findMatchingCube"}, carried, checker) {
+    | PwCapture.Rejected(error) => PwCapture.Rejected(error)
+    | PwCapture.Accepted({value: session}) =>
+      if (
+        !session.truncated &&
+        session.inconclusive == 0 &&
+        Array.length(session.candidates) == 0 &&
+        Array.length(carried) > 0
+      ) {
+        conflicts->Array.push({decision: None, reason: "NoFeasibleCompletionInDeclaredDomain"})
+      }
+      let review = {
+        session,
+        revision: previous.revision + 1,
+        decisions: carried->Array.map(copyPlacement),
+        closed: false,
+      }
+      PwCapture.Accepted({
+        value: {
+          session,
+          review,
+          carriedDecisions: carried->Array.map(copyPlacement),
+          conflicts,
+          status: Array.length(conflicts) > 0
+            ? "conflicts"
+            : Array.length(session.candidates) == 0
+            ? "pending"
+            : "candidatesAvailable",
+        },
+      })
+    }
+  }
+}
+let resumeReview = (capture, previous, expectedRevision, request, checker) =>
+  resume(capture, previous, expectedRevision, request, checker, false)
+let backAndResumeReview = (capture, previous, expectedRevision, request, checker) =>
+  resume(capture, previous, expectedRevision, request, checker, true)

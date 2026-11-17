@@ -39,6 +39,9 @@ type retained = {
 type summary = {
   searchId: string,
   evaluated: int,
+  workVisited: int,
+  workLimit: int,
+  inconclusive: int,
   coverage: string,
   truncated: bool,
   candidates: array<retained>,
@@ -67,9 +70,12 @@ let findMatchingCube: (
 @genType let describeSession: session => summary
 @genType let beginReview: session => review
 @genType let revision: review => int
+// Whether a manual undo is available; pre-enumeration constraints require backAndResumeReview.
+@genType let canBack: review => bool
 @genType let nextTarget: review => option<PwCapture.face>
 @genType let choices: review => array<choice>
 @genType let select: (review, int, PwCapture.placement) => PwCapture.outcome<review>
+// Back rejects a pre-enumeration constraint; use backAndResumeReview to reopen that domain.
 @genType let back: (review, int) => PwCapture.outcome<review>
 @genType let cancel: (review, int) => PwCapture.outcome<review>
 @genType let selectedCandidate: review => option<PwCapture.candidateInput>
@@ -84,3 +90,33 @@ let useCandidate: (
 ) => PwCapture.outcome<committed>
 
 @genType let projectCandidate: (session, string) => option<array<PwCapture.projection>>
+
+// Resume only after confirmed editor OK. Cancel retains the previous review unchanged.
+// Only manual decisions are carried before bounded enumeration/retention; Back removes the last.
+// A new searchId, action matching the operation, and expected previous revision are required.
+// Conflicts describe the declared domain, never full NxN impossibility.
+@genType type resumeConflict = {decision: option<PwCapture.placement>, reason: string}
+@genType
+type resumed = {
+  session: session,
+  review: review,
+  carriedDecisions: array<PwCapture.placement>,
+  conflicts: array<resumeConflict>,
+  status: string,
+}
+@genType
+let resumeReview: (
+  PwCapture.capture,
+  review,
+  int,
+  request,
+  (PwCapture.candidateInput, array<PwCapture.projection>) => assessment,
+) => PwCapture.outcome<resumed>
+@genType
+let backAndResumeReview: (
+  PwCapture.capture,
+  review,
+  int,
+  request,
+  (PwCapture.candidateInput, array<PwCapture.projection>) => assessment,
+) => PwCapture.outcome<resumed>

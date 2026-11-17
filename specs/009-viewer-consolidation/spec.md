@@ -759,6 +759,18 @@ installs the returned closed review and confirmation with its current UI state;
 reusing a superseded pure handle is not an external commit. Cancel changes no
 previously confirmed application cube and the app restores its approval context.
 
+Private package version 0.3.0 adds revision-checked `resumeReview` and
+`backAndResumeReview` for a confirmed color-editor return. Only explicit manual
+placements become pre-enumeration constraints; automatically resolved faces stay
+automatic. Back removes the last manual constraint before a new bounded search,
+including choices outside the unconstrained retention prefix. Retired source IDs
+produce explicit conflicts without slot rebinding. Empty capped pools and
+inconclusive checks remain pending; complete declared-domain rejection is distinct
+from full NxN impossibility. Prefix-node work has its own finite reported limit
+alongside assessment counts. Editor Cancel retains the previous review unchanged.
+The generated interface and [package reference](../../packages/capture-recovery/README.md)
+define the operation actions, new search IDs and atomic caller installation.
+
 A checker pass must name its source revision and scope. Optional wire evidence
 is decoded and assessed by `PwCodec`/`PwValidate`; `scope=providedWireOnly` and the
 explicit profile travel with its result. It proves no capture-to-wire identity
