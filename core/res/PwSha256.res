@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Constants of FIPS 180-4 as signed 32-bit integers.
 let k = [
   1116352408,

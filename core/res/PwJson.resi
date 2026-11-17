@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Strict JSON for the wire format: no duplicate keys, integers only (no fraction, exponent or
 // negative zero), bounded size and depth. Errors carry the JSON path of the offending value.
 type rec t =

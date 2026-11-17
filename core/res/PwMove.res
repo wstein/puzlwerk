@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 type axis = X | Y | Z
 type error = NoLayers | LayerOutOfRange | NotSortedUnique | BadTurns
 

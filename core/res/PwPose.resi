@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // A piece pose: stable piece ID, current shell slot p and orientation O (ADR 0008).
 type t
 let make: (PwId.t, PwShell.slot, PwOrientation.t) => t

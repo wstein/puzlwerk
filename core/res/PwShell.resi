@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Doubled centered integer coordinates of the shell slots of an NxNxN cube (data model,
 // "Frames and integer coordinates"). Right-handed frame: +X right, +Y up, +Z front.
 type vec = {x: int, y: int, z: int}

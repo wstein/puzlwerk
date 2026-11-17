@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Layered validation evidence (data model, "Validation and limits"; Q4, decided 2026-11-14). Three kinds of
 // evidence stay separate:
 // - structural: the state is a valid state of the definition (the checks of the codec);
