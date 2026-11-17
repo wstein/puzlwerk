@@ -11,7 +11,7 @@ export async function mountClassic(root, fixtureBase) {
   const originalPane=make('section','',panes), candidatePane=make('section','',panes);
   make('h2','Original Cubistry',originalPane); const originalHost=make('div','',originalPane); originalHost.className='scene';
   make('h2','PuzlWerk Core + Viewer',candidatePane); const candidateHost=make('div','',candidatePane); candidateHost.className='scene';
-  const info=make('p','Native Cubistry classic 2×2; move buttons compare independent physical states. Gesture parity and owner visual acceptance remain open.');
+  const info=make('p','Native Cubistry classic 2×2; move buttons compare independent physical states. Shared Play supports a single pointer; a second contact cancels. Native gesture parity and owner visual acceptance remain open.');
   const status=make('output'); status.textContent='Loading';
   const details=make('details'); make('summary','Wire, appearance, and native assets',details); const inspector=make('pre','',details);
   inspector.textContent=JSON.stringify({definition,state,appearance,assets:native.assets},null,2);
@@ -23,6 +23,7 @@ export async function mountClassic(root, fixtureBase) {
   const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff',core:{center:[0,0,0],halfExtent:1}},scene);
   if(!opened.ok) throw Error(JSON.stringify(opened.error));
   const player=opened.value, loaded=await scene.setProjection(player.projection()); if(!loaded.ok) throw Error(JSON.stringify(loaded.error));
+  const indicator=stage.setOrientationIndicator({physicalOrientation:[0,0,0,1],solverFrame:[0,0,0,1],colors:{x:0xd9493f,y:0xf4f4f4,z:0x4caf67}});if(!indicator.ok)throw Error(JSON.stringify(indicator.error));const configured=stage.setPlayTarget({child:scene,player,size:2,onCommit:()=>{status.textContent='Shared Core changed by play; native comparison state is unchanged.';}});if(!configured.ok)throw Error(JSON.stringify(configured.error));
   const original=await mountOriginal(originalHost,native,fixtureBase.href);
   const compare=()=>comparePoses(original.getState(),JSON.parse(player.state()));
   status.textContent=compare()?'States match':'State mismatch';
@@ -34,5 +35,5 @@ export async function mountClassic(root, fixtureBase) {
     catch(e){status.textContent=`Error: ${e.message}`;}
     finally {for(const b of controls.children)b.disabled=false;}
   };}
-  return {player,original,dispose(){player.dispose();stage.dispose();original.dispose();info.remove();}};
+  return {player,stage,original,dispose(){player.dispose();stage.dispose();original.dispose();info.remove();}};
 }

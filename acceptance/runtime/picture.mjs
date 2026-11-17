@@ -13,6 +13,7 @@ export async function mountPicture(root) {
  const left=element('section',panes),right=element('section',panes);
  element('h2',left,'Original Cubistry Picture3');const sourceHost=element('div',left);sourceHost.className='scene';
  element('h2',right,'PuzlWerk Core + Viewer');const targetHost=element('div',right);targetHost.className='scene';
+ element('p',root,'Shared Play supports a single pointer; a second contact cancels. The native reference remains independently controlled.');
  const status=element('output',root,'Loading six native coast pictures');
  const editor=new PictureEditor();if(!await editor.preset('coast'))throw Error('Picture preset did not load');
  const design=createCube3Design(),artwork=editor.artwork('picture'),documents=pictureDocuments(design);
@@ -22,11 +23,12 @@ export async function mountPicture(root) {
  if(!made.ok)throw Error(JSON.stringify(made.error));const stage=made.value,added=stage.addCube({position:[0,0,0]});if(!added.ok)throw Error(JSON.stringify(added.error));
  const opened=createPlayer(JSON.stringify(documents.definition),JSON.stringify(documents.state),JSON.stringify(documents.appearance),{palette:{},defaultColor:'#ffffff',sourceFaceColors:Object.fromEntries(design.printing.map(s=>[`s${s.id}`,stickerArt(s,DEFAULT_CAL3_SCHEME,false).ground])),sceneAppearance:{construction:'stickered',bodyColor:DEFAULT_CAL3_SCHEME.ground,frameColor:'#243d35'},core:{center:[0,0,0],halfExtent:1.5},presentation:{cellSize:1,bodyGap:.01,bodyRadius:.055,bodyKind:'twoRadius',bodyInnerRadius:.033,size:3,nominalEdge:3,stickerWidth:.87,stickerRadius:.055,stickerOffset:.502,frameColor:'#243d35'}},added.value);
  if(!opened.ok)throw Error(JSON.stringify(opened.error));const player=opened.value,loaded=await added.value.setProjection(player.projection());if(!loaded.ok)throw Error(JSON.stringify(loaded.error));
+ const indicator=stage.setOrientationIndicator({physicalOrientation:[0,0,0,1],solverFrame:[0,0,0,1],colors:{x:0xd9493f,y:0xf4f4f4,z:0x4caf67}});if(!indicator.ok)throw Error(JSON.stringify(indicator.error));const configured=stage.setPlayTarget({child:added.value,player,size:3,onCommit:()=>{status.textContent='Shared Core changed by play; native comparison state is unchanged.';}});if(!configured.ok)throw Error(JSON.stringify(configured.error));
  const controls=element('div',root);let state=design.printing,busy=false;
  const compare=()=>comparePictureState(state,documents.definition,JSON.parse(player.state()));
  const update=()=>{status.textContent=compare()?'Native and Core sticker positions and orientations match':'State mismatch';};update();
  async function turn(token){if(busy)return;busy=true;for(const button of controls.children)button.disabled=true;try{const from=state,to=apply(from,token),move=moveInfo(token),mapped=pictureMove(move);const [_,result]=await Promise.all([original.animate(from,token,to),player.turn(mapped.axis,mapped.layers,mapped.turns,250*Math.abs(move.turns))]);if(!result.ok)throw Error(JSON.stringify(result.error));state=to;update();}catch(error){status.textContent=`Error: ${error.message}`;throw error}finally{busy=false;for(const button of controls.children)button.disabled=false;}}
  for(const face of ['U','D','F','B','L','R'])for(const suffix of ['',"'",'2']){const token=face+suffix,button=element('button',controls,token);button.onclick=()=>{void turn(token).catch(()=>{})};}
  const details=element('details',root);element('summary',details,'Native picture mapping and wire documents');element('pre',details,JSON.stringify(documents,null,2));
- return {editor,original,player,documents,turn,compare,dispose(){player.dispose();stage.dispose();original.destroy();editor.dispose()}};
+ return {editor,original,player,stage,documents,turn,compare,dispose(){player.dispose();stage.dispose();original.destroy();editor.dispose()}};
 }
