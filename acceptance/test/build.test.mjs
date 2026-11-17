@@ -48,3 +48,13 @@ test('cube-assembler case import map resolves every bare import of the shared vi
  assert.ok(bare.has('three/addons/lines/LineSegments2.js'));
  assert.deepEqual([...bare].filter(s=>!resolvable(s)),[]);
 });
+test('every generated page with a three import map also maps three/addons/',async()=>{
+ const {build}=await import('../build.mjs'),{mkdtemp,readdir}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
+ const out=await mkdtemp(join(tmpdir(),'puzlwerk-maps-')),pages=[];
+ await build('/puzlwerk/',join(out,'puzlwerk'));
+ const walk=async dir=>{for(const e of await readdir(dir,{withFileTypes:true})){if(e.name==='assets')continue;const p=join(dir,e.name);if(e.isDirectory())await walk(p);else if(e.name==='index.html')pages.push(p);}};
+ await walk(join(out,'puzlwerk'));
+ let checked=0;
+ for(const page of pages){const m=/<script type="importmap">(.*?)<\/script>/s.exec(await readFile(page,'utf8'));if(!m)continue;const map=JSON.parse(m[1]).imports;if(!map.three)continue;checked++;assert.equal(map['three/addons/'],'/puzlwerk/assets/three/examples/jsm/',page);}
+ assert.ok(checked>=6,`checked ${checked} pages`);
+});
