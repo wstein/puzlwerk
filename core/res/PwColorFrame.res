@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Face directions and rotation use the canonical Core coordinate frame.
 let directions: array<PwShell.vec> = [
   {x: 0, y: 1, z: 0},

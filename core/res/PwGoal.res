@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 type symmetry = C1 | C2 | C4
 
 type rec node =

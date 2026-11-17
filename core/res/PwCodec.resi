@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Versioned canonical codec for definitions and states, wire schema v1
 // (specs/001-core-foundation/contracts/wire-v1.md). Decoding is strict and returns validated,
 // opaque values; encoding is canonical; hashes are "sha256:" plus the hex SHA-256 of the

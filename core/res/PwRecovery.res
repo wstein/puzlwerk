@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: EUPL-1.2
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Wizard filtering adapts CubeAssembler SpatialOrientationWizard.res at 91fc2144; MIT notice retained.
 // EUPL-1.2; pure application recovery transactions, not a physical puzzle state.
 @genType type center = {target: PwCapture.face, color: string}

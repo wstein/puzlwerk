@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 type errorKind = UnknownToken | UnsupportedAlias | BadWidth | InputTooLong
 type error = {kind: errorKind, start: int, stop: int}
 

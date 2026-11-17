@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Bounded notation: outer and wide turns, 3x3 M/E/S, and 2x2/3x3 x/y/z.
 // Prime and 2 suffixes are supported. Lowercase wide aliases and unsupported
 // sizes fail as UnsupportedAlias; malformed tokens fail as UnknownToken.

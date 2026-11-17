@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: EUPL-1.2
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Source identity is evidence supplied by the candidate producer, not inferred from pixels/colors.
 @genType type face = | @as("U") U | @as("R") R | @as("F") F | @as("D") D | @as("L") L | @as("B") B
 @genType type grid = array<array<string>>

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Goal predicates over a validated state (data model, "Goals and symmetry"). A goal is data: a closed
 // tree of nodes plus the set of global frames under which the whole tree may be matched. Evaluation is a
 // pure, deterministic function of definition, state and goal. Symmetry changes only what a goal accepts,

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // Canonical move AST (data model, "Moves"): axis, sorted unique nonempty layer indices 0..N-1 and
 // signed quarter turns -1, 1 or 2 about the positive axis (right-hand). Layer i has coordinate
 // 2i-(N-1). The AST represents every layer selection; which selections a caller accepts is policy

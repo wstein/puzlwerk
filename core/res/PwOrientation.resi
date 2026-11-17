@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
 // An element of SO(3,Z): the 24 proper signed permutation matrices, stored row-major as nine
 // integers. Entry (i,j) is row i, column j; column j is the image O.e_j (ADR 0008).
 type t
