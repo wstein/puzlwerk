@@ -9,6 +9,7 @@ import * as Move from '../../../core/res/PwMove.res.mjs';
 import * as Notation from '../../../core/res/PwNotation.res.mjs';
 import * as Validate from '../../../core/res/PwValidate.res.mjs';
 import * as Orientation from '../../../core/res/PwOrientation.res.mjs';
+import * as ColorFrame from '../../../core/res/PwColorFrame.res.mjs';
 import { checkAppearance } from './appearance.mjs';
 
 const vector = v => [v.x,v.y,v.z];
@@ -65,13 +66,24 @@ export function open(definitionText,stateText,appearanceText,options) {
   return {ok:true,value:{definition:definition._0,state:state._0,appearance:doc,ids:{pieces:wire.pieces.map(p=>({wire:p.id,viewer:`piece:${p.id}`})),stickers:wire.pieces.flatMap(p=>p.stickers.map(s=>({wire:s.id,viewer:`sticker:${s.id}`})))},projection:{pieces,...(options.core?{core:structuredClone(options.core)}:{}),...(options.renderProfile?{renderProfile:structuredClone(options.renderProfile)}:{}),...(profile?{...(profile.bodyKind==='twoRadius'?{presentation:{size:profile.size,nominalEdge:profile.nominalEdge,...(widths?{layerWidths:[...widths]}:{})}}:{}),geometryProfile:{body:profile.bodyKind==='twoRadius'?{kind:'twoRadius',gap:profile.bodyGap,bevelSegments:profile.bodyBevelSegments ?? 3,bigRadius:profile.bodyRadius,smallRadius:profile.bodyInnerRadius}:{kind:'roundedBox',gap:profile.bodyGap,radius:profile.bodyRadius,bevelSegments:profile.bodyBevelSegments ?? 3}},appearance:{construction:'stickered',frameColor:profile.frameColor ?? '#1c1c1f'}}:{})}}};
 }
 
+// Values are renderer colors in U/R/F/D/L/B order. On odd cubes infer the
+// actual current center stickers; image-only or ambiguous centers stay unknown.
+function initialColorFrame(snapshot,options) {
+ const explicit=options.colorFrame;
+ if(explicit!==undefined)return Array.isArray(explicit)&&explicit.length===6&&explicit.every(v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v))?[...explicit]:undefined;
+ const n=Shell.sizeToInt(Codec.size(snapshot.definition));if(n%2===0)return undefined;
+ const directions=[[0,1,0],[1,0,0],[0,0,1],[0,-1,0],[-1,0,0],[0,0,-1]], poses=new Map(Codec.poses(snapshot.state).map(p=>[Id.toString(Pose.pieceId(p)),p])),styles=new Map(snapshot.appearance.stickers.map(s=>[s.id,s]));
+ const values=directions.map(normal=>{const hits=[];for(const piece of Codec.pieces(snapshot.definition)){const pose=poses.get(Id.toString(piece.id)),pos=vector(Shell.toVec(Pose.position(pose)));if(!pos.every((v,i)=>v===normal[i]*(n-1)))continue;for(const sticker of piece.stickers){const world=vector(Orientation.apply(Pose.orientation(pose),sticker.normal));if(!world.every((v,i)=>v===normal[i]))continue;const id=Id.toString(sticker.id),style=styles.get(id),token=style?.color ?? (sticker.color===undefined?undefined:Id.toString(sticker.color)),color=options.sourceFaceColors?.[id] ?? options.palette[token];if(typeof color==='string'&&/^#[0-9a-f]{6}$/i.test(color))hits.push(color)}}return hits.length===1?hits[0]:undefined});
+ return values.every(Boolean)?values:undefined;
+}
 export function createPlayer(definitionText,stateText,appearanceText,options,scene) {
   const lockedOptions=structuredClone(options);
   const first = open(definitionText,stateText,appearanceText,lockedOptions);
   if (!first.ok) return first;
-  let current = first.value, busy = false, disposed = false, activePreview, unavailable = false;
+  let current = first.value, colorFrame=initialColorFrame(first.value,lockedOptions), busy = false, disposed = false, activePreview, unavailable = false;
   return {ok:true,value:{
     state: () => Codec.encodeState(current.state),
+    colorFrame: () => colorFrame ? {ok:true,value:[...colorFrame]} : error({code:"UnknownColorFrame"}),
     projection: () => current.projection,
     beginPreview(axis,layers) {
       if(activePreview && !activePreview.isActive())activePreview.cancel();
@@ -87,7 +99,7 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
         if(!active || disposed)return error({code:'Cancelled'});if(![-1,1,2].includes(turns))return error({code:'InvalidMove'});
         const move=Move.make(Codec.size(origin.definition),axis,chosen,turns);if(move.TAG!=='Ok')return error(move._0);const next=Validate.applyMove(origin.definition,origin.state,move._0);if(next.TAG!=='Ok')return error(next._0);
         const target=open(definitionText,Codec.encodeState(next._0),appearanceText,lockedOptions);if(!target.ok)return target;
-        let result;try{result=started.value.commit({from:origin.projection,to:target.value.projection,pieceIds:ids,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs:0});}catch{result=error({code:'Unavailable'});}if(result.ok)current=target.value;else try{started.value.cancel();}catch{unavailable=true}finish();return result;
+        let result;try{result=started.value.commit({from:origin.projection,to:target.value.projection,pieceIds:ids,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs:0});}catch{result=error({code:'Unavailable'});}if(result.ok){current=target.value;if(colorFrame)colorFrame=ColorFrame.advance(colorFrame,move._0);}else try{started.value.cancel();}catch{unavailable=true}finish();return result;
       }};activePreview=handle;return {ok:true,value:handle};
     },
     async turn(axis,layers,turns,durationMs,timing) {
@@ -107,6 +119,7 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
         const result=await scene.transition({from:current.projection,to:target.value.projection,pieceIds:selected,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs},timing);
         if (!result.ok) return result;
         current=target.value;
+        if(colorFrame)colorFrame=ColorFrame.advance(colorFrame,made._0);
         return {ok:true,value:undefined};
       } catch (cause) { return error({code:'TransitionFailed',cause}); }
       finally { busy=false; }

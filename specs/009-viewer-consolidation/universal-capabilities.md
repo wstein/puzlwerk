@@ -73,12 +73,18 @@ twice. Clickable regrips are not part of this source-backed contract.
 The local 2×2/3×3 play profile uses Core `any` policy explicitly. On 3×3,
 `M`, `E` and `S` select the middle layer in the directions of `L`, `D` and `F`;
 `x`, `y` and `z` rotate every layer in the directions of `R`, `U` and `F`.
-The whole-cube transition changes Core poses once. Its Core-provided rotation
-updates the indicator physical frame once in scene-local coordinates; view orbit
-changes presentation only. Slice moves do not redefine the physical frame. The
-solver frame remains an independent caller input and no sensor frame is inferred.
-The default passive indicator is 64 CSS pixels square, inset 8 pixels from the
-host’s bottom and right edges.
+A separate six-face color frame follows CubeAssembler `AxisGizmo.res` at
+`91fc2144cbcf2734f84ee3a93c70b8ed503a5151`: whole-cube moves permute it;
+on odd cubes, any selected block containing the middle layer also permutes it.
+Odd initial frames use the actual current center colors where unambiguous;
+image-only or missing centers are unknown unless the caller explicitly provides
+a reference. Even cubes require an explicit standard scheme. The Picture demo
+explicitly uses the standard scheme; it does not infer colors from picture pixels.
+The indicator maps frame R/U/F to X/Y/Z. Logical whole-cube moves change Core
+poses and the color frame once, without a second physical-orientation update.
+View orbit changes presentation only; physical sensor and solver inputs remain
+separate. The default passive indicator is 64 CSS pixels square, inset 8 pixels
+from the host’s bottom and right edges.
 
 The shared Classic view mode extends the pinned Cubistry behavior: after a
 recent drag it uses the existing damped coast while retaining upright pitch
