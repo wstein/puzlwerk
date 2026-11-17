@@ -173,3 +173,9 @@ src/apps/clock/orbit.ts at revision efafcc1d97687eccea0cde87a230f447ce1b6c66,
 Git blob d8b7a9320d2776ec9f993cf6b8fb5b9820dcc105, source SHA-256
 58f14c0ae880c64b73f9b600ec0ef4a5cdaa8244d3f59057a28d823d57f49395.
 The function is exposed as a caller-selected generic stage zoom policy.
+
+src/play-gesture.ts, src/play-gesture-map.ts and src/play-gesture-turn.ts are
+copied from Cubistry packages/cube-viewer/src at revision
+ efafcc1d97687eccea0cde87a230f447ce1b6c66. Only local import extensions change.
+The corresponding source tests are retained with their import paths adapted.
+These are gesture calculations, not puzzle-state or move authority.
