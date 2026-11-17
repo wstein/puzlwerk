@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {stripTypeScriptTypes} from 'node:module';
+import {compileTypeScript} from '../compile-typescript.mjs';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -8,7 +8,7 @@ const repo=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 await runNative(repo,join(repo,'acceptance/references/cubistry-clock'),async({browser,base,output})=>{
  for(const file of ['picture3/model','picture3/images','picture3/editor','picture3/presets','calendar/model','calendar/viewer','calendar/artwork','calendar7/schemes']){
   const source=await readFile(join(repo,`acceptance/references/cubistry-picture/src/apps/${file}.ts`),'utf8');
-  const dest=join(output,`src/apps/${file}.js`);await mkdir(dirname(dest),{recursive:true});await writeFile(dest,stripTypeScriptTypes(source,{mode:'transform'}).replace(/(["'])(\.{1,2}\/[^"']+)\.ts\1/g,'$1$2.js$1'));
+  const dest=join(output,`src/apps/${file}.js`);await mkdir(dirname(dest),{recursive:true});await writeFile(dest,compileTypeScript(source));
  }
  const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await page.waitForFunction(()=>window.baseline);
  const evidence=await page.evaluate(async()=>{

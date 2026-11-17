@@ -31,3 +31,11 @@ test('source archives use the explicitly recorded commit instead of a parent che
  const {mkdtemp,writeFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path'),{sourceRevision}=await import('../build.mjs');const dir=await mkdtemp(join(tmpdir(),'puzlwerk-revision-'));
  try{const sha='0123456789abcdef0123456789abcdef01234567';await writeFile(join(dir,'SOURCE_REVISION'),sha+'\n');assert.equal(await sourceRevision(dir),sha);await writeFile(join(dir,'SOURCE_REVISION'),'invalid\n');await assert.rejects(sourceRevision(dir),/source revision/i);}finally{await rm(dir,{recursive:true,force:true})}
 });
+
+test('demo index distinguishes runnable comparisons from the source inventory',async()=>{
+ const {renderDemoIndex}=await import('../build.mjs'),html=renderDemoIndex('/nested/');assert.ok(html.includes('/nested/acceptance/cubistry-picture-3/'));assert.ok(html.includes('/nested/acceptance/cubistry-playground-classic-2/'));assert.match(html,/owner.*open/i);assert.match(html,/inventory/i);
+});
+
+test('local comparison index links the real clock and calendar routes',async()=>{
+ const {renderDemoIndex,renderNativeDemo}=await import('../build.mjs'),html=renderDemoIndex('/nested/');for(const id of ['clock-2','clock-3','calendar7-standard','calendar7-names','calendar7-names-any']){assert.ok(html.includes(`/nested/demo/${id}/`));assert.ok(renderNativeDemo(id,'/nested/').includes(`/nested/assets/runtime/${id.startsWith('clock')?'clock':'calendar7'}.mjs`));}
+});
