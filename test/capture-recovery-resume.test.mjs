@@ -76,3 +76,14 @@ test('canBack derives manual availability from Core history across resume, last 
  assert.equal(Recovery.canBack(undone.review),false);assert.equal(undone.carriedDecisions.length,0);
  assert.equal(Recovery.canBack(ok(Recovery.cancel(chosen,Recovery.revision(chosen)))),false);
 });
+
+test('same photo ID with changed observation evidence cannot carry a prior manual answer',()=>{
+ const c=capture(),r=selectLast(start(c)),choice=Recovery.choices(start(c)).at(-1).placement;
+ const data=Capture.snapshot(c);
+ const changed=ok(Capture.createCapture({...data,revision:1,observations:data.observations.map(p=>p.photoId===choice.photoId?{...p,sourceHash:'different-same-id'}:p)}));
+ const resumed=resume(changed,r);
+ assert.equal(resumed.status,'conflicts');
+ assert.deepEqual(resumed.carriedDecisions,[]);
+ assert.equal(resumed.conflicts[0].reason,'SourceChangedOrRetired');
+ assert.equal(resumed.conflicts[0].decision.photoId,choice.photoId);
+});
