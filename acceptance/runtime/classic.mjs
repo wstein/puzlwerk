@@ -2,6 +2,7 @@ import { createCubeStage } from '../viewer/index.js';
 import { createPlayer } from '../packages/core-viewer-bridge/src/index.mjs';
 import { mountOriginal } from '../reference/original.js';
 import { comparePoses } from './compare.mjs';
+import {addCoreMoves} from './core-controls.mjs';
 
 const read = async url => { const r=await fetch(url); if(!r.ok) throw Error(`Failed to load ${url}`); return r.json(); };
 export async function mountClassic(root, fixtureBase) {
@@ -20,7 +21,7 @@ export async function mountClassic(root, fixtureBase) {
   const created=createCubeStage(candidateHost,{resolveAsset,rotationStorageKey:`cubistry-viewer-rotation-v1:${location.pathname.slice(0,200)}`,appearanceStorageKey:`cubistry-viewer-appearance-v1:${location.pathname.slice(0,200)}`}); if(!created.ok) throw Error(created.error.message);
   const stage=created.value, added=stage.addCube({position:[0,0,0]}); if(!added.ok) throw Error(added.error.message);
   const scene=added.value;
-  const opened=createPlayer(JSON.stringify(definition),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff',core:{center:[0,0,0],halfExtent:1}},scene);
+  const opened=createPlayer(JSON.stringify({...definition,movePolicy:'any'}),JSON.stringify(state),JSON.stringify(appearance),{palette,defaultColor:'#ffffff',core:{center:[0,0,0],halfExtent:1}},scene);
   if(!opened.ok) throw Error(JSON.stringify(opened.error));
   const player=opened.value, loaded=await scene.setProjection(player.projection()); if(!loaded.ok) throw Error(JSON.stringify(loaded.error));
   const indicator=stage.setOrientationIndicator({physicalOrientation:[0,0,0,1],solverFrame:[0,0,0,1],colors:{x:0xd9493f,y:0xf4f4f4,z:0x4caf67}});if(!indicator.ok)throw Error(JSON.stringify(indicator.error));const configured=stage.setPlayTarget({child:scene,player,size:2,onCommit:()=>{status.textContent='Shared Core changed by play; native comparison state is unchanged.';}});if(!configured.ok)throw Error(JSON.stringify(configured.error));
@@ -35,5 +36,6 @@ export async function mountClassic(root, fixtureBase) {
     catch(e){status.textContent=`Error: ${e.message}`;}
     finally {for(const b of controls.children)b.disabled=false;}
   };}
+  addCoreMoves(controls,{player,stage,size:2,setStatus:text=>{status.textContent=text}});
   return {player,stage,original,dispose(){player.dispose();stage.dispose();original.dispose();info.remove();}};
 }

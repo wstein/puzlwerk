@@ -69,3 +69,13 @@ Acceptance traces cover independent changes to each orientation, orbit and
 reset, resize, anchor compensation, input pass-through and disposal. Tests must
 show that indicator updates do not mutate the puzzle or apply any orientation
 twice. Clickable regrips are not part of this source-backed contract.
+
+The local 2×2/3×3 play profile uses Core `any` policy explicitly. On 3×3,
+`M`, `E` and `S` select the middle layer in the directions of `L`, `D` and `F`;
+`x`, `y` and `z` rotate every layer in the directions of `R`, `U` and `F`.
+The whole-cube transition changes Core poses once. Its Core-provided rotation
+updates the indicator physical frame once in scene-local coordinates; view orbit
+changes presentation only. Slice moves do not redefine the physical frame. The
+solver frame remains an independent caller input and no sensor frame is inferred.
+The default passive indicator is 64 CSS pixels square, inset 8 pixels from the
+host’s bottom and right edges.
