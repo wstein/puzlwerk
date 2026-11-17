@@ -21,3 +21,15 @@ test('showStickers outlines exactly the named stickers, sticker meshes and sourc
   feedback.showStickers(root,['sticker:a.U']);feedback.dispose();
   assert.equal(named.children.length,0);feedback.showStickers(root,['sticker:a.U']);assert.equal(named.children.length,0);
 });
+test('showStickers outlines the material group of the named source face, not another one',()=>{
+  // BoxGeometry groups are +x, -x, +y, -y, +z, -z.
+  const ids=['sticker:+x','sticker:-x','sticker:+y','sticker:-y','sticker:+z','sticker:-z'],axis=[[0,1],[0,-1],[1,1],[1,-1],[2,1],[2,-1]];
+  ids.forEach((id,index)=>{
+    const root=new Group(),shell=new Mesh(new BoxGeometry(1,1,1),Array.from({length:6},()=>new MeshBasicMaterial({color:0xffffff})));shell.userData.sourceFaceStickerIds=ids;root.add(shell);
+    const feedback=createPlayFeedback(()=>{});feedback.showStickers(root,[id]);
+    assert.equal(shell.children.length,1,id);
+    const start=shell.children[0].geometry.getAttribute('instanceStart'),[a,sign]=axis[index];
+    for(let i=0;i<start.count;i++)assert.ok(Math.abs(start.getComponent(i,a)-sign*.5)<1e-6,`${id} axis ${a}`);
+    feedback.dispose();
+  });
+});
