@@ -2,3 +2,22 @@ import {test} from 'node:test';import assert from 'node:assert/strict';import {B
 test('feedback outlines the picked face only and disposes owned resources',()=>{const root=new Group(),piece=new Group(),mesh=new Mesh(new BoxGeometry(1,1,1),Array.from({length:6},()=>new MeshBasicMaterial({color:0xffffff})));piece.name='piece:opaque';mesh.userData.sourceFaceStickerIds=['r','l','u','d','f','b'];piece.add(mesh);root.add(piece);const feedback=createPlayFeedback(()=>{});feedback.showFace(mesh,0);assert.equal(mesh.children.length,1);const line=mesh.children[0];assert.equal(line.castShadow,false);assert.equal(line.material.depthTest,true);assert.equal(line.raycast(),undefined);const pos=line.geometry.getAttribute('instanceStart');for(let i=0;i<pos.count;i++)assert.ok(pos.getX(i)>.49,'only +X material group');feedback.clear();assert.equal(mesh.children.length,0);feedback.showLayer(root,['piece:opaque']);assert.equal(mesh.children.length,6);feedback.dispose();assert.equal(mesh.children.length,0)});
 test('stickerless face outlines nonindexed native material groups',()=>{const geometry=new RoundedBoxGeometry(1,1,1,3,.05),mesh=new Mesh(geometry,Array.from({length:6},()=>new MeshBasicMaterial({color:0xffffff}))),feedback=createPlayFeedback(()=>{});mesh.userData.sourceFaceStickerIds=['r','l','u','d','f','b'];feedback.showFace(mesh,0);assert.equal(mesh.children.length,1);const pos=mesh.children[0].geometry.getAttribute('instanceStart');for(let i=0;i<pos.count;i++)assert.ok(pos.getX(i)>.44);feedback.dispose()});
 test('outlines use two depth-tested contrasting CSS-width strokes',()=>{const mesh=new Mesh(new BoxGeometry(1,1,1),new MeshBasicMaterial({color:0xffffff})),feedback=createPlayFeedback(()=>{});feedback.showFace(mesh);const line=mesh.children[0];assert.equal(line.material.linewidth,3);assert.equal(line.material.depthTest,true);assert.equal(line.children.length,1);assert.equal(line.children[0].material.linewidth,1);assert.equal(line.children[0].material.depthTest,true);assert.notEqual(line.material.color.getHex(),line.children[0].material.color.getHex());feedback.dispose()});
+test('showStickers outlines exactly the named stickers, sticker meshes and source-face materials, and clear removes them',()=>{
+  const root=new Group(),piece=new Group();piece.name='piece:a';
+  const named=new Mesh(new BoxGeometry(1,1,1),new MeshBasicMaterial({color:0xffffff})),other=new Mesh(new BoxGeometry(1,1,1),new MeshBasicMaterial({color:0xffffff}));
+  named.userData.stickerId='sticker:a.U';other.userData.stickerId='sticker:a.R';
+  const shell=new Mesh(new BoxGeometry(1,1,1),Array.from({length:6},()=>new MeshBasicMaterial({color:0xffffff})));shell.userData.sourceFaceStickerIds=['sticker:a.U','sticker:a.R'];
+  const hidden=new Mesh(new BoxGeometry(1,1,1),new MeshBasicMaterial({color:0xffffff}));hidden.userData.stickerId='sticker:a.U';hidden.visible=false;piece.add(hidden);
+  piece.add(named,other,shell);root.add(piece);
+  let invalidated=0;const feedback=createPlayFeedback(()=>{invalidated++});
+  feedback.showStickers(root,['sticker:a.U']);
+  assert.equal(hidden.children.length,0);
+  assert.equal(named.children.length,1);assert.equal(other.children.length,0);assert.equal(shell.children.length,1);
+  assert.ok(invalidated>0);
+  feedback.showStickers(root,['sticker:a.R']);
+  assert.equal(named.children.length,0);assert.equal(other.children.length,1);
+  feedback.showStickers(root,[]);
+  assert.equal(other.children.length,0);assert.equal(shell.children.length,0);
+  feedback.showStickers(root,['sticker:a.U']);feedback.dispose();
+  assert.equal(named.children.length,0);feedback.showStickers(root,['sticker:a.U']);assert.equal(named.children.length,0);
+});
