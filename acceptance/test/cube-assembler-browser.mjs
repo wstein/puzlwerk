@@ -9,7 +9,7 @@ try {
  const origin=new URL(url).origin;
  await page.context().addCookies([{name:'cube-assembler-stickerless',value:'true',url:origin},{name:'cube-assembler-auto-rotate',value:'true',url:origin},{name:'sentinel',value:'keep',url:origin}]);
  const before=await page.context().cookies(), errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
- await page.goto(url);const root=page.locator('#cube-assembler-case');await root.locator('output').waitFor();await page.waitForFunction(()=>document.querySelector('#cube-assembler-case output')?.textContent==='Visible facelets match at start');
+ await page.goto(url);const root=page.locator('#cube-assembler-case');await root.locator('output').waitFor();try{await page.waitForFunction(()=>document.querySelector('#cube-assembler-case output')?.textContent==='Visible facelets match at start');}catch(e){throw Error(`${e.message}\nstatus: ${await root.locator('output').textContent()}\nbrowser errors: ${JSON.stringify(errors)}`);}
  assert.equal(await root.locator('canvas').count(),1);const frame=root.locator('iframe');assert.equal(await frame.count(),1);assert.equal(await page.frameLocator('#cube-assembler-case iframe').locator('canvas').count(),1);
  const frameObject=await frame.elementHandle().then(e=>e.contentFrame());assert.equal(await frameObject.evaluate(()=>document.cookie),'');
  await page.waitForTimeout(500);const originalCanvas=page.frameLocator('#cube-assembler-case iframe').locator('canvas'), candidateCanvas=root.locator('canvas');const beforeOriginal=await originalCanvas.screenshot(), beforeCandidate=await candidateCanvas.screenshot();
