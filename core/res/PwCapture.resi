@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later
-// EUPL-1.2; canonical photo mapping, never inferred from color similarity.
+// EUPL-1.2 OR AGPL-3.0-or-later; canonical photo mapping, never inferred from color similarity.
 @genType type face = | @as("U") U | @as("R") R | @as("F") F | @as("D") D | @as("L") L | @as("B") B
 @genType type grid = array<array<string>>
 @genType
