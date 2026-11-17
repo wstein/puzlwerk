@@ -70,7 +70,7 @@ export function open(definitionText,stateText,appearanceText,options) {
 // actual current center stickers; image-only or ambiguous centers stay unknown.
 function initialColorFrame(snapshot,options) {
  const explicit=options.colorFrame;
- if(explicit!==undefined)return Array.isArray(explicit)&&explicit.length===6&&explicit.every(v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v))?[...explicit]:undefined;
+ if(explicit!==undefined)return Array.isArray(explicit)&&explicit.length===6&&Array.from(explicit).every(v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v))?[...explicit]:undefined;
  const n=Shell.sizeToInt(Codec.size(snapshot.definition));if(n%2===0)return undefined;
  const directions=[[0,1,0],[1,0,0],[0,0,1],[0,-1,0],[-1,0,0],[0,0,-1]], poses=new Map(Codec.poses(snapshot.state).map(p=>[Id.toString(Pose.pieceId(p)),p])),styles=new Map(snapshot.appearance.stickers.map(s=>[s.id,s]));
  const values=directions.map(normal=>{const hits=[];for(const piece of Codec.pieces(snapshot.definition)){const pose=poses.get(Id.toString(piece.id)),pos=vector(Shell.toVec(Pose.position(pose)));if(!pos.every((v,i)=>v===normal[i]*(n-1)))continue;for(const sticker of piece.stickers){const world=vector(Orientation.apply(Pose.orientation(pose),sticker.normal));if(!world.every((v,i)=>v===normal[i]))continue;const id=Id.toString(sticker.id),style=styles.get(id),token=style?.color ?? (sticker.color===undefined?undefined:Id.toString(sticker.color)),color=options.sourceFaceColors?.[id] ?? options.palette[token];if(typeof color==='string'&&/^#[0-9a-f]{6}$/i.test(color))hits.push(color)}}return hits.length===1?hits[0]:undefined});
