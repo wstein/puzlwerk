@@ -47,6 +47,9 @@ The core validation import is replaced by a local throwing assertion; target
 SHA-256 64bae58e9c3c64689a19d718691c119036b29a4ceced00e00ee0cddae124f261.
 The source presentation layer-profile and widths functions are restored and
 the scene routes body geometry through that builder with its existing inputs.
+The measurement table and standardLayerWidths in src/layer-widths.ts are
+PuzlWerk additions after that revision, not part of the Cubistry source; the
+target SHA-256 above describes the adapted file before that addition.
 
 The scene adapts the static core sphere and body/sticker shadow flags from
 Cubistry physical-scene.ts at the same source revision. Core bounds are explicit
