@@ -726,7 +726,7 @@ provenance stays unknown. Only an additional proper display matrix passed to
 records; `invalidateCapture` invalidates drafts without altering observations.
 No photo bytes, recognition or color-correction engine is implemented here.
 
-The EUPL-1.2 core decision is SM11 in `specs/006-shared-model/plan.md`.
+The core license decision (EUPL-1.2 on 2026-11-12, `EUPL-1.2 OR AGPL-3.0-or-later` on 2026-11-17) is SM11 in `specs/006-shared-model/plan.md`.
 Ported CubeAssembler decision logic retains its pinned MIT notice. Private local
 build/pack verification does not decide production licensing with the MIT
 application. The package includes its compiled import closure, generated types,

@@ -1,6 +1,6 @@
 # Private capture recovery package
 
-This is a local EUPL-1.2 package, not an npm publication or a CubeAssembler
+This is a local `EUPL-1.2 OR AGPL-3.0-or-later` package, not an npm publication or a CubeAssembler
 production license decision. The application supplies camera/recognition input;
 ReScript owns source-identity mapping. Candidate canonical mappings are evidence,
 never an identification from equal colors. The root specification records scope.

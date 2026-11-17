@@ -42,6 +42,7 @@ Owner decisions used (**O**, quoted as given to the author of this plan):
   ReScript/TypeScript.
 - 2026-11-12, SM11 (same source): the shared core (PuzlWerk `core/` and the schema generator) is licensed EUPL-1.2;
   the `LICENSE` file is a follow-up pull request with a compatibility check first.
+- 2026-11-17, SM11 (owner decision): the core is the owner's own code and is licensed `EUPL-1.2 OR AGPL-3.0-or-later`.
 
 Owner decisions recorded in other repository documents and cited as **O** with their source:
 
