@@ -37,7 +37,7 @@ export async function mountCubeAssembler(root,fixtureBase,referenceBase) {
   ]);
   const add=(tag,text,parent=root)=>{const element=document.createElement(tag);if(text)element.textContent=text;parent.append(element);return element;};
   add('p','CubeAssembler solved 2×2: the source state contains colors only. Candidate piece and sticker IDs label known home slots; they are not source identities.');
-  add('p','Visible facelet equality is checked after each move. The candidate uses source-derived geometry, material and shadow in the shared viewer. Visual equivalence, gestures, touch turns, animation and owner acceptance remain open.');
+  add('p','Status: BLOCKED. The shared native scene does not yet render the CubeAssembler source mesh, so the candidate pane is not drawn and no visible-facelet comparison runs. Source-derived geometry, material and shadow in the shared viewer, gestures, touch turns, animation, visual equivalence and owner acceptance remain open.');
   const panes=add('div');panes.className='comparison';panes.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:1rem';const originalPane=add('section','',panes),candidatePane=add('section','',panes);
   add('h3','Original CubeAssembler',originalPane);const originalHost=add('div','',originalPane);
   add('h3','PuzlWerk Core and Viewer',candidatePane);const candidateHost=add('div','',candidatePane);candidateHost.className='scene';candidateHost.style.background='transparent';
