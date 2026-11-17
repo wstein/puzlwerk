@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Burst and momentum policy from CubeAssembler useCubeGestures at 91fc2144cbcf2734f84ee3a93c70b8ed503a5151.
+import {beginGesture,moveGesture,releaseGesture,type Gesture} from './play-gesture.js';
+import {nextWheelSwipe,type WheelSwipe} from './wheel-swipe.js';
+import type {PlayPick,PlayPreview} from './play-pointer.js';
+type WheelEventData=Pick<WheelEvent,'clientX'|'clientY'|'deltaX'|'deltaY'|'timeStamp'>;
+export function createPlayWheel(options:{pick(event:WheelEventData):PlayPick|undefined;onBegin():boolean;onEnd():void;onOrbit?(dx:number,dy:number):void;onCommit?():void;onError?(error:{code:string;message?:string}):void;onLayer?(pick:PlayPick,ids:readonly string[]):void;onClear?():void;setTimer(fn:()=>void,delay:number):number;clearTimer(id:number):void}){
+ let state:WheelSwipe|undefined,pick:PlayPick|undefined,gesture:Gesture|undefined,preview:PlayPreview|undefined,timer:number|undefined,held=false,done=false,epoch=0;
+ const end=(cancelled:boolean)=>{if(preview){if(!cancelled&&gesture){const result=releaseGesture(gesture);if(result.commit){const applied=preview.commit(result.commit.quarters);if(applied.ok)options.onCommit?.();else {options.onError?.(applied.error);preview.cancel()}}else preview.cancel()}else preview.cancel();preview=undefined}if(held)options.onEnd();held=false;options.onClear?.();done=true};
+ const cancel=()=>{epoch++;if(timer!==undefined)options.clearTimer(timer);timer=undefined;end(true);state=undefined;pick=undefined;gesture=undefined;done=false};
+ return {move(event:WheelEventData){if(![event.clientX,event.clientY,event.deltaX,event.deltaY,event.timeStamp].every(Number.isFinite))return;const next=nextWheelSwipe(state,event.timeStamp,event.deltaX,event.deltaY),fresh=!state||next.startTime!==state.startTime;if(fresh){cancel();pick=options.pick(event);held=options.onBegin();if(!held)return;if(pick)gesture=beginGesture({...pick,point:[event.clientX,event.clientY],wide:false});done=false}state=next;if(timer!==undefined)options.clearTimer(timer);const token=++epoch;timer=options.setTimer(()=>{if(token!==epoch)return;timer=undefined;if(!done)end(false);state=undefined;pick=undefined;gesture=undefined;done=false},150);
+  if(done)return;if(next.coasting){end(false);return}if(!pick){options.onOrbit?.(-event.deltaX,-event.deltaY);return}if(!gesture)return;gesture=moveGesture(gesture,[gesture.opts.point[0]+next.dx,gesture.opts.point[1]+next.dy]);if(!gesture.lock)return;if(!preview){const layers=Array.from({length:pick.n},(_,i)=>i),started=pick.player.beginPreview(gesture.lock.axis.toUpperCase() as 'X'|'Y'|'Z',layers);if(!started.ok){options.onError?.(started.error);end(true);return}preview=started.value;options.onLayer?.(pick,preview.pieceIds??[])}const moved=preview.update(gesture.displayDeg*Math.PI/180);if(!moved.ok){options.onError?.(moved.error);end(true)}
+ },isActive:()=>held||state!==undefined,cancel,dispose:cancel};
+}

@@ -103,3 +103,10 @@ tilt whose starting midpoint is on the cube previews and commits one whole-cube
 Core move; a midpoint outside the cube rotates the presentation. A pinch adjusts
 zoom. After either contact lifts, the remaining contact is inert until release.
 These pair gestures do not change the separate View-mode input behavior.
+
+In Play mode, pixel-mode trackpad wheel swipes over the cube use one
+Core-validated whole-cube preview and commit per gesture burst. Control-modified
+pinch, line/page wheel input and vertical mouse-wheel notches remain zoom input.
+Outside the cube the trackpad swipe rotates the presentation. View-mode wheel
+behavior remains unchanged. Browser wheel-event checks do not establish physical
+trackpad compatibility or owner acceptance.
