@@ -17,7 +17,7 @@ test('standard widths per size are [f, 1, ..., 1, f]', () => {
   assert.deepEqual(standardLayerWidths(7), [1.6, 1, 1, 1, 1, 1, 1.6]);
 });
 
-test('4x4, 5x5 and 7x7 values derive from the measurements with the owner scaling', () => {
+test('4x4, 5x5, 6x6 and 7x7 values derive from the measurements with the owner scaling', () => {
   const m = STANDARD_CUBE_MEASUREMENTS;
   assert.equal(m.length, 5);
   for (const x of m) assert.ok(x.date === '2026-11-17' && x.unit === 'mm (assumed)');
@@ -35,6 +35,7 @@ test('4x4, 5x5 and 7x7 values derive from the measurements with the owner scalin
 
 test('the measurement data is frozen and the table is not shared', () => {
   assert.ok(Object.isFrozen(STANDARD_CUBE_MEASUREMENTS));
+  STANDARD_CUBE_MEASUREMENTS.forEach(row => assert.ok(Object.isFrozen(row), `${row.cube} ${row.label}`));
   const a = standardLayerWidths(5); a[0] = 99;
   assert.equal(standardLayerWidths(5)[0], 1.2);
   assert.notEqual(standardLayerWidths(5), standardLayerWidths(5));
