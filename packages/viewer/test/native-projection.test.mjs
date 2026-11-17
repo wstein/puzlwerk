@@ -6,8 +6,9 @@ test('canonical projection produces source frames and explicit unprinted body po
  const projection={pieces:[{id:'a',transform:{position:[1,0,0],rotation:identity},stickers:[{id:'s',transform:{position:[0,0,.5],rotation:identity},size:[.87,.87],color:'#ffffff'}]},{id:'inner',transform:{position:[0,0,0],rotation:identity},stickers:[]}]};
  const result=nativeFrames(projection);assert.equal(result.ok,true);assert.deepEqual(result.value.frames,[{id:'s',cubie:'a',p:[1,0,0],n:[0,0,1],up:[0,1,0]}]);assert.deepEqual(result.value.bodies.map(body=>body.id),['a','inner']);
 });
-test('unsupported independent mesh profile is rejected explicitly',()=>{
- const result=nativeFrames({pieces:[],renderProfile:{kind:'cubeAssemblerV1',size:2,meshes:[]}});assert.equal(result.ok,false);assert.equal(result.error.code,'Unavailable');
+test('source mesh profile yields body poses without sticker frames',()=>{
+ const projection={pieces:[{id:'a',transform:{position:[1,0,0],rotation:identity},stickers:[{id:'s',transform:{position:[0,0,.5],rotation:identity},size:[.87,.87],color:'#ffffff'}]},{id:'b',transform:{position:[-1,0,0],rotation:identity},stickers:[]}],renderProfile:{kind:'cubeAssemblerV1',size:2,meshes:[]}};
+ const result=nativeFrames(projection);assert.equal(result.ok,true);assert.deepEqual(result.value.frames,[]);assert.deepEqual(result.value.bodies.map(body=>[body.id,...body.position]),[['a',1,0,0],['b',-1,0,0]]);
 });
 
 test('free body orientation remains separate from native local sticker axes',()=>{
