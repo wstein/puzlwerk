@@ -26,6 +26,6 @@ test('a validated controller snapshot can be adopted without replacing its ident
 });
 
 test('classic release coasts with damping while cancellation and reduced motion stop',()=>{
- const rotation=new SmartRotation(new Quaternion());rotation.setMode('classic',0);rotation.down(0);rotation.drag(.05,.4,.1);rotation.up(.101);assert.equal(rotation.phase,'coasting');const before=rotation.quaternion.clone(),speed=rotation.angularSpeed;rotation.step(.15);assert.ok(rotation.quaternion.angleTo(before)>0);assert.ok(rotation.angularSpeed<speed);rotation.step(10);assert.equal(rotation.phase,'idle');assert.equal(rotation.returnDeadline,null);
+ const rotation=new SmartRotation(new Quaternion());rotation.setMode('classic',0);rotation.down(0);rotation.drag(.05,.4,.1);rotation.up(.101);assert.equal(rotation.phase,'coasting');const before=rotation.quaternion.clone(),speed=rotation.angularSpeed;rotation.step(.15);assert.ok(rotation.quaternion.angleTo(before)>0);assert.ok(rotation.angularSpeed<speed);const next=rotation.quaternion.clone(),slower=rotation.angularSpeed;rotation.step(.2);assert.ok(rotation.quaternion.angleTo(next)>0);assert.ok(rotation.angularSpeed<slower);rotation.step(10);assert.equal(rotation.phase,'idle');assert.equal(rotation.returnDeadline,null);
  rotation.down(11);rotation.drag(.05,.4,11.1);rotation.up(11.101,true);assert.equal(rotation.phase,'idle');rotation.setReducedMotion(true,12);rotation.down(12);rotation.drag(.05,.4,12.1);rotation.up(12.101);assert.equal(rotation.phase,'idle');rotation.dispose();
 });
