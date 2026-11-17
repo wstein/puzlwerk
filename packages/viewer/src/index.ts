@@ -4,7 +4,7 @@ import { configurePresentationRenderer } from './presentation-preset.js';
 import { createStageForTest } from './stage.js';
 import { fail, ok, validViewerMaterials } from './contract.js';
 import type { CubeScene, Result, ViewerOptions } from './contract.js';
-export type { BodyProfile, StickerGeometry, SourceMesh, Appearance, ArtworkReplacement, FaceEdgeColors, Picture, SourceFace, AssetResolver, CubeProjection, CubeScene, Piece, PieceGeometry, Quaternion, Result, Sticker, Transform, Transition, Vec3, ViewerError, ViewerMaterialOptions, ViewerOptions } from './contract.js';
+export type { BodyProfile, StickerGeometry, SourceMesh, Appearance, ArtworkReplacement, FaceEdgeColors, Picture, SourceFace, AssetResolver, PreviewStart, ScenePreview, CubeProjection, CubeScene, Piece, PieceGeometry, Quaternion, Result, Sticker, Transform, Transition, Vec3, ViewerError, ViewerMaterialOptions, ViewerOptions } from './contract.js';
 export function createCubeScene(host: HTMLElement, options: ViewerOptions): Result<CubeScene> {
   if(!validViewerMaterials(options.materials) || (options.textureOrigin!==undefined && !['top-left','bottom-left'].includes(options.textureOrigin)))return fail('InvalidProjection','Invalid viewer presentation options');
   let renderer: THREE.WebGLRenderer;

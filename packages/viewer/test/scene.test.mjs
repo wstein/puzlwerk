@@ -878,3 +878,18 @@ test('interactive preview follows angle, commits once and restores on cancel',as
  assert.equal((await h.scene.setArtwork({stickers:[{id:'s',color:'#ff0000'}]})).error.code,'Busy');assert.equal(started.value.update(Math.PI/2).ok,true);h.step(0);assert.ok(Math.abs(h.draws.at(-1).y-1)<1e-6);assert.equal(started.value.cancel().ok,true);h.step(0);assert.ok(Math.abs(h.draws.at(-1).x-1)<1e-6);
  const second=h.scene.beginPreview(input);assert.equal(second.ok,true);assert.equal(second.value.update(Math.PI).ok,true);assert.equal(second.value.commit(turn(Math.PI,0)).ok,true);assert.equal(second.value.commit(turn(Math.PI,0)).error.code,'Cancelled');h.step(0);assert.ok(Math.abs(h.draws.at(-1).x+1)<1e-6);h.scene.dispose();
 });
+
+test('preview rejects malformed inputs before reserving the native scene',async()=>{
+ const h=harness();await h.scene.setProjection(projection);for(const bad of [{from:{},pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0]},{from:projection,pieceIds:['a'],axis:[1,,1],pivot:[0,0,0]},{from:projection,pieceIds:['a'],axis:[0,0,1],pivot:[0,,0]}]){const result=h.scene.beginPreview(bad);assert.equal(result.ok,false);assert.notEqual(result.error.code,'Busy');}
+ const good=h.scene.beginPreview({from:projection,pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0]});assert.equal(good.ok,true);good.value.cancel();h.scene.dispose();
+});
+
+test('preview update failure cancels and restores the source pose',async()=>{
+ const {PhysicalCubeScene}=await import('../dist/physical-scene.js'),h=harness();await h.scene.setProjection(projection);const original=PhysicalCubeScene.prototype.beginTurn;PhysicalCubeScene.prototype.beginTurn=function(...args){const turn=original.apply(this,args);return {...turn,update(){throw Error('injected update')}}};
+ try{const preview=h.scene.beginPreview({from:projection,pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0]});assert.equal(preview.ok,true);assert.equal(preview.value.update(.4).error.code,'Unavailable');}finally{PhysicalCubeScene.prototype.beginTurn=original}h.step(0);assert.ok(Math.abs(h.draws.at(-1).x-1)<1e-6);const next=h.scene.beginPreview({from:projection,pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0]});assert.equal(next.ok,true);next.value.cancel();h.scene.dispose();
+});
+
+test('preview begin and restore failures leave a closed scene rather than a busy token',async()=>{
+ const {PhysicalCubeScene}=await import('../dist/physical-scene.js');for(const phase of ['begin','restore']){const h=harness();await h.scene.setProjection(projection);const name=phase==='begin'?'beginTurn':'syncBodyPoses',original=PhysicalCubeScene.prototype[name];PhysicalCubeScene.prototype[name]=function(){throw Error('injected native failure')};
+ try{if(phase==='begin'){const result=h.scene.beginPreview({from:projection,pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0]});assert.equal(result.error.code,'Unavailable');}else{const preview=h.scene.beginPreview({from:projection,pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0]});assert.equal(preview.ok,true);assert.equal(preview.value.cancel().error.code,'Unavailable');}}finally{PhysicalCubeScene.prototype[name]=original}assert.equal(h.scene.beginPreview({from:projection,pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0]}).error.code,'ContextLost');h.scene.dispose();}
+});

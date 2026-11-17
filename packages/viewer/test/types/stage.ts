@@ -23,3 +23,7 @@ void materialOptions;
 // @ts-expect-error origin must be explicit and known
 const invalidOrigin:StageOptions={...options,textureOrigin:'sideways'};
 void invalidOrigin;
+
+import type {PreviewStart,ScenePreview} from '../../src/index.js';
+declare const previewInput:PreviewStart, previewHandle:ScenePreview;
+void previewInput;void previewHandle;

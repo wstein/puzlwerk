@@ -61,28 +61,30 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
   const lockedOptions=structuredClone(options);
   const first = open(definitionText,stateText,appearanceText,lockedOptions);
   if (!first.ok) return first;
-  let current = first.value, busy = false, disposed = false, activePreview;
+  let current = first.value, busy = false, disposed = false, activePreview, unavailable = false;
   return {ok:true,value:{
     state: () => Codec.encodeState(current.state),
     projection: () => current.projection,
     beginPreview(axis,layers) {
-      if(disposed || busy)return error({code:disposed?'Disposed':'Busy'});
+      if(activePreview && !activePreview.isActive())activePreview.cancel();
+      if(disposed || unavailable || busy)return error({code:disposed?'Disposed':unavailable?'Unavailable':'Busy'});
       if(!['X','Y','Z'].includes(axis) || !Array.isArray(layers) || !layers.every(Number.isInteger))return error({code:'InvalidMove'});
       if(typeof scene.beginPreview!=='function')return error({code:'Unavailable'});
       const chosen=[...layers],probe=Move.make(Codec.size(current.definition),axis,chosen,1);if(probe.TAG!=='Ok')return error(probe._0);
       const permitted=Validate.applyMove(current.definition,current.state,probe._0);if(permitted.TAG!=='Ok')return error(permitted._0);
       const ids=Codec.poses(current.state).filter(p=>Move.selects(probe._0,Pose.position(p))).map(p=>`piece:${Id.toString(Pose.pieceId(p))}`),axes={X:[1,0,0],Y:[0,1,0],Z:[0,0,1]},origin=current;
-      const started=scene.beginPreview({from:origin.projection,pieceIds:ids,axis:axes[axis],pivot:[0,0,0]});if(!started.ok)return started;busy=true;let active=true;
+      let started;try{started=scene.beginPreview({from:origin.projection,pieceIds:ids,axis:axes[axis],pivot:[0,0,0]});}catch{return error({code:'Unavailable'});}if(!started.ok)return started;busy=true;let active=true;
       const finish=()=>{active=false;busy=false;activePreview=undefined;};
-      const handle={update(angle){if(!active || disposed)return error({code:'Cancelled'});const result=started.value.update(angle);if(!result.ok && result.error?.code==='Cancelled')finish();return result},cancel(){if(!active)return error({code:'Cancelled'});const result=started.value.cancel();finish();return result},commit(turns){
+      const handle={isActive(){return active && (typeof started.value.isActive!=='function' || started.value.isActive())},update(angle){if(!active || disposed)return error({code:'Cancelled'});let result;try{result=started.value.update(angle)}catch{try{started.value.cancel()}catch{unavailable=true}finish();return error({code:'Unavailable'})}if(!result.ok && (result.error?.code==='Cancelled' || (typeof started.value.isActive==='function' && !started.value.isActive())))finish();return result},cancel(){if(!active)return error({code:'Cancelled'});let result;try{result=started.value.cancel()}catch{unavailable=true;result=error({code:'Unavailable'})}finish();return result},commit(turns){
         if(!active || disposed)return error({code:'Cancelled'});if(![-1,1,2].includes(turns))return error({code:'InvalidMove'});
         const move=Move.make(Codec.size(origin.definition),axis,chosen,turns);if(move.TAG!=='Ok')return error(move._0);const next=Validate.applyMove(origin.definition,origin.state,move._0);if(next.TAG!=='Ok')return error(next._0);
         const target=open(definitionText,Codec.encodeState(next._0),appearanceText,lockedOptions);if(!target.ok)return target;
-        const result=started.value.commit({from:origin.projection,to:target.value.projection,pieceIds:ids,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs:0});if(result.ok)current=target.value;else started.value.cancel();finish();return result;
+        let result;try{result=started.value.commit({from:origin.projection,to:target.value.projection,pieceIds:ids,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs:0});}catch{result=error({code:'Unavailable'});}if(result.ok)current=target.value;else try{started.value.cancel();}catch{unavailable=true}finish();return result;
       }};activePreview=handle;return {ok:true,value:handle};
     },
     async turn(axis,layers,turns,durationMs,timing) {
-      if (disposed || busy) return error({code:disposed?'Disposed':'Busy'});
+      if(activePreview && !activePreview.isActive())activePreview.cancel();
+      if (disposed || unavailable || busy) return error({code:disposed?'Disposed':unavailable?'Unavailable':'Busy'});
       if (!['X','Y','Z'].includes(axis) || !Array.isArray(layers) || !layers.every(Number.isInteger) || ![-1,1,2].includes(turns) || !Number.isFinite(durationMs) || durationMs < 0 || (timing !== undefined && typeof timing !== 'function')) return error({code:'InvalidMove'});
       const made=Move.make(Codec.size(current.definition),axis,layers,turns);
       if (made.TAG !== 'Ok') return error(made._0);
