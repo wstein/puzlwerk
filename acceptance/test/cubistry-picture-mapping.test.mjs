@@ -14,3 +14,9 @@ test('maps native positions, source frames and tile identity into wire documents
  const twisted=structuredClone(state);twisted.poses[0].orientation=[-1,0,0,0,-1,0,0,0,1];
  assert.equal(comparePictureState(source.printing,definition,twisted),false,'up orientation must match even when normal is unchanged');
 });
+
+test('maps native outer layer positions to Core layer indices', async()=>{
+ const {pictureMove}=await import('../runtime/picture-mapping.mjs');
+ assert.deepEqual(pictureMove({axis:0,layer:-1,turns:1}),{axis:'X',layers:[0],turns:1});
+ assert.deepEqual(pictureMove({axis:2,layer:1,turns:-2}),{axis:'Z',layers:[2],turns:2});
+});

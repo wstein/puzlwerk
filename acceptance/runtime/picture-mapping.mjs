@@ -13,3 +13,6 @@ export function comparePictureState(native,definition,state){
  const stickers=new Map(native.map(s=>[`s${s.id}`,s]));if(stickers.size!==native.length)return false;
  return definition.pieces.every(piece=>{const pose=poses.get(piece.id);return pose && piece.stickers.every(sticker=>{const source=stickers.get(sticker.id);return source && `c${source.cubie}`===piece.id && eq(pose.position,source.p.map(v=>v*2)) && eq(transform(pose.orientation,sticker.normal),source.n) && eq(transform(pose.orientation,sticker.up),source.up);});});
 }
+
+// Native layer coordinates -1, 0, 1 map to Core shell indices 0, 1, 2.
+export function pictureMove(move){return {axis:['X','Y','Z'][move.axis],layers:[move.layer+1],turns:move.turns===-2?2:move.turns};}
