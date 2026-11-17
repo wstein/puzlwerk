@@ -66,7 +66,6 @@ export function createStageForTest(options:ViewerOptions & {onError?:(error:Stag
  const transactController=(change:(candidate:SmartRotation)=>void)=>{const candidate=controller.clone();change(candidate);const result=applyPolicy(policy,undefined,{orientation:candidate.quaternion.toArray() as [number,number,number,number]});if(result.ok){controller.adopt(candidate);acceptedController=controller.clone();nativeBinding?.refresh();motionBlocked=false;scheduleMotion();}return result;};
  const syncRotation=(report=false)=>{const result=applyPolicy(policy,undefined,{orientation:controller.quaternion.toArray() as [number,number,number,number]});motionBlocked=!result.ok;if(result.ok)acceptedController=controller.clone();else {controller.adopt(acceptedController);nativeBinding?.refresh();if(report)options.onError?.(result.error);}scheduleMotion();return result;};
  return {
-  indicatorScene(){return scene;},
   renderIndicator(){schedule();},
   playParent(child:StageChild){return placements.get(child);},
   cancelInput(){nativeBinding?.cancelContacts();},
