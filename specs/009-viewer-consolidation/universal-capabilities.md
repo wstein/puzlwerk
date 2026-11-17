@@ -96,3 +96,10 @@ contact keeps it outlined with a grabbing cursor, and a Core-accepted layer lock
 outlines the selected layer. Touch has no hover. Lines must respect occlusion,
 follow turn poses, ignore picking, preserve artwork and clear on cancellation,
 mode changes and viewer lifecycle events. View mode shows no layer hint.
+
+In Play mode, a second touch cancels any in-progress single-layer preview.
+The pair locks once to a pinch or tilt using the CubeAssembler thresholds. A
+tilt whose starting midpoint is on the cube previews and commits one whole-cube
+Core move; a midpoint outside the cube rotates the presentation. A pinch adjusts
+zoom. After either contact lifts, the remaining contact is inert until release.
+These pair gestures do not change the separate View-mode input behavior.

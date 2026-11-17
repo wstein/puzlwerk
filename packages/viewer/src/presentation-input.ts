@@ -21,7 +21,7 @@ export function installPresentationDrag(
   const down = (e: PointerEvent) => {
     if (disposed) return;
     if(!pointers.size && route?.down(e)){routed.add(e.pointerId);try{element.setPointerCapture(e.pointerId)}catch{routed.delete(e.pointerId);route.end(e,true)}return;}
-    if(routed.size)return;
+    if(routed.size){if(route?.down(e)){routed.add(e.pointerId);try{element.setPointerCapture(e.pointerId)}catch{routed.delete(e.pointerId);route.end(e,true)}}return;}
     lifecycle.down?.(e); // Interrupt pending/active motion before the movement threshold.
     if (pointers.has(e.pointerId)) return;
     if (pointers.size) blocked = true;

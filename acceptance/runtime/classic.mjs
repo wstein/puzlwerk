@@ -12,7 +12,7 @@ export async function mountClassic(root, fixtureBase) {
   const originalPane=make('section','',panes), candidatePane=make('section','',panes);
   make('h2','Original Cubistry',originalPane); const originalHost=make('div','',originalPane); originalHost.className='scene';
   make('h2','PuzlWerk Core + Viewer',candidatePane); const candidateHost=make('div','',candidatePane); candidateHost.className='scene';
-  const info=make('p','Native Cubistry classic 2×2; move buttons compare independent physical states. Shared Play supports a single pointer; a second contact cancels. Native gesture parity and owner visual acceptance remain open.');
+  const info=make('p','Native Cubistry classic 2×2; move buttons compare independent physical states. Shared Play supports layer and two-finger gestures. Native gesture parity and owner visual acceptance remain open.');
   const status=make('output'); status.textContent='Loading';
   const details=make('details'); make('summary','Wire, appearance, and native assets',details); const inspector=make('pre','',details);
   inspector.textContent=JSON.stringify({definition,state,appearance,assets:native.assets},null,2);

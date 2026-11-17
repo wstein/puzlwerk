@@ -71,6 +71,7 @@ export function createStageForTest(options:ViewerOptions & {onError?:(error:Stag
   cancelInput(){nativeBinding?.cancelContacts();},
   beginPlay(){if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Stage lost context');return transactController(c=>c.down(clock.now()/1000));},
   endPlay(){if(disposed||lost)return;transactController(c=>c.up(clock.now()/1000,true));},
+  movePlayView(dx:number,dy:number){if(disposed||lost)return;transactController(c=>c.drag(dy*sensitivity,dx*sensitivity,clock.now()/1000));},
   async setViewerAppearance(input:ViewerAppearance):Promise<StageResult<void>>{
    if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Stage lost context');if(appearancePending)return fail('Busy','Appearance operation in progress');
    let value:ViewerAppearance;try{value=validateAppearance(input);}catch{return fail('InvalidProjection','Invalid viewer appearance');}

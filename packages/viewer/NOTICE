@@ -184,3 +184,7 @@ src/orientation-indicator.ts is informed by CubeLab src/client/cube-gl.ts at
 revision b2dfee380bc5060da036940addf07c8d8aa8bbe7 (AGPL-3.0-or-later), and
 CubeAssembler axisGizmo.tsx and web/cube3d.css at revision
 91fc2144cbcf2734f84ee3a93c70b8ed503a5151 (MIT; see CUBE_ASSEMBLER_LICENSE.txt).
+
+Play-mode two-finger classification in src/two-finger.ts follows
+CubeAssembler src/core/view/CubeGesture.res at revision
+91fc2144cbcf2734f84ee3a93c70b8ed503a5151 (MIT; see CUBE_ASSEMBLER_LICENSE.txt).

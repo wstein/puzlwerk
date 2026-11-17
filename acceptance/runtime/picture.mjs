@@ -14,7 +14,7 @@ export async function mountPicture(root) {
  const left=element('section',panes),right=element('section',panes);
  element('h2',left,'Original Cubistry Picture3');const sourceHost=element('div',left);sourceHost.className='scene';
  element('h2',right,'PuzlWerk Core + Viewer');const targetHost=element('div',right);targetHost.className='scene';
- element('p',root,'Shared Play supports a single pointer; a second contact cancels. The native reference remains independently controlled.');
+ element('p',root,'Shared Play supports layer and two-finger gestures. The native reference remains independently controlled.');
  const status=element('output',root,'Loading six native coast pictures');
  const editor=new PictureEditor();if(!await editor.preset('coast'))throw Error('Picture preset did not load');
  const design=createCube3Design(),artwork=editor.artwork('picture'),documents=pictureDocuments(design);
