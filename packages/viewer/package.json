@@ -4,15 +4,25 @@
   "private": true,
   "type": "module",
   "license": "AGPL-3.0-or-later",
-  "exports": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./bridge": {
+      "types": "./dist/bridge/index.d.mts",
+      "import": "./dist/bridge/index.mjs"
+    }
+  },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json && node scripts/copy-static.mjs",
+    "build": "tsc -p tsconfig.json && node scripts/copy-static.mjs && node scripts/build-bridge.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && tsc --ignoreConfig --noEmit --strict --skipLibCheck --module NodeNext --moduleResolution NodeNext --target ES2022 test/types/profile.ts test/types/artwork.ts test/types/stage.ts && node --test test/*.test.mjs",
     "dev": "npm run build && node demo/server.mjs"
   },
   "dependencies": {
+    "@rescript/runtime": "12.3.1",
     "three": "0.187.0",
     "@types/three": "0.187.0"
   },
@@ -21,6 +31,7 @@
     "LICENSE",
     "NOTICE",
     "CUBE_ASSEMBLER_LICENSE.txt",
+    "CORE_EUPL_LICENSE.txt",
     "THREE_LICENSE.txt",
     "README.md"
   ]

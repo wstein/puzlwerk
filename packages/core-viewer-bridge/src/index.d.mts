@@ -16,3 +16,4 @@ export interface Player {
   dispose(): void;
 }
 export function createPlayer(definition: string, state: string, appearance: string, options: Options, scene: CubeScene): BridgeResult<Player>;
+export * from './cube-state.mjs';
