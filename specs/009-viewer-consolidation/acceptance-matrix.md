@@ -172,17 +172,19 @@ color-only `CubeState` supplies no physical piece IDs, sticker IDs or sticker
 orientations. The visible facelet projection follows the pinned native face
 indexing. A local Core test compares the 24 visible colors after each action;
 it does not establish hidden physical identity or scan-to-view parity. Cookie
-preferences must be fixed for reproducible browser comparison. Original and
-candidate rendering, touch, visual acceptance and independent review remain
+preferences must be fixed for reproducible browser comparison. Touch,
+pixel parity with the original, visual acceptance and independent review remain
 open. The 7×7 orientation-recovery workflow is outside this case.
 
 **Current status: source mesh rendered.** The shared native scene renders the
 source mesh profile (`renderProfile`) as data: each body keeps its source surface,
 painted with the projection sticker colors, with the source shadow and the Core
-body poses. The browser checks `cube-assembler-browser.mjs` (facelet equality at
-start and after four moves) and `cube-assembler-appearance-browser.mjs` (changed
-appearance changes candidate pixels) run in CI. No parity with CubeAssembler is
-claimed beyond the compared visible facelets.
+body poses. CI runs four browser checks. Evidence: the visible facelets of the Core state
+equal the native facelets at start and after four moves (`cube-assembler-browser.mjs`);
+the candidate canvas pixels change after a move and after an appearance change
+(`cube-assembler-appearance-browser.mjs`); GPU samples of the source shadow and
+surface match their oracles. Not established: pixel parity with the original,
+touch and animation equivalence.
 
 ### CubeAssembler capture-recovery proposal
 

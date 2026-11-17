@@ -7480,7 +7480,7 @@
         "packages/viewer/src/index.ts#createCubeScene",
         "packages/viewer/src/index.ts#createCubeStage"
       ],
-      "productionPlay": "Blocked: the shared native scene does not render the CubeAssembler source mesh; the candidate trace is not compared in the browser until a follow-up adds source mesh support.",
+      "productionPlay": "The shared native scene renders the CubeAssembler source mesh; the browser compares the visible facelets of the native and candidate views at start and after four moves.",
       "referenceEligibility": "Pinned CubeAssembler production component and dependency source packaged; independent review pending.",
       "originalReference": "https://github.com/wstein/cube-assembler/blob/1b7387b3acd40d817ebff820ae3cfcff8b7b1dc2/src/client/view3d/cubeView3D.tsx",
       "localUrlExample": "http://127.0.0.1:4174/acceptance/cube-assembler-solved-2/",
