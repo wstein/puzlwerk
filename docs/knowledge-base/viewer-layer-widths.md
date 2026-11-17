@@ -69,5 +69,10 @@ The test derives 4x4, 5x5, 6x6 and 7x7 from the measurements with tolerance 0.00
 
 ## Related
 
-Cubistry holds the same table as `OUTER_LAYER_WIDTH` in
-`src/apps/calendar7/geometry.ts` until it is switched to this helper.
+Cubistry main (`OUTER_LAYER_WIDTH` in `src/apps/calendar7/geometry.ts`) still holds the older
+estimates {2: 1, 3: 1, 4: 1, 5: 1.1, 6: 1.3, 7: 1.6}. The draft wstein/cubistry#515 adopts the
+same values as this table. The pinned reference copy
+`acceptance/references/cubistry-calendar7/src/apps/calendar7/geometry.ts` (source-manifest.json
+records its SHA-256) keeps {5: 1.1, 6: 1.3, 7: 1.6}, and
+`specs/009-viewer-consolidation/acceptance-matrix.md` names these as the default outer factors
+of the Calendar7 cases. Both stay unchanged: they are pinned sources, not a contradiction.
