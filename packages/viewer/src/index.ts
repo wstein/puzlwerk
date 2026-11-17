@@ -40,3 +40,4 @@ export {groupZoom} from './zoom-policy.js';
 
 export { standardLayerWidths, STANDARD_CUBE_MEASUREMENTS } from './layer-widths.js';
 export type { StandardLayerWidthsOptions } from './layer-widths.js';
+export {cubePresentationRadius,presentationCameraRadius} from './presentation-rotation.js';
