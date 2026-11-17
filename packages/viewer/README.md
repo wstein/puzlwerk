@@ -86,3 +86,14 @@ Its browser test uses `PLAYWRIGHT_MODULE` as above and
 It checks desktop/mobile viewport sizes, source-derived sample colors, input,
 turns, artwork updates, idle rendering, context loss and disposal. Browser
 viewports are not physical-device or full HQ acceptance.
+
+## Bridge subpath and CubeAssembler state
+
+`@puzlwerk/viewer/bridge` ships the Core-to-viewer bridge with the compiled Core modules it imports
+(`npm run build --workspace @puzlwerk/viewer` copies them to `dist/bridge`; the packed tarball is
+self-contained apart from `three` and `@rescript/runtime`). It adds `cubeStateDocuments(size, cube, palette)`,
+which turns CubeAssembler's CubeState (six facelet arrays, sizes 2 to 7) into wire-v1 definition, home state,
+appearance and `open` options with the standard layer widths; `cubeStateFromWire` reads the facelets back after
+turns; `faceStickerIds(size, face)` lists the viewer sticker IDs of one face. A facelet-only state has no piece
+identity, so the appearance carries each slot's color. `CubeStage.setStickerHighlight(child, ids)` outlines those
+stickers (static view; reapply it after `setProjection`).
