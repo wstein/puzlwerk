@@ -47,8 +47,19 @@ test('outer overrides the table for one call only', () => {
   for (const bad of [0.99, NaN, Infinity, -1]) assert.throws(() => standardLayerWidths(7, { outer: bad }), /Invalid outer layer width/);
 });
 
-test('sizes outside 2..7 and non integers are errors', () => {
-  for (const n of [0, 1, 8, 2.5, NaN, -3, Infinity]) assert.throws(() => standardLayerWidths(n), /No standard layer widths for N = /);
+test('without outer, sizes outside 2..7 and non integers are errors', () => {
+  for (const n of [0, 1, 8, 2.5, NaN, -3, Infinity]) assert.throws(() => standardLayerWidths(n), /No standard layer widths for N = .*pass options\.outer/);
+});
+
+test('with outer any integer N >= 2 works, invalid N still fails', () => {
+  const w = standardLayerWidths(8, { outer: 2 });
+  assert.deepEqual(w, [2, 1, 1, 1, 1, 1, 1, 2]);
+  assert.equal(layerEdge(w), 10);
+  const planes = layerPlanes(w); assert.equal(planes.length, 9); assert.equal(planes[0], -5); assert.equal(planes[8], 5);
+  const c = layerCenters(w); c.forEach((v, i) => assert.ok(Math.abs(v + c[7 - i]) < 1e-12));
+  assert.equal(standardLayerWidths(9, { outer: 1.5 }).length, 9);
+  for (const n of [0, 1, 2.5, NaN, Infinity, -4]) assert.throws(() => standardLayerWidths(n, { outer: 2 }), /No standard layer widths for N = /);
+  assert.throws(() => standardLayerWidths(8, { outer: 0.5 }), /Invalid outer layer width/);
 });
 
 test('only the standard variant exists', () => {
