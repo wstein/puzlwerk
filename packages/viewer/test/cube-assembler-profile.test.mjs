@@ -94,3 +94,12 @@ test('source profile bodies follow a Core transition',async()=>{
  assert.ok(Math.abs(root.getObjectByName('a').position.x-.5)<1e-9);assert.ok(Math.abs(root.getObjectByName('b').position.x+.5)<1e-9);
  assert.ok(Math.abs(root.getObjectByName('a').quaternion.z-1)<1e-9);assert.ok(sourceSurface(root,'a'));scene.dispose();
 });
+
+test('source profile bodies keep the source material and no shadows under stickerless viewer appearance',async()=>{
+ const {scene,draw}=harness();assert.equal((await scene.setProjection(twoPieces())).ok,true);draw();
+ const prepared=await scene.prepareViewerAppearance({construction:'stickerless',frameColor:'#123456'});assert.equal(prepared.ok,true);
+ assert.equal(prepared.value.seal().ok,true);prepared.value.commit();const root=draw();
+ for(const id of ['a','b']){const meshes=[];root.getObjectByName(id).traverse(x=>{if(x.isMesh)meshes.push(x);});
+  assert.deepEqual(meshes.map(x=>[x.material.type,x.castShadow,x.receiveShadow]),[['ShaderMaterial',false,false]]);}
+ scene.dispose();
+});
