@@ -63,7 +63,11 @@ export function cubePresentation(n) {
 /**
  * Wire-v1 definition, home state and appearance texts for a CubeState of size n (2 to 7), and the
  * `open`/`createPlayer` options. `palette` maps color tokens to #rrggbb; a facelet whose token is
- * not in it (or not a valid ID) is left uncolored and drawn in `defaultColor`.
+ * not in it (or not a valid ID) is left uncolored: it is drawn in `defaultColor` and `cubeStateFromWire` returns '' for it.
+ * IDs: piece `<faces of the piece in U,R,F,D,L,B order>` (`URF`, `UR`, `U`), from size 4 on followed by `:<x>_<y>_<z>` of its
+ * home slot (`m` marks a minus sign, `URF:3_3_3`); sticker `<piece>.<face>`; the viewer prefixes `piece:` / `sticker:`.
+ * Every sticker has symmetry C4: a color-only cube has no orientation to preserve.
+ * Not covered: `options.colorFrame` (no ColorFrame translation in either direction).
  */
 export function cubeStateDocuments(n, cube, palette) {
   if (!validSize(n)) return fail('InvalidSize');
@@ -92,14 +96,22 @@ export function faceStickerIds(n, face) {
   return slots(n).filter((slot) => facesOf(slot, n).includes(face)).sort((a, b) => at(a) - at(b)).map((slot) => `sticker:${stickerId(slot, face, n)}`);
 }
 
-/** The CubeState of a state and appearance in the documents of `cubeStateDocuments`, after any number of turns. */
+/**
+ * The CubeState of a state and appearance in the documents of `cubeStateDocuments`, after any number of turns.
+ * Errors (never thrown): InvalidSize, InvalidState (not a valid state of the size-n definition), InvalidAppearance (not JSON or not
+ * an appearance document with a sticker list), DefinitionMismatch (appearance of another definition, e.g. another size).
+ * A sticker without a color entry reads back as '' (see cubeStateDocuments).
+ */
 export function cubeStateFromWire(n, stateText, appearanceText) {
   if (!validSize(n)) return fail('InvalidSize');
   const definition = definitionOf(n), state = definition && Codec.decodeState(definition, stateText);
   if (!state || state.TAG !== 'Ok') return fail('InvalidState', state?._0);
   const parsed = Json.parse(appearanceText);
   if (parsed.TAG !== 'Ok') return fail('InvalidAppearance', parsed._0);
-  const colors = new Map(JSON.parse(Json.toCanonical(parsed._0)).stickers.map((s) => [s.id, s.color]));
+  const doc = JSON.parse(Json.toCanonical(parsed._0));
+  if (!doc || doc.schema !== 'puzlwerk.appearance' || !Array.isArray(doc.stickers) || doc.stickers.some((s) => !s || typeof s.id !== 'string')) return fail('InvalidAppearance');
+  if (doc.definitionId !== `cube${n}`) return fail('DefinitionMismatch', doc.definitionId);
+  const colors = new Map(doc.stickers.map((s) => [s.id, s.color]));
   const poses = new Map(Codec.poses(state._0).map((p) => [Id.toString(Pose.pieceId(p)), p]));
   const cube = Object.fromEntries(FACE_KEYS.map((f) => [f, Array(n * n).fill('')]));
   const faceByNormal = faceOf;

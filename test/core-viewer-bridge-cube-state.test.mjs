@@ -152,3 +152,59 @@ test('R and L turns move the outer columns like a real cube (row direction and t
     assert.deepEqual(column(l.b, last, n), column(cube.d, 0, n).reverse(), `${n} L: B from D`);
   }
 });
+
+test('cubeStateFromWire reports errors as results and never throws', () => {
+  const n = 3, d = documents(n, solved(n)), other = documents(4, solved(4));
+  const code = (...args) => { const r = cubeStateFromWire(...args); assert.equal(r.ok, false, JSON.stringify(args)); return r.error.code; };
+  assert.equal(code(1, d.state, d.appearance), 'InvalidSize');
+  assert.equal(code(8, d.state, d.appearance), 'InvalidSize');
+  assert.equal(code(n, 'not json', d.appearance), 'InvalidState');
+  assert.equal(code(n, other.state, d.appearance), 'InvalidState');
+  assert.equal(code(n, d.state, 'not json'), 'InvalidAppearance');
+  assert.equal(code(n, d.state, '{}'), 'InvalidAppearance');
+  assert.equal(code(n, d.state, '[]'), 'InvalidAppearance');
+  assert.equal(code(n, d.state, JSON.stringify({ ...JSON.parse(d.appearance), stickers: [null] })), 'InvalidAppearance');
+  assert.equal(code(n, d.state, JSON.stringify({ ...JSON.parse(d.appearance), schema: 'other' })), 'InvalidAppearance');
+  assert.equal(code(n, d.state, JSON.stringify({ ...JSON.parse(d.appearance), stickers: undefined })), 'InvalidAppearance');
+  assert.equal(code(n, d.state, other.appearance), 'DefinitionMismatch');
+});
+
+test('uncolored stickers read back as an empty token and every sticker has symmetry C4', () => {
+  const cube = solved(3);
+  cube.r[0] = '?';
+  const d = documents(3, cube);
+  assert.equal(cubeStateFromWire(3, d.state, d.appearance).value.r[0], '');
+  assert.deepEqual(new Set(JSON.parse(d.appearance).stickers.map((s) => s.symmetry)), new Set(['C4']));
+});
+
+// Independent description of the net: a facelet (row, col) of a face sits at normal*(n-1) + right*(2*col-(n-1)) + down*(2*row-(n-1)).
+const NET = {
+  u: { normal: [0, 1, 0], right: [1, 0, 0], down: [0, 0, 1] },
+  d: { normal: [0, -1, 0], right: [1, 0, 0], down: [0, 0, -1] },
+  f: { normal: [0, 0, 1], right: [1, 0, 0], down: [0, -1, 0] },
+  b: { normal: [0, 0, -1], right: [-1, 0, 0], down: [0, -1, 0] },
+  r: { normal: [1, 0, 0], right: [0, 0, -1], down: [0, -1, 0] },
+  l: { normal: [-1, 0, 0], right: [0, 0, 1], down: [0, -1, 0] },
+};
+const pieceName = (slot, n) => {
+  const letters = [['u', [0, 1, 0]], ['r', [1, 0, 0]], ['f', [0, 0, 1]], ['d', [0, -1, 0]], ['l', [-1, 0, 0]], ['b', [0, 0, -1]]]
+    .filter(([, v]) => v.reduce((s, c, i) => s + c * slot[i], 0) === n - 1).map(([f]) => f.toUpperCase()).join('');
+  return letters + (n >= 4 ? ':' + slot.map((c) => (c < 0 ? `m${-c}` : `${c}`)).join('_') : '');
+};
+test('faceStickerIds lists every position of every face in row-major net order, for sizes 2 to 7', () => {
+  for (let n = 2; n <= 7; n++) for (const face of FACE_KEYS) {
+    const { normal, right, down } = NET[face], expected = [];
+    for (let row = 0; row < n; row++) for (let col = 0; col < n; col++)
+      expected.push(`sticker:${pieceName(normal.map((c, i) => c * (n - 1) + right[i] * (2 * col - (n - 1)) + down[i] * (2 * row - (n - 1))), n)}.${face.toUpperCase()}`);
+    assert.deepEqual(faceStickerIds(n, face), expected, `${n} ${face}`);
+  }
+});
+
+test('faceStickerIds literal anchors: 2x2 U face, 3x3 centers, 4x4 and 7x7 corner suffixes', () => {
+  assert.deepEqual(faceStickerIds(2, 'u'), ['sticker:ULB.U', 'sticker:URB.U', 'sticker:UFL.U', 'sticker:URF.U']);
+  assert.equal(faceStickerIds(3, 'f')[4], 'sticker:F.F');
+  assert.equal(faceStickerIds(3, 'f')[0], 'sticker:UFL.F');
+  assert.equal(faceStickerIds(4, 'u')[15], 'sticker:URF:3_3_3.U');
+  assert.equal(faceStickerIds(4, 'u')[0], 'sticker:ULB:m3_3_m3.U');
+  assert.equal(faceStickerIds(7, 'd')[0], 'sticker:FDL:m6_m6_6.D');
+});
