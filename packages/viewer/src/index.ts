@@ -28,7 +28,7 @@ export function createCubeScene(host: HTMLElement, options: ViewerOptions): Resu
 }
 
 export {createCubeStage} from './stage-host.js';
-export type {CubeStage,StageOptions} from './stage-host.js';
+export type {CubeStage,StageOptions,InteractionMode,IndicatorSettings} from './stage-host.js';
 export type {StageChild,StageError,StageResult,StageView,ViewPolicy,ChildMaterial} from './stage.js';
 export type {StageLighting,DirectionalData,ExposurePolicy,ExposureSnapshot,LightSnapshot} from './stage-lighting.js';
 

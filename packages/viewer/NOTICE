@@ -179,3 +179,9 @@ copied from Cubistry packages/cube-viewer/src at revision
  efafcc1d97687eccea0cde87a230f447ce1b6c66. Only local import extensions change.
 The corresponding source tests are retained with their import paths adapted.
 These are gesture calculations, not puzzle-state or move authority.
+
+src/orientation-indicator.ts adapts Regrip's orientationIndicator.ts at
+revision ebe7d32d0fd1f0b74c528cd38618afda3f5a991e under the MIT terms retained
+in that file. CubeAssembler's axisGizmo.tsx at revision
+e20295700d09ece727a065662a4656d606a18e34 is a source reference for axis colors
+and passive pointer behavior; see CUBE_ASSEMBLER_LICENSE.txt.

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 export interface PresentationDragBinding { (): void; dispose(): void }
+export interface PointerRoute { down(event:PointerEvent):boolean; move(event:PointerEvent):void; end(event:PointerEvent | undefined,cancelled:boolean):void }
 export interface PresentationDragLifecycle {
   down?(event: PointerEvent): void;
   up?(event: PointerEvent | undefined, cancelled: boolean): void;
@@ -11,13 +12,16 @@ export function installPresentationDrag(
   move: (dx: number, dy: number, elapsed: number) => void,
   threshold = 0,
   lifecycle: PresentationDragLifecycle = {},
+  route?: PointerRoute,
 ): PresentationDragBinding {
   type Drag = { x: number; y: number; startX: number; startY: number; time: number; active: boolean };
-  const pointers = new Map<number, Drag>();
+  const pointers = new Map<number, Drag>(), routed = new Set<number>();
   let blocked = false, disposed = false;
   const releaseCapture = (id: number) => { try { if (element.hasPointerCapture(id)) element.releasePointerCapture(id); } catch { /* Capture may already be lost. */ } };
   const down = (e: PointerEvent) => {
     if (disposed) return;
+    if(!pointers.size && route?.down(e)){routed.add(e.pointerId);try{element.setPointerCapture(e.pointerId)}catch{routed.delete(e.pointerId);route.end(e,true)}return;}
+    if(routed.size)return;
     lifecycle.down?.(e); // Interrupt pending/active motion before the movement threshold.
     if (pointers.has(e.pointerId)) return;
     if (pointers.size) blocked = true;
@@ -31,6 +35,7 @@ export function installPresentationDrag(
     }
   };
   const motion = (e: PointerEvent) => {
+    if(routed.has(e.pointerId)){route?.move(e);return;}
     const drag = pointers.get(e.pointerId);
     if (!drag || blocked || disposed) return;
     if (!drag.active && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < threshold) return;
@@ -39,6 +44,7 @@ export function installPresentationDrag(
     drag.x = e.clientX; drag.y = e.clientY; drag.time = e.timeStamp;
   };
   const release = (e: PointerEvent) => {
+    if(routed.delete(e.pointerId)){releaseCapture(e.pointerId);route?.end(e,e.type!=='pointerup');return;}
     if (!pointers.delete(e.pointerId) || disposed) return;
     releaseCapture(e.pointerId);
     if (pointers.size) return;
@@ -46,6 +52,7 @@ export function installPresentationDrag(
     lifecycle.up?.(e, cancelled);
   };
   const cancel = () => {
+    const claimed=[...routed];routed.clear();for(const id of claimed)releaseCapture(id);if(claimed.length)route?.end(undefined,true);
     const ids = [...pointers.keys()]; pointers.clear(); blocked = false;
     for (const id of ids) releaseCapture(id);
     if (ids.length && !disposed) lifecycle.up?.(undefined, true);

@@ -27,3 +27,9 @@ void invalidOrigin;
 import type {PreviewStart,ScenePreview} from '../../src/index.js';
 declare const previewInput:PreviewStart, previewHandle:ScenePreview;
 void previewInput;void previewHandle;
+
+import type {IndicatorSettings,InteractionMode} from '../../src/index.js';
+const indicator:IndicatorSettings={physicalOrientation:[0,0,0,1],solverFrame:[0,0,0,1],colors:{x:0xff0000,y:0xffffff,z:0x00ff00}};
+const interaction:InteractionMode='play';if(result.ok){result.value.setOrientationIndicator(indicator);result.value.setInteractionMode(interaction);result.value.clearOrientationIndicator();}
+// @ts-expect-error Interaction mode is independent of the source rotation mode.
+const invalidInteraction:InteractionMode='classic';void invalidInteraction;

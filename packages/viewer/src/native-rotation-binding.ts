@@ -4,7 +4,7 @@
 // Time is seconds; changed signals input/preference changes, not step(). The caller schedules frames and deadlines.
 import type { Object3D } from "three";
 import { SmartRotation, rotationModes, type RotationMode } from "./smart-rotation.js";
-import { installPresentationDrag } from "./presentation-input.js";
+import { installPresentationDrag, type PointerRoute } from "./presentation-input.js";
 export interface RotationEnvironment {
   now(): number;
   document: Pick<Document, "hidden" | "createElement" | "addEventListener" | "removeEventListener">;
@@ -25,7 +25,7 @@ function browserEnvironment(): RotationEnvironment {
 let noteSerial = 0;
 /** One binding per viewport, including one for the entire shared clock assembly. */
 export function bindSmartRotation(element: HTMLElement, root: Object3D, options: {
-  sensitivity: number; threshold?: number; panel: HTMLElement; changed?: () => void; environment?: RotationEnvironment; storageKey?: string; controller?: SmartRotation; requestMode?: (mode: RotationMode) => boolean; requestReducedMotion?: (value: boolean) => boolean;
+  sensitivity: number; threshold?: number; panel: HTMLElement; changed?: () => void; environment?: RotationEnvironment; storageKey?: string; controller?: SmartRotation; requestMode?: (mode: RotationMode) => boolean; requestReducedMotion?: (value: boolean) => boolean; route?:PointerRoute;
 }) {
   if (!Number.isFinite(options.sensitivity) || options.sensitivity <= 0) throw Error("Invalid rotation sensitivity");
   const env = options.environment ?? browserEnvironment(), key = options.storageKey;
@@ -49,7 +49,7 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
       if (!panelPointers.size) { controller.up(env.now(), cancelled || blockedOverlap); blockedOverlap = false; }
       apply(); options.changed?.();
     },
-  });
+  }, options.route);
   const label = env.document.createElement("label"); label.textContent = " Rotation ";
   const select = env.document.createElement("select"); select.setAttribute("aria-label", "View rotation mode");
   for (const [value, text] of [["smart", "Smart Rubber Band"], ["free", "Free Rotation"], ["classic", "Classic"]]) {

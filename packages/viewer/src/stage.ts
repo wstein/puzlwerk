@@ -4,6 +4,7 @@ import {createSceneForTest} from './scene.js';
 import {createPresentationStudio} from './studio.js';
 import {SmartRotation,rotationModes,type RotationMode} from './smart-rotation.js';
 import {bindSmartRotation,type SmartRotationBinding,type RotationEnvironment} from './native-rotation-binding.js';
+import type {PointerRoute} from './presentation-input.js';
 import {copyLighting,lightingSnapshot,type StageLighting,type ExposurePolicy} from './stage-lighting.js';
 import {installSoftShoulder,SHOULDER_GLSL} from './soft-shoulder.js';
 import {fail,ok} from './contract.js';
@@ -65,6 +66,12 @@ export function createStageForTest(options:ViewerOptions & {onError?:(error:Stag
  const transactController=(change:(candidate:SmartRotation)=>void)=>{const candidate=controller.clone();change(candidate);const result=applyPolicy(policy,undefined,{orientation:candidate.quaternion.toArray() as [number,number,number,number]});if(result.ok){controller.adopt(candidate);acceptedController=controller.clone();nativeBinding?.refresh();motionBlocked=false;scheduleMotion();}return result;};
  const syncRotation=(report=false)=>{const result=applyPolicy(policy,undefined,{orientation:controller.quaternion.toArray() as [number,number,number,number]});motionBlocked=!result.ok;if(result.ok)acceptedController=controller.clone();else {controller.adopt(acceptedController);nativeBinding?.refresh();if(report)options.onError?.(result.error);}scheduleMotion();return result;};
  return {
+  indicatorScene(){return scene;},
+  renderIndicator(){schedule();},
+  playParent(child:StageChild){return placements.get(child);},
+  cancelInput(){nativeBinding?.cancelContacts();},
+  beginPlay(){if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Stage lost context');return transactController(c=>c.down(clock.now()/1000));},
+  endPlay(){if(disposed||lost)return;transactController(c=>c.up(clock.now()/1000,true));},
   async setViewerAppearance(input:ViewerAppearance):Promise<StageResult<void>>{
    if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Stage lost context');if(appearancePending)return fail('Busy','Appearance operation in progress');
    let value:ViewerAppearance;try{value=validateAppearance(input);}catch{return fail('InvalidProjection','Invalid viewer appearance');}
@@ -87,10 +94,10 @@ export function createStageForTest(options:ViewerOptions & {onError?:(error:Stag
    let data:StageLighting;try{data=copyLighting(input);if(data.toneMapping==='softShoulder'&&!THREE.ShaderChunk.tonemapping_pars_fragment.includes(SHOULDER_GLSL)&&!THREE.ShaderChunk.tonemapping_pars_fragment.includes('vec3 CustomToneMapping( vec3 color ) { return color; }'))throw Error('Conflicting tone mapping');}catch{return {ok:false,error:{code:'InvalidLighting',message:'Invalid lighting'}};}
    const exposure=typeof data.exposure==='function'?data.exposure:()=>data.exposure as number;return applyPolicy(policy,undefined,undefined,undefined,exposure,data);
   },
-  attachInput(element:HTMLElement,panel:HTMLElement,storageKey?:string,environment?:RotationEnvironment):StageResult<void>{
+  attachInput(element:HTMLElement,panel:HTMLElement,storageKey?:string,environment?:RotationEnvironment,route?:PointerRoute):StageResult<void>{
    if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Stage lost context');if(nativeBinding)return fail('Busy','Input already attached');
    try {const inputPose=new THREE.Group();inputPose.quaternion.copy(controller.quaternion);
-    nativeBinding=bindSmartRotation(element,inputPose,{controller,panel,storageKey,environment,sensitivity,threshold,changed:()=>{if(!disposed&&!lost)syncRotation(true);},requestMode:mode=>!disposed&&!lost&&transactController(c=>c.setMode(mode,clock.now()/1000)).ok,requestReducedMotion:value=>!disposed&&!lost&&transactController(c=>c.setReducedMotion(value,clock.now()/1000)).ok});return ok(undefined);}
+    nativeBinding=bindSmartRotation(element,inputPose,{controller,panel,storageKey,environment,sensitivity,threshold,route,changed:()=>{if(!disposed&&!lost)syncRotation(true);},requestMode:mode=>!disposed&&!lost&&transactController(c=>c.setMode(mode,clock.now()/1000)).ok,requestReducedMotion:value=>!disposed&&!lost&&transactController(c=>c.setReducedMotion(value,clock.now()/1000)).ok});return ok(undefined);}
    catch{return fail('Unavailable','Unable to attach native rotation input');}
   },
   registerInteractionSurface(element:HTMLElement):StageResult<()=>void>{
