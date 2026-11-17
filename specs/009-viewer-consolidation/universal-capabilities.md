@@ -90,3 +90,9 @@ The shared Classic view mode extends the pinned Cubistry behavior: after a
 recent drag it uses the existing damped coast while retaining upright pitch
 limits and no Smart auto-return. Cancellation and reduced motion stop it. This
 is an intentional behavior change, not a claim of unchanged source parity.
+
+Play feedback is presentation-only: mouse hover outlines the picked sticker,
+contact keeps it outlined with a grabbing cursor, and a Core-accepted layer lock
+outlines the selected layer. Touch has no hover. Lines must respect occlusion,
+follow turn poses, ignore picking, preserve artwork and clear on cancellation,
+mode changes and viewer lifecycle events. View mode shows no layer hint.

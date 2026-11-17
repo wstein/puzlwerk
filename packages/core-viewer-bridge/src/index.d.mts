@@ -7,7 +7,7 @@ export type OpenValue = { readonly definition: unknown; readonly state: unknown;
 export function parseNotation(size:number,text:string): BridgeResult<{readonly axis:'X'|'Y'|'Z';readonly layers:readonly number[];readonly turns:-1|1|2;readonly rotation:readonly [number,number,number,number]}>;
 export function open(definition: string, state: string, appearance: string, options: Options): BridgeResult<OpenValue>;
 export interface Player {
-  beginPreview(axis: 'X'|'Y'|'Z', layers: readonly number[]): BridgeResult<{update(angle:number):BridgeResult<void>;commit(turns:-1|1|2):BridgeResult<void>;cancel():BridgeResult<void>}>;
+  beginPreview(axis: 'X'|'Y'|'Z', layers: readonly number[]): BridgeResult<{readonly pieceIds:readonly string[];update(angle:number):BridgeResult<void>;commit(turns:-1|1|2):BridgeResult<void>;cancel():BridgeResult<void>}>;
   state(): string;
   colorFrame(): BridgeResult<readonly [string,string,string,string,string,string]>;
   projection(): CubeProjection;

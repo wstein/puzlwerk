@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 export interface PresentationDragBinding { (): void; cancelRouted():void; dispose(): void }
-export interface PointerRoute { down(event:PointerEvent):boolean; move(event:PointerEvent):void; end(event:PointerEvent | undefined,cancelled:boolean):void }
+export interface PointerRoute { hover?(event:PointerEvent):void; leave?():void; down(event:PointerEvent):boolean; move(event:PointerEvent):void; end(event:PointerEvent | undefined,cancelled:boolean):void }
 export interface PresentationDragLifecycle {
   down?(event: PointerEvent): void;
   up?(event: PointerEvent | undefined, cancelled: boolean): void;
@@ -37,6 +37,7 @@ export function installPresentationDrag(
   const motion = (e: PointerEvent) => {
     if(routed.has(e.pointerId)){route?.move(e);return;}
     const drag = pointers.get(e.pointerId);
+    if (!drag && !routed.size && !pointers.size && e.pointerType === 'mouse') { route?.hover?.(e); return; }
     if (!drag || blocked || disposed) return;
     if (!drag.active && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < threshold) return;
     drag.active = true;
@@ -51,18 +52,19 @@ export function installPresentationDrag(
     const cancelled = blocked || e.type !== "pointerup"; blocked = false;
     lifecycle.up?.(e, cancelled);
   };
-  const cancelRouted=()=>{const claimed=[...routed];routed.clear();for(const id of claimed)releaseCapture(id);if(claimed.length)route?.end(undefined,true);};
+  const leave=()=>route?.leave?.();
+  const cancelRouted=()=>{route?.leave?.();const claimed=[...routed];routed.clear();for(const id of claimed)releaseCapture(id);if(claimed.length)route?.end(undefined,true);};
   const cancel = () => {
     cancelRouted();
     const ids = [...pointers.keys()]; pointers.clear(); blocked = false;
     for (const id of ids) releaseCapture(id);
     if (ids.length && !disposed) lifecycle.up?.(undefined, true);
   };
-  element.addEventListener("pointerdown", down); element.addEventListener("pointermove", motion);
+  element.addEventListener("pointerdown", down); element.addEventListener("pointermove", motion); element.addEventListener("pointerleave", leave);
   element.addEventListener("pointerup", release); element.addEventListener("pointercancel", release); element.addEventListener("lostpointercapture", release);
   cancel.cancelRouted=cancelRouted;
   cancel.dispose = () => {
-    element.removeEventListener("pointerdown", down); element.removeEventListener("pointermove", motion);
+    element.removeEventListener("pointerdown", down); element.removeEventListener("pointermove", motion); element.removeEventListener("pointerleave", leave);
     element.removeEventListener("pointerup", release); element.removeEventListener("pointercancel", release); element.removeEventListener("lostpointercapture", release);
     cancel(); disposed = true;
   };

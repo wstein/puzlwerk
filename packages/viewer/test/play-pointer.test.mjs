@@ -24,3 +24,8 @@ test('a rejected final move cancels preview and allows a fresh gesture',()=>{
 test('play contact holds the shared view until cancellation or release',()=>{
  const calls=[],player={beginPreview(){return {ok:true,value:{update(){return {ok:true}},commit(){return {ok:true}},cancel(){return {ok:true}}}}}},route=createPlayPointer({pick:()=>({hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player}),onBegin:()=>{calls.push('hold');return true},onEnd:()=>calls.push('release')});route.down(event('pointerdown',1));route.move(event('pointermove',1,50));route.end(undefined,true);assert.deepEqual(calls,['hold','release']);route.down(event('pointerdown',2));route.end(event('pointerup',2),false);assert.deepEqual(calls,['hold','release','hold','release']);
 });
+
+test('play feedback follows hover, held contact, accepted Core layer and cancellation',()=>{
+ const seen=[],player={beginPreview(){return {ok:true,value:{pieceIds:['piece:opaque'],update(){return {ok:true}},commit(){return {ok:true}},cancel(){return {ok:true}}}}}},hit={stickerId:'sticker:opaque',hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player},route=createPlayPointer({pick:()=>hit,onFeedback:value=>seen.push(value)});
+ route.hover(event('pointermove',1));assert.deepEqual(seen.at(-1),{kind:'hover',pick:hit});route.down(event('pointerdown',1));assert.deepEqual(seen.at(-1),{kind:'held',pick:hit});route.move(event('pointermove',1,100));assert.deepEqual(seen.at(-1),{kind:'layer',pick:hit,pieceIds:['piece:opaque']});route.end(event('pointercancel',1),true);assert.equal(seen.at(-1),undefined);
+});
