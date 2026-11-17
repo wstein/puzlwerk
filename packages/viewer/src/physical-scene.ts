@@ -89,6 +89,8 @@ export interface PhysicalBodyPose { readonly id: string; readonly position: Vec3
 export interface PhysicalSceneOptions extends StickerlessBodyOptions {
   readonly bodies?: readonly PhysicalBodyPose[];
   readonly bodyGeometry?: ReadonlyMap<string, THREE.BufferGeometry>;
+  /** Source surface of a body without sticker meshes: its own material, kept as given by every construction. */
+  readonly bodyMaterial?: ReadonlyMap<string, THREE.Material>;
   readonly stickerGeometry?: ReadonlyMap<string, THREE.BufferGeometry>;
   readonly corePose?: { readonly center: Vec3; readonly halfExtent: number };
   readonly layers?: LayerProfile;
@@ -300,8 +302,12 @@ export class PhysicalCubeScene {
       if (cell) { bodyGeometry = this.layers!.body(cell, outer!); this.geometries.push(bodyGeometry); }
       const supplied = options.bodyGeometry?.get(pose.id);
       if (supplied) { bodyGeometry = supplied; if (!this.geometries.includes(supplied)) this.geometries.push(supplied); }
-      const shell = new THREE.Mesh(bodyGeometry, plastic); shell.castShadow = shell.receiveShadow = true;
-      this.unprintedShells.add(shell); body.add(shell); body.position.set(...this.worldAt(pose.position)).multiplyScalar(this.spacing);
+      const own = options.bodyMaterial?.get(pose.id);
+      const shell = new THREE.Mesh(bodyGeometry, own ?? plastic);
+      // A source material lights itself: it neither casts nor receives scene shadows and ignores the construction.
+      shell.castShadow = shell.receiveShadow = !own;
+      if (!own) this.unprintedShells.add(shell);
+      body.add(shell); body.position.set(...this.worldAt(pose.position)).multiplyScalar(this.spacing);
       body.quaternion.set(...pose.rotation); parent.add(body);
       this.bodies.set(pose.id, body); this.unprintedBodies.add(pose.id);
     }
