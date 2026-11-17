@@ -37,3 +37,6 @@ export type {ExposureLights} from './weighted-exposure.js';
 
 export type {MotionTiming,MotionTimingSource} from './motion-timing.js';
 export {groupZoom} from './zoom-policy.js';
+
+export { standardLayerWidths, STANDARD_CUBE_MEASUREMENTS } from './layer-widths.js';
+export type { StandardLayerWidthsOptions } from './layer-widths.js';

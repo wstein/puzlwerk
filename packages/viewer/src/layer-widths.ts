@@ -53,3 +53,39 @@ export function layerIndexOf(n: number, p: number): number {
   demand(Math.abs(index - Math.round(index)) < 1e-9 && Math.round(index) >= 0 && Math.round(index) < n, "Layer coordinate outside the cube");
   return Math.round(index);
 }
+
+/**
+ * Owner measurements of real cubes, 2026-11-17. Unit assumed to be mm, not confirmed. `inner` is the width of an inner
+ * layer, `outer` the width of an outer layer. Added in PuzlWerk, not part of the adapted Cubistry source.
+ */
+export const STANDARD_CUBE_MEASUREMENTS = Object.freeze([
+  Object.freeze({ cube: "4x4", label: "A", inner: 14.5, outer: 15.6, date: "2026-11-17", unit: "mm (assumed)" }),
+  Object.freeze({ cube: "4x4", label: "B", inner: 13.1, outer: 15.2, date: "2026-11-17", unit: "mm (assumed)" }),
+  Object.freeze({ cube: "5x5", label: "A", inner: 10.6, outer: 13.5, date: "2026-11-17", unit: "mm (assumed)" }),
+  Object.freeze({ cube: "5x5", label: "B", inner: 11.1, outer: 13.4, date: "2026-11-17", unit: "mm (assumed)" }),
+  Object.freeze({ cube: "7x7", label: "", inner: 7.2, outer: 12.5, date: "2026-11-17", unit: "mm (assumed)" }),
+]);
+
+/**
+ * Outer-layer factor (inner layer = 1) per cube size. The measured overhangs (factor - 1, mean per size: 4x4 0.118, 5x5
+ * 0.240, 7x7 0.736) are scaled by 0.6 / 0.736 so that 7x7 is 1.6 (owner balance decision); 6x6 uses the overhang interpolated
+ * linearly between 5x5 and 7x7. 3x3 (1) and 6x6 are estimates, to be replaced when measured; 2x2 has no inner layer.
+ */
+const STANDARD_OUTER_FACTORS: Readonly<Record<number, number>> = Object.freeze({ 2: 1, 3: 1, 4: 1.1, 5: 1.2, 6: 1.4, 7: 1.6 });
+
+export interface StandardLayerWidthsOptions {
+  /** Replaces the table factor for this call (finite, >= 1). */
+  outer?: number;
+  /** Reserved for manufacturer profiles; only "standard" exists. */
+  variant?: string;
+}
+
+/**
+ * Standard layer widths `[f, 1, ..., 1, f]` of a real N-cube, 2 <= N <= 7. A helper only: the viewer default stays
+ * `uniformLayerWidths`. Apps override the factor with `options.outer` or pass their own widths as `profile.layerWidths`.
+ */
+export function standardLayerWidths(n: number, options: StandardLayerWidthsOptions = {}): number[] {
+  demand((options.variant ?? "standard") === "standard", `Unknown cube variant: ${String(options.variant)}`);
+  demand(Number.isInteger(n) && Object.hasOwn(STANDARD_OUTER_FACTORS, n), `No standard layer widths for N = ${String(n)}`);
+  return thickOuterLayerWidths(n, options.outer ?? STANDARD_OUTER_FACTORS[n]);
+}
