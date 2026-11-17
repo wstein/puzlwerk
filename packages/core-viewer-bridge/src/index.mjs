@@ -128,3 +128,5 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
     dispose() { if(activePreview)activePreview.cancel();disposed=true;scene.dispose(); }
   }};
 }
+
+export * from './cube-state.mjs';
