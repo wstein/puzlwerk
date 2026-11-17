@@ -58,3 +58,10 @@ test('every generated page with a three import map also maps three/addons/',asyn
  for(const page of pages){const m=/<script type="importmap">(.*?)<\/script>/s.exec(await readFile(page,'utf8'));if(!m)continue;const map=JSON.parse(m[1]).imports;if(!map.three)continue;checked++;assert.equal(map['three/addons/'],'/puzlwerk/assets/three/examples/jsm/',page);}
  assert.ok(checked>=6,`checked ${checked} pages`);
 });
+test('CubeAssembler solved 2x2 status agrees between the routes manifest and the matrix',async()=>{
+ const matrix=await readFile(new URL('../../specs/009-viewer-consolidation/acceptance-matrix.md',import.meta.url),'utf8');
+ const entry=manifest.cases.find(c=>c.id==='cube-assembler-solved-2');
+ assert.ok(matrix.includes('**Current status: source mesh rendered.**'));
+ assert.ok(!/\bblocked\b/i.test(entry.productionPlay),entry.productionPlay);
+ assert.ok(!/does not render the CubeAssembler source mesh/.test(JSON.stringify(manifest)));
+});
