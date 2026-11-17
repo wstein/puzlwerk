@@ -10,9 +10,13 @@ app may override them.
 returns `[f, 1, ..., 1, f]` (an inner layer is 1, `f` the factor of the two outer
 layers), the same list as `thickOuterLayerWidths(n, f)`.
 
-- `n` must be an integer from 2 to 7; anything else throws
-  `No standard layer widths for N = ...`. There is no extrapolation.
-- `options.outer` replaces the table factor for that call (finite, at least 1).
+- Without `options.outer`, `n` must be an integer from 2 to 7; anything else throws
+  `No standard layer widths for N = ... (pass options.outer)`. There is no extrapolation.
+- `options.outer` (finite, at least 1) replaces the table factor for that call and
+  works for every integer `n >= 2`, e.g. `standardLayerWidths(8, { outer: 2 })` is
+  `[2, 1, 1, 1, 1, 1, 1, 2]`. A non-integer or `n < 2` still throws. The viewer
+  mechanics and gestures cover 2 to 7 today; the helper sets no upper bound when
+  `outer` is given (whether the scene renders `n = 8` is not verified).
 - `options.variant` is reserved for manufacturer profiles. Only `"standard"`
   exists; another name throws `Unknown cube variant`.
 - The viewer default stays `uniformLayerWidths` (every layer 1). Calling the
