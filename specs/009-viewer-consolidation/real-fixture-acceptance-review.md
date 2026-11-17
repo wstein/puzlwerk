@@ -1,7 +1,7 @@
 # PR #77 review — Real application fixtures and acceptance parity
 
-**Reviewed head:** `4e94b2d3ed386d09db6fa7e46e8233afbc7e7a74`  
-**Source:** [PuzlWerk PR #77](https://github.com/wstein/puzlwerk/pull/77)  
+**Reviewed head:** `4e94b2d3ed386d09db6fa7e46e8233afbc7e7a74`\
+**Source:** [PuzlWerk PR #77](https://github.com/wstein/puzlwerk/pull/77)\
 **Status:** Review findings and **proposed follow-up scope**, not an implementation or owner acceptance decision.
 
 ## Verdict
