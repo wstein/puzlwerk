@@ -12,6 +12,10 @@
     "./bridge": {
       "types": "./dist/bridge/index.d.mts",
       "import": "./dist/bridge/index.mjs"
+    },
+    "./bridge/cube-state": {
+      "types": "./dist/bridge/cube-state.d.mts",
+      "import": "./dist/bridge/cube-state.mjs"
     }
   },
   "types": "./dist/index.d.ts",
