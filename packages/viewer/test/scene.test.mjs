@@ -871,3 +871,10 @@ test('a failing timing source retains artwork committed during the turn',async()
  const red={...projection,pieces:[{...projection.pieces[0],stickers:[{...projection.pieces[0].stickers[0],color:'#ff0000'}]}]};
  const next={from:red,to:red,pieceIds:[],axis:[0,0,1],signedAngleRadians:0,pivot:[0,0,0],durationMs:0};assert.equal((await h.scene.transition(next)).ok,true);h.scene.dispose();
 });
+
+test('interactive preview follows angle, commits once and restores on cancel',async()=>{
+ const h=harness();assert.equal((await h.scene.setProjection(projection)).ok,true);h.step(0);
+ const input={from:projection,pieceIds:['a'],axis:[0,0,1],pivot:[0,0,0]},started=h.scene.beginPreview(input);assert.equal(started.ok,true);assert.equal(h.scene.beginPreview(input).error.code,'Busy');
+ assert.equal((await h.scene.setArtwork({stickers:[{id:'s',color:'#ff0000'}]})).error.code,'Busy');assert.equal(started.value.update(Math.PI/2).ok,true);h.step(0);assert.ok(Math.abs(h.draws.at(-1).y-1)<1e-6);assert.equal(started.value.cancel().ok,true);h.step(0);assert.ok(Math.abs(h.draws.at(-1).x-1)<1e-6);
+ const second=h.scene.beginPreview(input);assert.equal(second.ok,true);assert.equal(second.value.update(Math.PI).ok,true);assert.equal(second.value.commit(turn(Math.PI,0)).ok,true);assert.equal(second.value.commit(turn(Math.PI,0)).error.code,'Cancelled');h.step(0);assert.ok(Math.abs(h.draws.at(-1).x+1)<1e-6);h.scene.dispose();
+});

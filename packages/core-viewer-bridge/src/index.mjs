@@ -61,10 +61,26 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
   const lockedOptions=structuredClone(options);
   const first = open(definitionText,stateText,appearanceText,lockedOptions);
   if (!first.ok) return first;
-  let current = first.value, busy = false, disposed = false;
+  let current = first.value, busy = false, disposed = false, activePreview;
   return {ok:true,value:{
     state: () => Codec.encodeState(current.state),
     projection: () => current.projection,
+    beginPreview(axis,layers) {
+      if(disposed || busy)return error({code:disposed?'Disposed':'Busy'});
+      if(!['X','Y','Z'].includes(axis) || !Array.isArray(layers) || !layers.every(Number.isInteger))return error({code:'InvalidMove'});
+      if(typeof scene.beginPreview!=='function')return error({code:'Unavailable'});
+      const chosen=[...layers],probe=Move.make(Codec.size(current.definition),axis,chosen,1);if(probe.TAG!=='Ok')return error(probe._0);
+      const permitted=Validate.applyMove(current.definition,current.state,probe._0);if(permitted.TAG!=='Ok')return error(permitted._0);
+      const ids=Codec.poses(current.state).filter(p=>Move.selects(probe._0,Pose.position(p))).map(p=>`piece:${Id.toString(Pose.pieceId(p))}`),axes={X:[1,0,0],Y:[0,1,0],Z:[0,0,1]},origin=current;
+      const started=scene.beginPreview({from:origin.projection,pieceIds:ids,axis:axes[axis],pivot:[0,0,0]});if(!started.ok)return started;busy=true;let active=true;
+      const finish=()=>{active=false;busy=false;activePreview=undefined;};
+      const handle={update(angle){if(!active || disposed)return error({code:'Cancelled'});const result=started.value.update(angle);if(!result.ok && result.error?.code==='Cancelled')finish();return result},cancel(){if(!active)return error({code:'Cancelled'});const result=started.value.cancel();finish();return result},commit(turns){
+        if(!active || disposed)return error({code:'Cancelled'});if(![-1,1,2].includes(turns))return error({code:'InvalidMove'});
+        const move=Move.make(Codec.size(origin.definition),axis,chosen,turns);if(move.TAG!=='Ok')return error(move._0);const next=Validate.applyMove(origin.definition,origin.state,move._0);if(next.TAG!=='Ok')return error(next._0);
+        const target=open(definitionText,Codec.encodeState(next._0),appearanceText,lockedOptions);if(!target.ok)return target;
+        const result=started.value.commit({from:origin.projection,to:target.value.projection,pieceIds:ids,axis:axes[axis],signedAngleRadians:turns*Math.PI/2,pivot:[0,0,0],durationMs:0});if(result.ok)current=target.value;else started.value.cancel();finish();return result;
+      }};activePreview=handle;return {ok:true,value:handle};
+    },
     async turn(axis,layers,turns,durationMs,timing) {
       if (disposed || busy) return error({code:disposed?'Disposed':'Busy'});
       if (!['X','Y','Z'].includes(axis) || !Array.isArray(layers) || !layers.every(Number.isInteger) || ![-1,1,2].includes(turns) || !Number.isFinite(durationMs) || durationMs < 0 || (timing !== undefined && typeof timing !== 'function')) return error({code:'InvalidMove'});
@@ -85,7 +101,7 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
       } catch (cause) { return error({code:'TransitionFailed',cause}); }
       finally { busy=false; }
     },
-    cancel() { return scene.cancel(); },
-    dispose() { disposed=true; scene.dispose(); }
+    cancel() { return activePreview ? activePreview.cancel() : scene.cancel(); },
+    dispose() { if(activePreview)activePreview.cancel();disposed=true;scene.dispose(); }
   }};
 }

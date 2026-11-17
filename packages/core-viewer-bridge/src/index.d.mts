@@ -6,6 +6,7 @@ export type Options = { readonly palette: Readonly<Record<string, string>>; read
 export type OpenValue = { readonly definition: unknown; readonly state: unknown; readonly appearance: unknown; readonly ids: { readonly pieces: readonly {readonly wire: string; readonly viewer: string}[]; readonly stickers: readonly {readonly wire: string; readonly viewer: string}[] }; readonly projection: CubeProjection };
 export function open(definition: string, state: string, appearance: string, options: Options): BridgeResult<OpenValue>;
 export interface Player {
+  beginPreview(axis: 'X'|'Y'|'Z', layers: readonly number[]): BridgeResult<{update(angle:number):BridgeResult<void>;commit(turns:-1|1|2):BridgeResult<void>;cancel():BridgeResult<void>}>;
   state(): string;
   projection(): CubeProjection;
   turn(axis: 'X'|'Y'|'Z', layers: readonly number[], turns: -1|1|2, durationMs: number, timing?: MotionTimingSource): Promise<BridgeResult<void>>;

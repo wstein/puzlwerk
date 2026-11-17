@@ -10,13 +10,13 @@ import type { OuterSides } from './two-radius-body.js';
 import { createStickerGeometry, createPlasticMaterial, createStickerMaterial, presentationLayerProfile, stickerRadiusFor, bodyRadiusFor, innerRadiusFor } from './presentation-preset.js';
 import { createPresentationStudio } from './studio.js';
 import { fail, ok, sameValues, validViewerMaterials, validateProjection, validateTransition } from './contract.js';
-import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions } from './contract.js';
+import type { CubeProjection, CubeScene, Result, Transition, ViewerOptions, PreviewStart, ScenePreview } from './contract.js';
 import {validateAppearance,type ViewerAppearance} from './native-appearance.js';
 import {animateTimedProgress,type MotionTimingSource} from './motion-timing.js';
 
 type Clock = { now(): number; request(cb: (time: number) => void): number; cancel(id: number): void; isHidden?(): boolean; onVisibility?(cb: () => void): () => void; setTimer?(cb:()=>void,delay:number):number; clearTimer?(id:number):void };
 type Backend = { render(scene: THREE.Scene): void; dispose(): void };
-type Pending = { controller: AbortController; finish(result: Result<void>): void; from?: CubeProjection; to?: CubeProjection };
+type Pending = { controller: AbortController; finish(result: Result<void>): void; from?: CubeProjection; to?: CubeProjection; preview?:boolean };
 type PreparedAppearance={seal():Result<void>;commit():void;discard():void};
 const copy = <T>(x: T): T => structuredClone(x);
 const sameProjection = (a: CubeProjection, b: CubeProjection) => {
@@ -161,7 +161,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     cancelViewerAppearancePreparation() {const op=appearanceOp;if(!op || livePending!==op)return;livePending=undefined;op.controller.abort();op.finish(fail('Cancelled','Appearance preparation cancelled'));},
     async prepareViewerAppearance(input) {
       if(disposed)return fail('Disposed','Scene disposed');if(lost)return fail('ContextLost','Context lost');
-      if(livePending || (pending && !pending.from))return fail('Busy','Operation in progress');
+      if(livePending || (pending && (!pending.from || pending.preview)))return fail('Busy','Operation in progress');
       let value:ViewerAppearance;try{value=validateAppearance(input);}catch{return fail('InvalidProjection','Invalid viewer appearance');}
       if(!projection)return ok({seal:()=>ok(undefined),commit:()=>{viewerAppearance=value;},discard:()=>{}});
       const current=projection,controller=new AbortController();let prepared:PreparedNative|undefined,finished=false;
@@ -185,7 +185,7 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
     setArtwork(input) {
       if (disposed) return Promise.resolve(fail('Disposed','Scene disposed'));
       if (lost) return Promise.resolve(fail('ContextLost','Context lost'));
-      if (livePending || (pending && !pending.from)) return Promise.resolve(fail('Busy','Operation in progress'));
+      if (livePending || (pending && (!pending.from || pending.preview))) return Promise.resolve(fail('Busy','Operation in progress'));
       if (!projection) return Promise.resolve(fail('InvalidProjection','No projection'));
       if (projection.renderProfile) return Promise.resolve(fail('Unavailable','Artwork replacement is unsupported for source mesh profiles'));
       let replacement: typeof input;
@@ -232,6 +232,15 @@ export function createSceneForTest(options: ViewerOptions, clock: Clock, backend
       const p = copy(input); const capability = nativeFrames(p); if(!capability.ok)return Promise.resolve(capability); const {op,promise} = begin();
       void assetsFor(p,op).then(assets => { if (assets && pending === op) { try { present(p,assets); recordReferences(p,true); finish(op,ok(undefined)); } catch { finish(op,fail('Unavailable','Unable to build projection')); } } });
       return promise;
+    },
+    beginPreview(input:PreviewStart):Result<ScenePreview> {
+      const state=status();if(!state.ok)return state;
+      if(!projection || !native || !input || !sameProjection(projection,input.from) || !Array.isArray(input.pieceIds) || new Set(input.pieceIds).size!==input.pieceIds.length || input.pieceIds.some(id=>!projection!.pieces.some(piece=>piece.id===id)) || !Array.isArray(input.axis) || input.axis.length!==3 || !input.axis.every(Number.isFinite) || Math.abs(Math.hypot(...input.axis)-1)>1e-6 || !Array.isArray(input.pivot) || input.pivot.length!==3 || !input.pivot.every(Number.isFinite))return fail('InvalidTransition','Invalid preview');
+      const start=copy(input),{op}=begin(projection);op.preview=true;activeTurnState={ids:start.pieceIds,axis:start.axis,angle:1,pivot:start.pivot,progress:0};activeTurn=native.beginTurn(start.pieceIds,start.axis,1,start.pivot);
+      const valid=()=>pending===op && !disposed && !lost;
+      return ok({update(angle){if(!valid())return fail('Cancelled','Preview ended');if(!Number.isFinite(angle))return fail('InvalidTransition','Invalid preview angle');activeTurnState!.progress=angle;activeTurn!.update(angle);draw();return ok(undefined);},
+        cancel(){if(!valid())return fail('Cancelled','Preview ended');return api.cancel();},
+        commit(transition){if(!valid())return fail('Cancelled','Preview ended');const checked=validateTransition(transition);if(!checked.ok)return checked;if(!sameProjection(transition.from,op.from!) || !sameValues(transition.pieceIds,start.pieceIds) || !sameValues(transition.axis,start.axis) || !sameValues(transition.pivot,start.pivot))return fail('InvalidTransition','Preview selection changed');const target=nativeFrames(transition.to);if(!target.ok)return target;activeTurn!.dispose();activeTurn=undefined;activeTurnState=undefined;native!.syncBodyPoses(target.value.bodies);projection=copy(transition.to);finish(op,ok(undefined));draw();return ok(undefined);}});
     },
     transition(input: Transition,timing?:MotionTimingSource) {
       const s = status(); if (!s.ok) return Promise.resolve(s);

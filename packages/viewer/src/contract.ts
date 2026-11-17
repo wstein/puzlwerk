@@ -30,7 +30,9 @@ export function validViewerMaterials(value:ViewerMaterialOptions|undefined):bool
  return value.stickers===undefined || !!value.stickers && typeof value.stickers==='object' && !Array.isArray(value.stickers) && Object.entries(value.stickers).every(([id,item])=>!!id && !!item && valid(item.roughness));
 }
 export type ArtworkReplacement = { readonly appearance?: Appearance; readonly picture?: Picture; readonly stickers: readonly {readonly id:string; readonly color:string; readonly imageId?:string; readonly sourceFace?:SourceFace; readonly picture?:Sticker['picture']}[] };
-export interface CubeScene { setArtwork(artwork: ArtworkReplacement): Promise<Result<void>>; setProjection(projection: CubeProjection): Promise<Result<void>>; transition(transition: Transition,timing?:MotionTimingSource): Promise<Result<void>>; cancel(): Result<void>; invalidate(): Result<void>; dispose(): void }
+export type PreviewStart = {readonly from:CubeProjection;readonly pieceIds:readonly string[];readonly axis:Vec3;readonly pivot:Vec3};
+export interface ScenePreview {update(angle:number):Result<void>;commit(transition:Transition):Result<void>;cancel():Result<void>}
+export interface CubeScene { beginPreview?(input:PreviewStart):Result<ScenePreview>; setArtwork(artwork: ArtworkReplacement): Promise<Result<void>>; setProjection(projection: CubeProjection): Promise<Result<void>>; transition(transition: Transition,timing?:MotionTimingSource): Promise<Result<void>>; cancel(): Result<void>; invalidate(): Result<void>; dispose(): void }
 export const ok = <T>(value: T): Result<T> => ({ ok: true, value });
 export const fail = (code: ViewerError['code'], message: string, path?: string): Result<never> => ({ ok: false, error: { code, message, ...(path ? { path } : {}) } });
 const tol = 1e-6;
