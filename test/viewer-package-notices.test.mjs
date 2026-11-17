@@ -7,13 +7,10 @@ test('every license file the viewer NOTICE names ships with the acceptance pages
   assert.ok(named.includes('CORE_EUPL_LICENSE.txt'));
   for(const file of named){assert.ok(build.includes(`'${file}'`),`${file} missing from acceptance/build.mjs`);assert.ok(pkg.files.includes(file),`${file} missing from package files`);assert.ok(existsSync(new URL(`../packages/viewer/${file}`,import.meta.url)))}
 });
-test('the NOTICE names every shipped Core module whose source carries a non-EUPL SPDX line',()=>{
+test('every shipped Core module is dual licensed in its source, as the NOTICE says',()=>{
   const notice=read('../packages/viewer/NOTICE'),shipped=readdirSync(new URL('../packages/viewer/dist/bridge/core/',import.meta.url));
-  assert.ok(shipped.includes('PwColorFrame.res.mjs'));
-  for(const file of shipped){
-    const name=file.replace('.res.mjs',''),first=read(`../core/res/${name}.res`).split('\n')[0],spdx=/SPDX-License-Identifier: (.+)/.exec(first)?.[1];
-    if(spdx&&spdx!=='EUPL-1.2')assert.ok(notice.includes(name),`${name} (${spdx}) is not named in NOTICE`);
-  }
+  assert.ok(shipped.includes('PwColorFrame.res.mjs'));assert.ok(notice.includes('EUPL-1.2 OR AGPL-3.0-or-later'));
+  for(const file of shipped)assert.equal(read(`../core/res/${file.replace('.res.mjs','')}.res`).split('\n')[0],'// SPDX-License-Identifier: EUPL-1.2 OR AGPL-3.0-or-later',file);
 });
 test('every export condition of the viewer package points to a built file, and "." also has a default',()=>{
   const pkg=JSON.parse(read('../packages/viewer/package.json'));
