@@ -1,0 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// CubeAssembler CubeGesture.res at 91fc2144cbcf2734f84ee3a93c70b8ed503a5151.
+export type WheelInput=Readonly<{deltaX:number;deltaY:number;deltaMode:number;ctrlKey:boolean}>;
+export type WheelSwipe=Readonly<{startTime:number;lastTime:number;dx:number;dy:number;lastMagnitude:number;shrinking:number;coasting:boolean}>;
+export function wheelGesture(e:WheelInput):'zoom'|'tilt'{if(e.ctrlKey||e.deltaMode!==0)return 'zoom';const whole=Number.isFinite(e.deltaY)&&Math.floor(e.deltaY)===e.deltaY;return e.deltaX===0&&whole&&Math.abs(e.deltaY)>=50?'zoom':'tilt'}
+export function nextWheelSwipe(s:WheelSwipe|undefined,time:number,deltaX:number,deltaY:number):WheelSwipe{const magnitude=Math.hypot(deltaX,deltaY);if(s&&time-s.lastTime<=150){if(s.coasting)return {...s,lastTime:time};const ratio=s.lastMagnitude>0?magnitude/s.lastMagnitude:0,shrinking=ratio>=.6&&ratio<.99?s.shrinking+1:0;if(shrinking>=4)return {...s,lastTime:time,lastMagnitude:magnitude,shrinking,coasting:true};return {...s,lastTime:time,dx:s.dx-deltaX,dy:s.dy-deltaY,lastMagnitude:magnitude,shrinking}}return {startTime:time,lastTime:time,dx:-deltaX,dy:-deltaY,lastMagnitude:magnitude,shrinking:0,coasting:false}}

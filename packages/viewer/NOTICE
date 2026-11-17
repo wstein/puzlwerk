@@ -188,3 +188,8 @@ CubeAssembler axisGizmo.tsx and web/cube3d.css at revision
 Play-mode two-finger classification in src/two-finger.ts follows
 CubeAssembler src/core/view/CubeGesture.res at revision
 91fc2144cbcf2734f84ee3a93c70b8ed503a5151 (MIT; see CUBE_ASSEMBLER_LICENSE.txt).
+
+Play-mode trackpad wheel classification and burst handling follow
+CubeAssembler src/core/view/CubeGesture.res and src/client/view3d/useCubeGestures.ts
+at revision 91fc2144cbcf2734f84ee3a93c70b8ed503a5151 (MIT;
+see CUBE_ASSEMBLER_LICENSE.txt).
