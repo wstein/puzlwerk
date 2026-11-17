@@ -175,7 +175,7 @@ export class SmartRotation {
     this.rotate(input);
     if (this.modeValue !== "free") input.x = this.pitch - previousPitch;
     if (input.lengthSq() > 0) { this.lastMotion = at; this.anchorCandidate = true; }
-    if (elapsed <= 0 || this.modeValue === "classic" || this.reduced) { this.velocity.set(0, 0, 0); return; }
+    if (elapsed <= 0 || this.reduced) { this.velocity.set(0, 0, 0); return; }
     // No 8 ms floor: a real 144 Hz input stream must estimate the same speed.
     const measured = input.multiplyScalar(1 / elapsed);
     if (measured.length() > ROTATION_TUNING.maximumSpeed) measured.setLength(ROTATION_TUNING.maximumSpeed);
@@ -190,7 +190,7 @@ export class SmartRotation {
   up(at: number, cancelled = false): void {
     this.time(at); if (this.phaseValue !== "dragging" || this.disposed || this.suspended) return;
     const age = this.lastMotion === null ? Infinity : Math.max(0, at - this.lastMotion);
-    if (age >= ROTATION_TUNING.staleReleaseSeconds || cancelled || this.modeValue === "classic" || this.reduced) this.velocity.set(0, 0, 0);
+    if (age >= ROTATION_TUNING.staleReleaseSeconds || cancelled || this.reduced) this.velocity.set(0, 0, 0);
     else this.velocity.multiplyScalar(Math.exp(-age / ROTATION_TUNING.velocityFilterSeconds));
     this.lastTime = at;
     if (this.modeValue !== "free" && this.levelingRequested) { this.settle(at); return; }

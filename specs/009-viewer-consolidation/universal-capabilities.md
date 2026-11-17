@@ -79,3 +79,8 @@ changes presentation only. Slice moves do not redefine the physical frame. The
 solver frame remains an independent caller input and no sensor frame is inferred.
 The default passive indicator is 64 CSS pixels square, inset 8 pixels from the
 host’s bottom and right edges.
+
+The shared Classic view mode extends the pinned Cubistry behavior: after a
+recent drag it uses the existing damped coast while retaining upright pitch
+limits and no Smart auto-return. Cancellation and reduced motion stop it. This
+is an intentional behavior change, not a claim of unchanged source parity.
