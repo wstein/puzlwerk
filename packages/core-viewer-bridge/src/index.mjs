@@ -129,4 +129,3 @@ export function createPlayer(definitionText,stateText,appearanceText,options,sce
   }};
 }
 
-export * from './cube-state.mjs';
