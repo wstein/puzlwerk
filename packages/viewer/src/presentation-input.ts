@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-export interface PresentationDragBinding { (): void; dispose(): void }
+export interface PresentationDragBinding { (): void; cancelRouted():void; dispose(): void }
 export interface PointerRoute { down(event:PointerEvent):boolean; move(event:PointerEvent):void; end(event:PointerEvent | undefined,cancelled:boolean):void }
 export interface PresentationDragLifecycle {
   down?(event: PointerEvent): void;
@@ -51,14 +51,16 @@ export function installPresentationDrag(
     const cancelled = blocked || e.type !== "pointerup"; blocked = false;
     lifecycle.up?.(e, cancelled);
   };
+  const cancelRouted=()=>{const claimed=[...routed];routed.clear();for(const id of claimed)releaseCapture(id);if(claimed.length)route?.end(undefined,true);};
   const cancel = () => {
-    const claimed=[...routed];routed.clear();for(const id of claimed)releaseCapture(id);if(claimed.length)route?.end(undefined,true);
+    cancelRouted();
     const ids = [...pointers.keys()]; pointers.clear(); blocked = false;
     for (const id of ids) releaseCapture(id);
     if (ids.length && !disposed) lifecycle.up?.(undefined, true);
   };
   element.addEventListener("pointerdown", down); element.addEventListener("pointermove", motion);
   element.addEventListener("pointerup", release); element.addEventListener("pointercancel", release); element.addEventListener("lostpointercapture", release);
+  cancel.cancelRouted=cancelRouted;
   cancel.dispose = () => {
     element.removeEventListener("pointerdown", down); element.removeEventListener("pointermove", motion);
     element.removeEventListener("pointerup", release); element.removeEventListener("pointercancel", release); element.removeEventListener("lostpointercapture", release);

@@ -180,3 +180,7 @@ test("cancelContacts releases held pointers and ignores later motion",()=>{
  h.element.pointer("pointermove",200,170,1,"touch");same(h.root.quaternion,before);
  assert.notEqual(h.binding.controller.phase,"dragging");h.binding.dispose();
 });
+
+test('HUD contact cancels a routed play capture before a new interaction',()=>{
+ let cancelled=0;const route={down:()=>true,move(){},end:(_event,cancel)=>{if(cancel)cancelled++}},h=rotationHarness({route});h.element.pointer('pointerdown',100,100,1);assert.equal(h.element.captures.size,1);h.panel.pointer('pointerdown',10,10,2,'touch');assert.equal(cancelled,1);assert.equal(h.element.captures.size,0);h.binding.dispose();
+});

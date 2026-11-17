@@ -15,3 +15,7 @@ test('one pointer binding routes claimed play contacts and restores fresh orbit'
  emit('pointerdown',1);emit('pointermove',1,20);emit('lostpointercapture',1);emit('pointerdown',2);emit('pointermove',2,20);emit('pointerup',2);drag.dispose();
  assert.deepEqual(events,[['pick',1],['play',1],['end',1,true],['pick',2],['orbit']]);assert.equal(capture.size,0);assert.equal(handlers.size,0);
 });
+
+test('panel interaction can cancel only the routed play capture',()=>{
+ const handlers=new Map(),capture=new Set(),events=[];const element={addEventListener(t,f){handlers.set(t,f)},removeEventListener(t){handlers.delete(t)},setPointerCapture(i){capture.add(i)},hasPointerCapture(i){return capture.has(i)},releasePointerCapture(i){capture.delete(i)}};const route={down:()=>true,move(){},end:(_e,cancelled)=>events.push(cancelled)},drag=installPresentationDrag(element,()=>{},0,{},route);handlers.get('pointerdown')({pointerId:1,clientX:0,clientY:0,timeStamp:0});drag.cancelRouted();assert.deepEqual(events,[true]);assert.equal(capture.size,0);drag.dispose();
+});

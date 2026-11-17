@@ -76,6 +76,7 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
   };
   const change = () => {
     if (disposed) return;
+    drag.cancelRouted();
     // preference() ends in refresh(), which resets the select to the current
     // mode; read the user's choice first.
     const chosen = select.value;
@@ -93,6 +94,7 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
   };
   const panelDown = (event: Event) => {
     if (disposed) return;
+    drag.cancelRouted();
     const id = (event as PointerEvent).pointerId;
     panelPointers.add(id); if (canvasHeld) blockedOverlap = true;
     controller.down(env.now()); apply(); options.changed?.();
@@ -104,7 +106,7 @@ export function bindSmartRotation(element: HTMLElement, root: Object3D, options:
   const clearContacts = () => { panelPointers.clear(); drag(); canvasHeld = false; blockedOverlap = false; };
   const blur = () => { if (!disposed) { focused = false; controller.suspend(env.now()); clearContacts(); apply(); options.changed?.(); } };
   const focus = () => { if (!disposed) { focused = true; if (!env.document.hidden) controller.resume(env.now()); apply(); options.changed?.(); } };
-  const panelActivity = () => { if (!disposed) { controller.interact(env.now()); apply(); options.changed?.(); } };
+  const panelActivity = () => { if (!disposed) { drag.cancelRouted(); controller.interact(env.now()); apply(); options.changed?.(); } };
   const preference = () => {
     if (disposed) return;
     if (options.requestReducedMotion) {
