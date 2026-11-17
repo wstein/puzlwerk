@@ -11,4 +11,6 @@ test('maps native positions, source frames and tile identity into wire documents
  assert.ok(comparePictureState(source.printing,definition,state));
  const changed=structuredClone(state);changed.poses[0].orientation=[-1,0,0,0,1,0,0,0,-1];
  assert.equal(comparePictureState(source.printing,definition,changed),false);
+ const twisted=structuredClone(state);twisted.poses[0].orientation=[-1,0,0,0,-1,0,0,0,1];
+ assert.equal(comparePictureState(source.printing,definition,twisted),false,'up orientation must match even when normal is unchanged');
 });

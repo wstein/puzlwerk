@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {runNative} from '../references/cubistry-clock/harness.mjs';
 const repo=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 await runNative(repo,join(repo,'acceptance/references/cubistry-clock'),async({browser,base,output})=>{
- for(const file of ['picture3/model','picture3/images','picture3/editor','picture3/presets','calendar/model','calendar/viewer','calendar/artwork']){
+ for(const file of ['picture3/model','picture3/images','picture3/editor','picture3/presets','calendar/model','calendar/viewer','calendar/artwork','calendar7/schemes']){
   const source=await readFile(join(repo,`acceptance/references/cubistry-picture/src/apps/${file}.ts`),'utf8');
   const dest=join(output,`src/apps/${file}.js`);await mkdir(dirname(dest),{recursive:true});await writeFile(dest,stripTypeScriptTypes(source,{mode:'transform'}).replace(/(["'])(\.{1,2}\/[^"']+)\.ts\1/g,'$1$2.js$1'));
  }
