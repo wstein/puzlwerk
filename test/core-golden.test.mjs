@@ -49,12 +49,11 @@ test("F2: every outer face move of the notation parser has the recorded axis, la
   }
 });
 
-test("F2: x, y, z are unsupported text (Q2) but their all-layer AST has the recorded rotation", () => {
+test("F2: x, y, z text produces the recorded all-layer rotation", () => {
   const f2 = json("f2-move-signs.json");
   for (const m of f2.moves.filter((m) => "xyz".includes(m.move[0]))) {
-    assert.equal(Notation.parse(size(3), m.move)._0.kind, "UnsupportedAlias", m.move);
     for (const n of [2, 3]) {
-      const ast = ok(Move.make(size(n), m.axis, m.layers[n].map((c) => (c + n - 1) / 2), m.turns));
+      const [ast] = ok(Notation.parse(size(n), m.move));
       assert.equal(Move.layers(ast).length, n, `${m.move} selects all layers`);
       assert.deepEqual(Orientation.toArray(Move.rotation(ast)), m.rotation, m.move);
     }

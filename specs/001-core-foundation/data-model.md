@@ -32,7 +32,7 @@ Canonical move AST: axis `X|Y|Z`, sorted unique nonempty layer indices `0..N−1
 
 For +Z,+1, `(x,y,z)→(−y,x,z)`; the N=2 piece at `(1,−1,1)` reaches `(1,1,1)`. Four such moves restore the entire state and orientation. Standard outward-clockwise notation maps F,R,U to −1 on their positive outer layer; B,L,D to +1 on their negative outer layer. Example R: axis X, layers [N−1], turns −1. F sends a front-top-right slot to front-bottom-right.
 
-Proposed baseline policy permits single outer, single inner, contiguous wide and explicit multi-layer moves; adapter capability negotiation can reject any unsupported selection. Notation parsing is an adapter: initially outer `R L U D F B` with prime/2 suffix, numeric-width `kRw` family, and explicit AST for inner/noncontiguous layers. Ambiguous `M/E/S`, lowercase aliases and x/y/z notation remain deferred pending Q2; canonical AST can represent all-layer rotations when policy permits. No silent notation reinterpretation.
+Proposed baseline policy permits single outer, single inner, contiguous wide and explicit multi-layer moves; adapter capability negotiation can reject any unsupported selection. Notation parsing accepts outer `R L U D F B` and numeric-width `kRw`, plus `M/E/S` for 3×3 and `x/y/z` for 2×2 and 3×3 (owner decision 2026-11-17, superseding Q2 for these aliases). M/E/S use the directions of L/D/F on the middle layer; x/y/z use R/U/F on every layer. Prime and 2 suffixes apply. Lowercase wide aliases remain unsupported. Parsing creates the existing move AST; the definition policy still decides legality. The `any` policy permits these selections but does not imply a face-turn reachability proof. Whole-cube moves change canonical poses once; view orbit does not change them.
 
 ## Goals and symmetry
 

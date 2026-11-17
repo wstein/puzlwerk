@@ -7,9 +7,8 @@ import * as Pose from "../core/res/PwPose.res.mjs";
 import * as Move from "../core/res/PwMove.res.mjs";
 import * as Notation from "../core/res/PwNotation.res.mjs";
 
-// T007 / AC09-10: bounded notation parser. Q2 (2026-11-07): outer faces R L U D F B with a prime or 2
-// suffix, plus wide moves Rw and kRw. No slices (M/E/S), no global rotations (x/y/z), no lowercase wide
-// aliases; unknown input fails. Expected ASTs are derived by hand from the data model: R = X,[N-1],-1;
+// Bounded notation: outer/wide turns, 3x3 M/E/S and 2x2/3x3 x/y/z.
+// Lowercase wide aliases remain unsupported; unknown input fails. Expected ASTs are derived by hand from the data model: R = X,[N-1],-1;
 // L = X,[0],+1; U = Y,[N-1],-1; D = Y,[0],+1; F = Z,[N-1],-1; B = Z,[0],+1.
 const ok = (r) => { assert.equal(r.TAG, "Ok", `expected Ok, got ${JSON.stringify(r)}`); return r._0; };
 const err = (r) => { assert.equal(r.TAG, "Error", `expected Error, got ${JSON.stringify(r)}`); return r._0; };
@@ -65,8 +64,8 @@ test("(R U R' U')^6 restores every piece of the 3x3, (R U R' U')^1 does not", ()
   assert.notDeepEqual(run("R U R' U'", 1), poses);
 });
 
-test("slices, global rotations and lowercase aliases are unsupported, not reinterpreted", () => {
-  for (const t of ["M", "E", "S", "M'", "x", "y", "z", "x2", "r", "l", "u", "d", "f", "b", "u'"]) {
+test("lowercase wide aliases remain unsupported", () => {
+  for (const t of ["r", "l", "u", "d", "f", "b", "u'"]) {
     const e = err(parse(3, t));
     assert.equal(e.kind, "UnsupportedAlias", t);
     assert.equal(e.start, 0);
@@ -107,4 +106,21 @@ test("parsing is deterministic and returns canonical, valid ASTs", () => {
   const b = ok(parse(4, text)).map(ast);
   assert.deepEqual(a, b);
   for (const m of ok(parse(4, text))) assert.equal(Shell.sizeToInt(Move.size(m)), 4);
+});
+
+test('3×3 middle slices use L/D/F directions and reject unsupported sizes',()=>{
+ for(const [name,axis,turn] of [['M','X',1],['E','Y',1],['S','Z',-1]]){assert.deepEqual(one(3,name),[axis,[1],turn]);assert.deepEqual(one(3,name+"'"),[axis,[1],-turn]);assert.deepEqual(one(3,name+'2'),[axis,[1],2]);for(const n of [2,4])assert.equal(err(parse(n,name)).kind,'UnsupportedAlias');}
+});
+
+test('whole cube rotations select all 2×2/3×3 layers in R/U/F directions',()=>{
+ for(const n of [2,3])for(const [name,axis] of [['x','X'],['y','Y'],['z','Z']]){const layers=Array.from({length:n},(_,i)=>i);assert.deepEqual(one(n,name),[axis,layers,-1]);assert.deepEqual(one(n,name+"'"),[axis,layers,1]);assert.deepEqual(one(n,name+'2'),[axis,layers,2]);}for(const name of ['x','y','z'])assert.equal(err(parse(4,name)).kind,'UnsupportedAlias');
+});
+
+test('aliases and inverses restore every Core pose after two and four moves',()=>{
+ for(const n of [2,3])for(const token of n===2?['x','y','z']:['M','E','S','x','y','z']){const poses=Shell.slots(size(n)).map((slot,i)=>Pose.make(ok(Id.make(`p${i}`)),slot,Orientation.identity)),move=ok(parse(n,token))[0],inverse=ok(parse(n,token+"'"))[0],apply=(state,m)=>state.map(p=>Move.applyToPose(m,p));const changed=apply(poses,move);assert.notDeepEqual(changed,poses,`${n} ${token}`);assert.deepEqual(apply(changed,inverse),poses,`${n} ${token} inverse`);assert.deepEqual([1,2,3,4].reduce(state=>apply(state,move),poses),poses,`${n} ${token} four`);}
+});
+
+test('alias legality follows the explicit policy without widening face-turn guarantees',async()=>{
+ const Codec=await import('../core/res/PwCodec.res.mjs'),Validate=await import('../core/res/PwValidate.res.mjs'),{definitionText}=await import('./helpers/cube-model.mjs');
+ for(const n of [2,3]){const outer=JSON.parse(definitionText(n)),any={...outer,movePolicy:'any'},dOuter=ok(Codec.decodeDefinition(JSON.stringify(outer))),dAny=ok(Codec.decodeDefinition(JSON.stringify(any))),start=Codec.homeState(dAny);for(const name of n===2?['x','y','z']:['M','E','S','x','y','z']){const move=ok(parse(n,name))[0],changed=ok(Validate.applyMove(dAny,start,move));assert.equal(Validate.applyMove(dOuter,Codec.homeState(dOuter),move).TAG,'Error',`${name}: outer-wide`);assert.equal(Validate.assess(dAny,changed,'FaceTurns',undefined).reachability._0,'ProfileOutsidePolicy');assert.equal(Validate.assess(dAny,changed,undefined,[move]).reachability.TAG,'VerifiedByReplay');}}
 });

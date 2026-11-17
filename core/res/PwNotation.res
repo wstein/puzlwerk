@@ -33,7 +33,26 @@ let parseToken = (size, token): result<PwMove.t, errorKind> => {
   let d = digits.contents
   let face = at(d)
   let rest = token->String.slice(~start=d + 1)
-  if d == 0 && isAlias(face) && isSuffix(rest) {
+  let slice = face == "M" || face == "E" || face == "S"
+  let rotation = face == "x" || face == "y" || face == "z"
+  if d == 0 && (slice || rotation) && isSuffix(rest) {
+    if (slice && n != 3) || (rotation && n != 2 && n != 3) {
+      Error(UnsupportedAlias)
+    } else {
+      let axis = switch face {
+      | "M" | "x" => PwMove.X
+      | "E" | "y" => PwMove.Y
+      | _ => PwMove.Z
+      }
+      let layers = slice ? [1] : Array.fromInitializer(~length=n, i => i)
+      let base = face == "M" || face == "E" ? 1 : -1
+      let turns = rest == "'" ? -base : rest == "2" ? 2 : base
+      switch PwMove.make(size, axis, layers, turns) {
+      | Ok(m) => Ok(m)
+      | Error(_) => panic("PwNotation: generated an invalid alias move")
+      }
+    }
+  } else if d == 0 && isAlias(face) && isSuffix(rest) {
     Error(UnsupportedAlias)
   } else if !isFace(face) {
     Error(UnknownToken)
