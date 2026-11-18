@@ -54,20 +54,24 @@ try{
   }
   assert.deepEqual(await page.evaluate(()=>{window.sizeRange.hooks.onTurnEnd=undefined;return window.commits}),{a:1,b:0},`n=${n} the commit hook of the target at turn-begin runs once, the switched target gets none`);
   await page.evaluate(()=>{const {stage,child,player,widths,half,n}=window.sizeRange;stage.setInteractionMode("view");stage.setPlayTarget({child,player,size:n,layerWidths:widths,halfExtent:half});stage.setInteractionMode("play")});
+  // Every probe that misses a sticker is a vertical 40 px view drag that turns the cube by about 18 degrees about X, and smart or free then keep moving the view (the smart
+  // mode returns it to its anchor over time, free coasts), so the edge and the layer ratio were measured on whichever face was under the row (the flaky 221 against 225).
+  // The probe therefore sets the front preset before each press and holds the mode at free (no return animation). The mode of the demo is restored afterwards. Not caught here:
+  // a derived half extent that is a few percent too small (only gross errors such as size/2 fail the comparison below).
   // Layer widths reach the gesture core. A plain vertical drag along the middle row turns the column (x layer) it starts in; a spy player records the layer and moves nothing
   // (the move policy would refuse a single inner layer, which does not matter here). The target has no halfExtent, so the stage derives it from the widths.
   // Along the face the layer boundaries are the cumulative widths. Bisection finds the left edge (xmin), the 0/1 boundary (x1) and the (n-2)/(n-1) boundary (x2); the gaps
   // between stickers pick nothing, so a boundary is the middle between the last probe below it and the first above it. The inner layer is (x2-x1)/(n-2) px wide and
   // layer 0 must be widths[0]/widths[1] of it. A uniform split of the face gives 1.
   if(n>=3){
-   await page.evaluate(()=>{const {stage,child,widths,n}=window.sizeRange;window.spyLayers=[];const ok={ok:true,value:undefined},spy={beginPreview(axis,layers){window.spyLayers.push({axis,layers:[...layers]});return {ok:true,value:{pieceIds:[],update:()=>ok,commit:()=>ok,cancel:()=>ok}}}};window.spyPlayer=spy;stage.setInteractionMode('view');const t=stage.setPlayTarget({child,player:spy,size:n,layerWidths:widths});if(!t.ok)throw Error(t.error.message);const m=stage.setInteractionMode('play');if(!m.ok)throw Error(m.error.message)});
+   await page.evaluate(()=>{const {stage,child,widths,n}=window.sizeRange;window.spyLayers=[];const ok={ok:true,value:undefined},spy={beginPreview(axis,layers){window.spyLayers.push({axis,layers:[...layers]});return {ok:true,value:{pieceIds:[],update:()=>ok,commit:()=>ok,cancel:()=>ok}}}};window.spyPlayer=spy;stage.setRotationMode('free');stage.setInteractionMode('view');const t=stage.setPlayTarget({child,player:spy,size:n,layerWidths:widths});if(!t.ok)throw Error(t.error.message);const m=stage.setInteractionMode('play');if(!m.ok)throw Error(m.error.message)});
    await page.waitForTimeout(300);
    let ry=cy; // the gaps between sticker rows pick nothing: use a row that picks at the middle column
-   const drag=async sx=>{await page.evaluate(()=>{window.spyLayers.length=0});await page.mouse.move(sx,ry);await page.mouse.down();await page.mouse.move(sx,ry-40,{steps:2});const hit=await page.evaluate(()=>window.spyLayers.at(-1)??null);await page.mouse.up();if(!hit)return null;assert.equal(hit.axis,'X',`n=${n} x=${sx} the vertical drag turns about X`);assert.equal(hit.layers.length,1,`n=${n} x=${sx}`);return hit.layers[0]};
-   // The first sticker hit at sx, sx+3, ... below limit: [x, layer], or null.
-   const near=async(sx,limit)=>{for(let d=0;d<=12&&sx+d<limit;d+=3){const layer=await drag(sx+d);if(layer!==null)return [sx+d,layer]}return null};
+   const drag=async sx=>{const pose=await page.evaluate(()=>{window.spyLayers.length=0;window.sizeRange.stage.setViewPreset('front');return window.sizeRange.views.at(-1)?.map(v=>Math.abs(v)<1e-9?0:v)});assert.deepEqual(pose,[0,0,0,1],`n=${n} every probe starts in the front pose`);await page.mouse.move(sx,ry);await page.mouse.down();await page.mouse.move(sx,ry-40,{steps:2});const hit=await page.evaluate(()=>window.spyLayers.at(-1)??null);await page.mouse.up();if(!hit)return null;assert.equal(hit.axis,'X',`n=${n} x=${sx} the vertical drag turns about X`);assert.equal(hit.layers.length,1,`n=${n} x=${sx}`);return hit.layers[0]};
+   // The first sticker hit at sx, sx+1, ... below limit (1 px steps: the edge is measured to 1 px, the comparison below allows 2): [x, layer], or null.
+   const near=async(sx,limit)=>{for(let d=0;d<=12&&sx+d<limit;d+=1){const layer=await drag(sx+d);if(layer!==null)return [sx+d,layer]}return null};
    // Boundary between the layers where ok is false and true, given a probe below (lo, not ok or off the cube) and above (hi, ok) it: [last not-ok hit or undefined, first ok hit].
-   const bisect=async(lo,hi,ok)=>{let low;while(hi-lo>2){const mid=Math.floor((lo+hi)/2),r=await near(mid,hi);if(r===null)lo=mid;else if(ok(r[1])){hi=r[0]}else{lo=r[0];low=r[0]}}return [low,hi]};
+   const bisect=async(lo,hi,ok)=>{let low;while(hi-lo>1){const mid=Math.floor((lo+hi)/2),r=await near(mid,hi);if(r===null)lo=mid;else if(ok(r[1])){hi=r[0]}else{lo=r[0];low=r[0]}}return [low,hi]};
    const xc=Math.round(cx);let centre=null;for(const dy of [0,9,-9,18,-18,27]){ry=cy+dy;centre=await near(xc+3,xc+20);if(centre)break}
    assert.ok(centre!==null&&centre[1]>=1&&centre[1]<=n-2,`n=${n} the middle of the face is an inner layer (${centre})`);
    assert.equal(await drag(x+4),null,`n=${n} the canvas border is off the cube`);
@@ -75,16 +79,16 @@ try{
    const left=await near(xmin,xmin+13),right=await near(2*xc-xmin-15,2*xc-xmin);
    assert.equal(left?.[1],0,`n=${n} the left edge (x ${xmin}) is layer 0`);assert.equal(right?.[1],n-1,`n=${n} the right edge (x ${2*xc-xmin}) is the last layer`);
    const x1=(l1+h1)/2,x2=(l2+h2)/2,w=await page.evaluate(()=>window.sizeRange.widths),unit=(x2-x1)/(n-2),measured=(x1-xmin)/unit;
-   if(process.env.PERF)console.error(`n=${n} xmin ${xmin} x1 ${x1} x2 ${x2} outer/inner measured ${measured.toFixed(2)} expected ${w[0]/w[1]}`);
+   if(process.env.PERF)console.error(`n=${n} xmin ${xmin} x1 ${x1} x2 ${x2} outer/inner measured ${measured.toFixed(2)} expected ${w[0]/w[1]} q ${JSON.stringify((await page.evaluate(()=>window.sizeRange.views.at(-1)))?.map(v=>+v.toFixed(3)))}`);
    assert.ok(Math.abs(measured-w[0]/w[1])<.3,`n=${n} outer layer is ${measured.toFixed(2)} inner layers wide, expected ${w[0]/w[1]}`);
    // The same face edge with the half extent given explicitly (the demo's own value): the derived default must put the edge where it puts it. A half extent that is too small cuts the face.
    await page.evaluate(()=>{const {stage,child,widths,half,n}=window.sizeRange;stage.setInteractionMode('view');const t=stage.setPlayTarget({child,player:window.spyPlayer,size:n,layerWidths:widths,halfExtent:half});if(!t.ok)throw Error(t.error.message);stage.setInteractionMode('play')});
    await page.waitForTimeout(300);
    const [,xminGiven]=await bisect(x+4,centre[0],()=>true);
-   assert.ok(Math.abs(xminGiven-xmin)<=3,`n=${n} the face edge is at x ${xmin} with the derived half extent and at x ${xminGiven} with the given one`);
+   assert.ok(Math.abs(xminGiven-xmin)<=2,`n=${n} the face edge is at x ${xmin} with the derived half extent and at x ${xminGiven} with the given one`);
    await page.evaluate(()=>{const {stage,child,player,widths,half,n}=window.sizeRange;stage.setInteractionMode('view');stage.setPlayTarget({child,player,size:n,layerWidths:widths,halfExtent:half})});
   }
-  await page.evaluate(()=>window.sizeRange.stage.setInteractionMode('view'));
+  await page.evaluate(()=>{window.sizeRange.stage.setRotationMode('smart');window.sizeRange.stage.setInteractionMode('view')});
   assert.equal(await page.evaluate(()=>window.sizeRange.stage.getInteractionMode()),'view');
   let perf;
   if(process.env.PERF){
