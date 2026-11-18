@@ -188,27 +188,31 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
     color.setAttribute("aria-description", value.frameColor === null && defaultMixed ? "Multiple style defaults" : "");
     showPictureMode(shownMode);
   };
-  const update = (next: ViewerAppearance, pictureChosen = false, persist = true) => {
-    if (disposed || pending) { refresh(); return; }
+  // Resolves true when the change was accepted and committed, false otherwise (rejected, refused, pending or disposed).
+  const update = (next: ViewerAppearance, pictureChosen = false, persist = true): Promise<boolean> => {
+    if (disposed || pending) { refresh(); return Promise.resolve(false); }
     const candidate = validateAppearance(next);
     let result: void | boolean | Promise<void | boolean>;
     pending = true;
     try { result = change(candidate, pictureChosen ? { pictureChosen } : undefined); }
-    catch { pending = false; pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); return; }
+    catch { pending = false; pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); return Promise.resolve(false); }
+    return new Promise<boolean>((resolve) => {
     const finish = (accepted: void | boolean) => {
-      if (disposed) return;
+      if (disposed) { resolve(false); return; }
       pending = false;
-      if (accepted === false) { pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); return; }
+      if (accepted === false) { pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); resolve(false); return; }
       value = candidate;
       if (pendingDefaultColor !== undefined) { defaultColor = pendingDefaultColor.color;defaultMixed=pendingDefaultColor.mixed; pendingDefaultColor = undefined; }
       if (pendingChoice) { picturesWrap.style.display = pendingChoice.available ? "" : "none"; shownMode = pendingChoice.mode; pendingChoice = undefined; }
       refresh();
       try { if (persist && key !== undefined) storage?.setItem(key, JSON.stringify({ version: 1, ...value })); } catch { /* Presentation remains usable. */ }
+      resolve(true);
     };
     if (result && typeof (result as Promise<void | boolean>).then === "function") {
       pending = true; refresh();
-      Promise.resolve(result).then(finish, () => { if (!disposed) { pending = false; pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); } });
+      Promise.resolve(result).then(finish, () => { if (!disposed) { pending = false; pendingChoice = undefined; pendingDefaultColor = undefined; refresh(); } resolve(false); });
     } else finish(result as void | boolean);
+    });
   };
   // Stickerless is always projected: the checkbox shows it checked and disabled.
   let shownMode: PictureMode = DEFAULT_PICTURE_MODE;
@@ -223,6 +227,12 @@ export function installAppearanceControls(host: HTMLElement, change: (value: Vie
   refresh(); update(initialValue, false, false);
   return {
     panel,
+    /** Applies an appearance chosen outside the panel through the same acceptance path as its controls. Nothing is stored: the caller owns that choice. */
+    request(next: ViewerAppearance): Promise<boolean> {
+      let candidate: ViewerAppearance;
+      try { candidate = validateAppearance(next); } catch { return Promise.resolve(false); }
+      return update(candidate, false, false);
+    },
     setDefaultColor(color: string,mixed=false) { if (disposed) return; if (pending) { pendingDefaultColor = {color,mixed}; return; } defaultColor = color;defaultMixed=mixed;refresh(); },
     /** Shows or hides the Pictures choice and shows the mode in effect; never a user choice, nothing is stored. */
     setPictureChoice(choice: { readonly available: boolean; readonly mode: PictureMode }) {

@@ -44,3 +44,4 @@ export {cubePresentationRadius,presentationCameraRadius} from './presentation-ro
 export {MIN_CUBE_SIZE,MAX_CUBE_SIZE,ACCEPTED_MAX_SIZE,validCubeSize} from './size-range.js';
 export {VIEW_PRESETS,viewPresetOrientation,viewPresetAngles} from './view-presets.js';
 export type {ViewPreset} from './view-presets.js';
+export type {ViewerAppearance,Construction} from './native-appearance.js';
