@@ -5,7 +5,8 @@ import * as Move from '../core/res/PwMove.res.mjs';
 import * as Shell from '../core/res/PwShell.res.mjs';
 import * as Validate from '../core/res/PwValidate.res.mjs';
 import { open } from '../packages/core-viewer-bridge/src/index.mjs';
-import { cubeStateDocuments, cubeStateFromWire, faceStickerIds, FACE_KEYS } from '../packages/core-viewer-bridge/src/cube-state.mjs';
+import { cubeStateDocuments, cubeStateFromWire, cubePresentation as cubeStatePresentationFor, faceStickerIds, FACE_KEYS } from '../packages/core-viewer-bridge/src/cube-state.mjs';
+import { MAX_CUBE_SIZE } from '../packages/viewer/dist/size-range.js';
 import { validateProjection } from '../packages/viewer/dist/contract.js';
 import { standardLayerWidths } from '../packages/viewer/dist/layer-widths.js';
 import { mulberry32 } from './helpers/cube-model.mjs';
@@ -113,7 +114,7 @@ test('faceStickerIds names the n*n stickers of one face, once', () => {
 
 test('invalid input is rejected with a code', () => {
   assert.equal(cubeStateDocuments(1, solved(2), PALETTE).error.code, 'InvalidSize');
-  assert.equal(cubeStateDocuments(8, solved(2), PALETTE).error.code, 'InvalidSize');
+  assert.equal(cubeStateDocuments(65, solved(2), PALETTE).error.code, 'InvalidSize');
   assert.equal(cubeStateDocuments(3, solved(2), PALETTE).error.code, 'InvalidCubeState');
   assert.equal(cubeStateDocuments(3, { ...solved(3), u: 'x' }, PALETTE).error.code, 'InvalidCubeState');
   assert.equal(cubeStateDocuments(3, solved(3), { W: 'white' }).error.code, 'InvalidPalette');
@@ -157,7 +158,7 @@ test('cubeStateFromWire reports errors as results and never throws', () => {
   const n = 3, d = documents(n, solved(n)), other = documents(4, solved(4));
   const code = (...args) => { const r = cubeStateFromWire(...args); assert.equal(r.ok, false, JSON.stringify(args)); return r.error.code; };
   assert.equal(code(1, d.state, d.appearance), 'InvalidSize');
-  assert.equal(code(8, d.state, d.appearance), 'InvalidSize');
+  assert.equal(code(65, d.state, d.appearance), 'InvalidSize');
   assert.equal(code(n, 'not json', d.appearance), 'InvalidState');
   assert.equal(code(n, other.state, d.appearance), 'InvalidState');
   assert.equal(code(n, d.state, 'not json'), 'InvalidAppearance');
@@ -207,4 +208,55 @@ test('faceStickerIds literal anchors: 2x2 U face, 3x3 centers, 4x4 and 7x7 corne
   assert.equal(faceStickerIds(4, 'u')[15], 'sticker:URF:3_3_3.U');
   assert.equal(faceStickerIds(4, 'u')[0], 'sticker:ULB:m3_3_m3.U');
   assert.equal(faceStickerIds(7, 'd')[0], 'sticker:FDL:m6_m6_6.D');
+});
+
+// Owner decision 2026-11-18: sizes 2..15 are accepted; the structure stays open up to Core's maximum 64 (16..64 are not rejected, not accepted).
+const ACCEPTED = Array.from({ length: 14 }, (_, i) => i + 2);
+
+test('every size 2..15 translates there and back, turns an inner layer and opens as a valid projection', () => {
+  for (const n of ACCEPTED) {
+    const cube = numbered(n), d = documents(n, cube, numberedPalette(n));
+    assert.deepEqual(cubeStateFromWire(n, d.state, d.appearance).value, cube, `${n} round trip`);
+    const definition = Codec.decodeDefinition(d.definition)._0, state = Codec.decodeState(definition, d.state)._0;
+    // The definition's move policy is outer-wide: a wide turn of the layers layer..n-1 moves the rows 0..n-1-layer.
+    for (const layer of new Set([n - 1, Math.max(1, Math.floor(n / 2)), 1])) {
+      const turned = Validate.applyMove(definition, state, Move.make(Shell.makeSize(n)._0, 'Y', Array.from({ length: n - layer }, (_, i) => layer + i), -1)._0);
+      assert.equal(turned.TAG, 'Ok', `${n} layer ${layer} ${JSON.stringify(turned)}`);
+      const after = cubeStateFromWire(n, Codec.encodeState(turned._0), d.appearance).value, row = (face, r) => face.slice(r * n, r * n + n);
+      for (let r = 0; r <= n - 1 - layer; r++) {
+        assert.deepEqual(row(after.f, r), row(cube.r, r), `${n} layer ${layer}: F row ${r} from R`);
+        assert.deepEqual(row(after.l, r), row(cube.f, r), `${n} layer ${layer}: L row ${r} from F`);
+        assert.deepEqual(row(after.b, r), row(cube.l, r), `${n} layer ${layer}: B row ${r} from L`);
+        assert.deepEqual(row(after.r, r), row(cube.b, r), `${n} layer ${layer}: R row ${r} from B`);
+      }
+      for (let r = n - layer; r < n; r++) assert.deepEqual(row(after.f, r), row(cube.f, r), `${n} layer ${layer}: F row ${r} unchanged`);
+    }
+    const opened = open(d.definition, d.state, d.appearance, d.options);
+    assert.equal(opened.ok, true, `${n} ${JSON.stringify(opened.error)}`);
+    assert.equal(validateProjection(opened.value.projection).ok, true, `${n} projection`);
+    assert.equal(opened.value.projection.pieces.length, Shell.slotCount(Shell.makeSize(n)._0));
+    assert.equal(opened.value.projection.pieces.flatMap((p) => p.stickers).length, 6 * n * n);
+    assert.deepEqual(opened.value.projection.presentation.layerWidths, standardLayerWidths(n));
+    for (const face of FACE_KEYS) assert.equal(faceStickerIds(n, face).length, n * n);
+  }
+});
+
+test('the viewer maximum is Core maxSize, and the body radius stays inside the profile limit up to it', () => {
+  assert.equal(MAX_CUBE_SIZE, Shell.maxSize);
+  for (const n of [2, 15, 16, 25, 26, 40, 64]) { const p = cubeStatePresentationFor(n); assert.ok(p.bodyRadius <= (p.cellSize - p.bodyGap) / 2, `${n}`); assert.ok(p.bodyInnerRadius <= p.bodyRadius); }
+  // Up to 15 the radius is the unchanged rule 0.055 * edge / 3.
+  for (const n of ACCEPTED) { const p = cubeStatePresentationFor(n), edge = standardLayerWidths(n).reduce((a, b) => a + b, 0); assert.ok(Math.abs(p.bodyRadius - 0.055 * edge / 3) < 1e-12, `${n}`); }
+});
+
+test('sizes 16 and 64 are not rejected (structure only, not accepted)', () => {
+  for (const n of [16, 64]) {
+    const cube = solved(n), made = cubeStateDocuments(n, cube, PALETTE);
+    assert.equal(made.ok, true, `${n} ${JSON.stringify(made.error)}`);
+    assert.deepEqual(cubeStateFromWire(n, made.value.state, made.value.appearance).value, cube, `${n}`);
+    assert.equal(faceStickerIds(n, 'u').length, n * n);
+    const opened = open(made.value.definition, made.value.state, made.value.appearance, made.value.options);
+    assert.equal(opened.ok, true, `${n} ${JSON.stringify(opened.error)}`);
+    assert.equal(validateProjection(opened.value.projection).ok, true);
+  }
+  assert.equal(cubeStateDocuments(65, solved(2), PALETTE).error.code, 'InvalidSize');
 });
