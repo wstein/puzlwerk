@@ -86,6 +86,13 @@ try{
    await page.waitForTimeout(300);
    const [,xminGiven]=await bisect(x+4,centre[0],()=>true);
    assert.ok(Math.abs(xminGiven-xmin)<=2,`n=${n} the face edge is at x ${xmin} with the derived half extent and at x ${xminGiven} with the given one`);
+   // seamWide reaches the pick through setPlayTarget: a vertical swipe leaning left that starts just inside layer 1 next to the boundary 0/1 turns the block of layers 0 and 1; without the option it turns layer 1 only.
+   const seamSwipe=async()=>{for(const share of [.12,.15,.18,.22]){await page.evaluate(()=>{window.spyLayers.length=0;window.sizeRange.stage.setViewPreset('front')});const sx=x1+share*unit;await page.mouse.move(sx,ry);await page.mouse.down();await page.mouse.move(sx-12,ry-40,{steps:3});const hit=await page.evaluate(()=>window.spyLayers.at(-1)??null);await page.mouse.up();if(hit)return hit.layers}return null};
+   for(const [seamWide,expected] of [[false,[1]],[true,[0,1]]]){
+    await page.evaluate(([seamWide])=>{const {stage,child,widths,half,n}=window.sizeRange;stage.setInteractionMode('view');const t=stage.setPlayTarget({child,player:window.spyPlayer,size:n,layerWidths:widths,halfExtent:half,...(seamWide?{seamWide:true}:{})});if(!t.ok)throw Error(t.error.message);stage.setInteractionMode('play')},[seamWide]);
+    await page.waitForTimeout(300);ry=cy;let swiped=null;for(const dy of [0,9,-9,18,-18]){ry=cy+dy;swiped=await seamSwipe();if(swiped)break}
+    assert.deepEqual(swiped,expected,`n=${n} seamWide ${seamWide}: the swipe next to the boundary 0/1 turns layers ${expected}`);
+   }
    await page.evaluate(()=>{const {stage,child,player,widths,half,n}=window.sizeRange;stage.setInteractionMode('view');stage.setPlayTarget({child,player,size:n,layerWidths:widths,halfExtent:half})});
   }
   await page.evaluate(()=>{window.sizeRange.stage.setRotationMode('smart');window.sizeRange.stage.setInteractionMode('view')});
