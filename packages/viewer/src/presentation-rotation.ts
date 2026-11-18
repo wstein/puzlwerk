@@ -32,3 +32,22 @@ export function fitPresentationCamera(camera: THREE.PerspectiveCamera, sphereRad
   camera.updateProjectionMatrix();
   return distance;
 }
+
+/**
+ * Stage options that fit a cube of any size: `{ viewPolicy, casterEnvelope }` for `createCubeStage`, from the cube's half extent
+ * (`layerEdge(widths) / 2`). The camera keeps the whole turn sphere in view at every orientation; the group is not scaled, so
+ * lights and shadow settings keep their meaning. The stage default is the same fit for half extent 1.
+ */
+export function cubeStageFit(halfExtent: number): {
+  readonly viewPolicy: (view: { readonly aspect: number; readonly fovDegrees: number; readonly zoom: number }) => { readonly distance: number; readonly far: number; readonly groupScale: number };
+  readonly casterEnvelope: { readonly radius: number; readonly clearance: number };
+} {
+  const radius = cubePresentationRadius(halfExtent);
+  return {
+    viewPolicy: (view) => {
+      const distance = presentationCameraRadius(view.aspect, radius, view.fovDegrees) * view.zoom;
+      return { distance, far: Math.max(100, distance + 2 * radius), groupScale: 1 };
+    },
+    casterEnvelope: { radius, clearance: .08 * Math.max(1, halfExtent) },
+  };
+}
