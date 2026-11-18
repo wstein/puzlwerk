@@ -88,7 +88,7 @@ test('atomic synchronization rejects immutable rewrites, owns revisions and veri
 test('marked source cells project exactly through all proper matrices, every face and quarter turn',()=>{
  const basis={U:[[0,1,0],[0,0,-1]],R:[[1,0,0],[0,1,0]],F:[[0,0,1],[0,1,0]],D:[[0,-1,0],[0,0,1]],L:[[-1,0,0],[0,1,0]],B:[[0,0,-1],[0,1,0]]};
  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],dot=(a,b)=>a.reduce((v,x,i)=>v+x*b[i],0),mul=(m,v)=>[0,1,2].map(r=>dot(m.slice(r*3,r*3+3),v));
- for(let n=2;n<=8;n++)for(let q=0;q<4;q++){
+ for(let n=2;n<=15;n++)for(let q=0;q<4;q++){
   const input=structuredClone(fixture.capture);input.size=n;input.observations.forEach(p=>p.sourceGrid=Array.from({length:n},(_,r)=>Array.from({length:n},(_,c)=>`${p.slot}/${r}/${c}`)));
   const mapping=structuredClone(fixture.candidate);mapping.mapping.forEach(p=>p.quarterTurns=q);const [capture,candidate]=open(input,mapping);
   for(const rotation of Orientation.all()){
