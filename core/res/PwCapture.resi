@@ -13,6 +13,8 @@ type observation = {
   guideStep: option<int>,
   mirrored: option<bool>,
 }
+// Largest accepted capture size N (NxN); the smallest is 2.
+@genType let maxAcceptedSize: int
 @genType
 type input = {captureId: string, revision: int, size: int, observations: array<observation>}
 @genType

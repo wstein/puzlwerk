@@ -77,6 +77,9 @@ let integer = n => {
   Float.isFinite(f) && Math.floor(f) == f
 }
 let nonnegative = n => integer(n) && n >= 0
+// Accepted capture sizes: 2 through maxAcceptedSize (owner decision 2026-11-18). PwShell.maxSize bounds
+// structure only; capture acceptance is the smaller, tested range.
+let maxAcceptedSize = 15
 let identityTransform = () => PwOrientation.toArray(PwOrientation.identity)
 let createCapture = (data: input) => {
   if (
@@ -84,7 +87,7 @@ let createCapture = (data: input) => {
     !nonnegative(data.revision) ||
     !integer(data.size) ||
     data.size < 2 ||
-    data.size > 8
+    data.size > maxAcceptedSize
   ) {
     Rejected({error: "InvalidCapture"})
   } else if (
