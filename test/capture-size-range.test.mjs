@@ -32,3 +32,16 @@ for(const size of sizes){
 test('sizes below 2, above 15, fractional and non-finite are rejected',()=>{
   for(const size of [-1,0,1,16,64,65,2.5,NaN,Infinity])assert.deepEqual(Capture.createCapture({...input(2),size}),{ok:false,error:'InvalidCapture'},String(size));
 });
+test('odd sizes bind photos by a distinguishable middle cell, never by other cells',()=>{
+  for(const size of sizes.filter(n=>n%2===1)){
+    const data=input(size),mid=(size-1)/2;
+    data.observations.forEach(p=>{p.sourceGrid=p.sourceGrid.map(row=>row.map(()=>'x'));p.sourceGrid[mid][mid]=p.slot});
+    const capture=success(Capture.createCapture(data)),centers=faces.map(target=>({target,color:target}));
+    const session=success(Recovery.findMatchingCube(capture,{action:'findMatchingCube',searchId:'m',maxEvaluated:5,maxCandidates:2,centers,reviewedGrids:undefined},()=>check()));
+    const entries=Recovery.describeSession(session).candidates;assert.ok(entries.length>=1,String(size));
+    for(const e of entries)for(const p of e.candidate.mapping)assert.equal(p.photoId,'photo-'+p.target,String(size));
+    const wrong=faces.map(target=>({target,color:'w'+target}));
+    const none=success(Recovery.findMatchingCube(capture,{action:'findMatchingCube',searchId:'m2',maxEvaluated:5,maxCandidates:2,centers:wrong,reviewedGrids:undefined},()=>check()));
+    assert.equal(Recovery.describeSession(none).candidates.length,0,String(size));
+  }
+});
