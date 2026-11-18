@@ -45,8 +45,8 @@ test('canonical provenance is not applied a second time and source IDs survive a
   for(const p of projection){const photo=fixture.capture.observations.find(x=>x.photoId===p.photoId);assert.equal(p.grid.flat().length,photo.sourceGrid.flat().length);assert.deepEqual([...p.grid.flat()].sort(),[...photo.sourceGrid.flat()].sort());}
  }
 });
-test('same colors never collapse separate photo identities for sizes 2 through 8 and each quarter turn',()=>{
- for(let size=2;size<=8;size++)for(let q=0;q<4;q++){
+test('same colors never collapse separate photo identities for sizes 2 through 15 and each quarter turn',()=>{
+ for(let size=2;size<=15;size++)for(let q=0;q<4;q++){
   const input=structuredClone(fixture.capture);input.size=size;input.observations.forEach(p=>p.sourceGrid=Array.from({length:size},(_,r)=>Array.from({length:size},(_,c)=>`${r}:${c}`)));
   const mapping=structuredClone(fixture.candidate);mapping.mapping.forEach(p=>p.quarterTurns=q);
   const [capture,candidate]=open(input,mapping),projection=success(Capture.projectMapping(capture,candidate,Capture.identityTransform()));
