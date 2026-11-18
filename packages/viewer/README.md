@@ -121,3 +121,11 @@ The demo `demo/size-range.html?n=9` shows a solved CubeState through the package
 (`PLAYWRIGHT_MODULE`, demo server running, optional `CHROMIUM_PATH`, `SHOT_DIR`, `PERF=1`) checks sizes 2, 3, 7, 9 and 15 in a
 browser: presets, stickerless, interaction mode and a Shift+drag turn. Its frame-time figure comes from software rendering and is
 a rough upper bound, not a GPU measurement.
+
+Play parity with the CubeAssembler main view (bridge `@puzlwerk/viewer/bridge/cube-state`, stage):
+`cubeTurnToMove` and `moveToCubeTurn` translate CubeAssembler's `{face, depth, width, turns}` and Core's
+`{axis, layers, turns}`. A definition with the default policy `outer-wide` rejects an inner single layer
+(`2R`) and the whole cube; `cubeStateDocuments(n, cube, palette, {movePolicy: 'any'})` builds the definition
+with the policy `any` that wire-v1 already defines. `paletteArtwork` gives the `setArtwork` argument for a
+new palette without reopening the cube. `CubeStage.setShadowOpacity` sets the floor shadow strength (0..1)
+without a complete lighting.
