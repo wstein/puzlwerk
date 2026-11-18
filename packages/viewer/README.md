@@ -145,3 +145,6 @@ await player.value.turn(turn.value.axis, turn.value.layers, turn.value.turns, 20
 The shadow strength is the lighting field `floorOpacity` (default 0.3). `setShadowOpacity(v)` is a thin shortcut that sets
 that one value without a complete lighting; a later `setLighting` sets it again from its own `floorOpacity`. No new
 contract field exists.
+
+`cubeStateDocuments` returns `InvalidPolicy` when `options` is not an object (a string such as `'any'` included) or `movePolicy` is neither
+`'outer-wide'` nor `'any'`; `cubeTurnToMove` accepts the capital face letters `U R F D L B` only (`InvalidTurn` otherwise).
