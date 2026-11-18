@@ -10,6 +10,7 @@ import * as Orientation from '../../../core/res/PwOrientation.res.mjs';
 import * as Pose from '../../../core/res/PwPose.res.mjs';
 import * as Shell from '../../../core/res/PwShell.res.mjs';
 import { standardLayerWidths } from '../../viewer/dist/layer-widths.js';
+import { validCubeSize } from '../../viewer/dist/size-range.js';
 
 /** Facelet arrays of CubeState, in the order of the net: U, R, F, D, L, B. */
 export const FACE_KEYS = Object.freeze(['u', 'r', 'f', 'd', 'l', 'b']);
@@ -52,16 +53,19 @@ const definitionOf = (n) => {
   const decoded = Codec.decodeDefinition(definitionText(n));
   return decoded.TAG === 'Ok' ? decoded._0 : undefined;
 };
-const validSize = (n) => Number.isInteger(n) && n >= 2 && n <= 7;
+const validSize = validCubeSize; // 2..64 (Core PwShell.maxSize); the viewer accepts 2..15, see size-range.js
+
+// The radius rule (the 3x3 millimeter radius at the same edge) grows with the cube; the profile allows at most half of cell minus gap. Only reached beyond the accepted sizes (from about 25).
+const MAX_BODY_RADIUS = (1 - 0.01) / 2;
 
 /** Presentation profile of the shared viewer for an n-cube: standard layer widths, two bevel radii. */
 export function cubePresentation(n) {
-  const widths = standardLayerWidths(n), edge = widths.reduce((a, b) => a + b, 0), radius = 0.055 * edge / 3;
+  const widths = standardLayerWidths(n), edge = widths.reduce((a, b) => a + b, 0), radius = Math.min(0.055 * edge / 3, MAX_BODY_RADIUS);
   return { cellSize: 1, bodyGap: 0.01, bodyRadius: radius, bodyInnerRadius: 0.6 * radius, bodyKind: 'twoRadius', bodyBevelSegments: 2, size: n, nominalEdge: edge, layerWidths: widths, stickerWidth: 0.87, stickerRadius: 0.055, stickerOffset: 0.502 };
 }
 
 /**
- * Wire-v1 definition, home state and appearance texts for a CubeState of size n (2 to 7), and the
+ * Wire-v1 definition, home state and appearance texts for a CubeState of size n (2 to 64; 2 to 15 accepted, larger ones only structurally open), and the
  * `open`/`createPlayer` options. `palette` maps color tokens to #rrggbb; a facelet whose token is
  * not in it (or not a valid ID) is left uncolored: it is drawn in `defaultColor` and `cubeStateFromWire` returns '' for it.
  * IDs: piece `<faces of the piece in U,R,F,D,L,B order>` (`URF`, `UR`, `U`), from size 4 on followed by `:<x>_<y>_<z>` of its

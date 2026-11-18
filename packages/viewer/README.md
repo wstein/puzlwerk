@@ -92,7 +92,7 @@ viewports are not physical-device or full HQ acceptance.
 `@puzlwerk/viewer/bridge` ships the Core-to-viewer bridge, and `@puzlwerk/viewer/bridge/cube-state` the CubeState translation, with the compiled Core modules they import
 (`npm run build --workspace @puzlwerk/viewer` copies them to `dist/bridge`; the packed tarball is
 self-contained apart from `three` and `@rescript/runtime`). The latter adds `cubeStateDocuments(size, cube, palette)`,
-which turns CubeAssembler's CubeState (six facelet arrays, sizes 2 to 7) into wire-v1 definition, home state,
+which turns CubeAssembler's CubeState (six facelet arrays, sizes 2 to 64; 2 to 15 are tested and accepted) into wire-v1 definition, home state,
 appearance and `open` options with the standard layer widths; `cubeStateFromWire` reads the facelets back after
 turns; `faceStickerIds(size, face)` lists the viewer sticker IDs of one face. A facelet-only state has no piece
 identity, so the appearance carries each slot's color. `CubeStage.setStickerHighlight(child, ids)` outlines those
