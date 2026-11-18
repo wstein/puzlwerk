@@ -28,6 +28,8 @@ test('seamAt: the outer quarters of a sticker next to a boundary are the seam (w
  assert.deepEqual(seamAt(-.05,5,undefined,.25,.16),{seam:2,touched:2},'minimum 0.16 reaches it');
  assert.equal(seamAt(-.95,5,undefined,.9,0),null,'an outer layer: 0.35 from its only boundary, the cap is half a layer (0.2)');
  assert.deepEqual(seamAt(-.75,5,undefined,.9,0),{seam:1,touched:0},'0.15 from it');
+ assert.equal(seamAt(-.82,5,undefined,.9,5),null,'0.22 from the boundary of an outer layer: beyond half a layer (0.2) however large tolerance and minimum are');
+ assert.deepEqual(seamAt(-.79,5,undefined,.9,5),{seam:1,touched:0},'0.19 from it: within half a layer');
  assert.deepEqual(seamAt(-.05,5,undefined,.25,5),{seam:2,touched:2},'capped at half a layer (0.2), still 0.15 away');
 });
 test('seamBlock: both layers at the seam and everything on the chosen side; a block of the whole cube switches sides',()=>{
