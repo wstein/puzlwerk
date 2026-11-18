@@ -150,6 +150,7 @@ contract field exists.
 `'outer-wide'` nor `'any'`; `cubeTurnToMove` accepts the capital face letters `U R F D L B` only (`InvalidTurn` otherwise).
 
 Play events: `createCubeStage` takes `onPlayEvent(event)` with the typed `PlayEvent` union: `hover` (sticker ID, absent when the pointer leaves),
-`turn-begin` (the selection: axis, layers and piece IDs about to turn, from a drag or a two-finger gesture), `turn-end` (`committed` with the
-quarter turns, or `cancelled`; exactly one per `turn-begin`) and `error` (a rejected preview or move). A listener that throws does not
+`turn-begin` (the selection: axis, layers and piece IDs about to turn, `source` is `drag`, or `pair` for a two-finger gesture), `turn-end` (`committed` with the
+quarter turns -1, 1 or 2, or `cancelled`; exactly one per `turn-begin`, also when the stage ends the turn by `dispose`, a new play target, a mode change or blur; a committed
+`turn-end` follows the `onCommit` of the play target the turn began on, so a handler may switch the target) and `error` (a rejected preview or move). A listener that throws does not
 disturb the gesture. The wheel gesture does not emit events yet.
