@@ -148,3 +148,58 @@ test('both policies share the definition id cube<n>; only text and hash differ, 
     assert.equal(open(a.definition, b.state, b.appearance, b.options).ok, true);
   }
 });
+
+// Written-out 3x3 tables for all six faces, the inner slices, blocks and the whole cube, with the policy any (solved colors above).
+// Each entry: [CubeAssembler turn, expected changed facelets as [face, indices, color]].
+const TABLES = [
+  ['F', { face: 'F', depth: 1, turns: 1 }, [['r', [0, 3, 6], 'W'], ['d', [0, 1, 2], 'R'], ['l', [2, 5, 8], 'Y'], ['u', [6, 7, 8], 'O']]],
+  ["F'", { face: 'F', depth: 1, turns: -1 }, [['u', [6, 7, 8], 'R'], ['r', [0, 3, 6], 'Y'], ['d', [0, 1, 2], 'O'], ['l', [2, 5, 8], 'W']]],
+  ['F2', { face: 'F', depth: 1, turns: 2 }, [['u', [6, 7, 8], 'Y'], ['d', [0, 1, 2], 'W'], ['l', [2, 5, 8], 'R'], ['r', [0, 3, 6], 'O']]],
+  ['B', { face: 'B', depth: 1, turns: 1 }, [['l', [0, 3, 6], 'W'], ['d', [6, 7, 8], 'O'], ['r', [2, 5, 8], 'Y'], ['u', [0, 1, 2], 'R']]],
+  ["B'", { face: 'B', depth: 1, turns: -1 }, [['u', [0, 1, 2], 'O'], ['l', [0, 3, 6], 'Y'], ['d', [6, 7, 8], 'R'], ['r', [2, 5, 8], 'W']]],
+  ['D', { face: 'D', depth: 1, turns: 1 }, [['r', [6, 7, 8], 'G'], ['b', [6, 7, 8], 'R'], ['l', [6, 7, 8], 'B'], ['f', [6, 7, 8], 'O']]],
+  ["D'", { face: 'D', depth: 1, turns: -1 }, [['f', [6, 7, 8], 'R'], ['r', [6, 7, 8], 'B'], ['b', [6, 7, 8], 'O'], ['l', [6, 7, 8], 'G']]],
+  ['2F (slice like F)', { face: 'F', depth: 2, turns: 1 }, [['r', [1, 4, 7], 'W'], ['d', [3, 4, 5], 'R'], ['l', [1, 4, 7], 'Y'], ['u', [3, 4, 5], 'O']]],
+  ['2B (slice like B)', { face: 'B', depth: 2, turns: 1 }, [['l', [1, 4, 7], 'W'], ['d', [3, 4, 5], 'O'], ['r', [1, 4, 7], 'Y'], ['u', [3, 4, 5], 'R']]],
+  ['2U (slice like U)', { face: 'U', depth: 2, turns: 1 }, [['l', [3, 4, 5], 'G'], ['b', [3, 4, 5], 'O'], ['r', [3, 4, 5], 'B'], ['f', [3, 4, 5], 'R']]],
+  ['2D (slice like D)', { face: 'D', depth: 2, turns: 1 }, [['r', [3, 4, 5], 'G'], ['b', [3, 4, 5], 'R'], ['l', [3, 4, 5], 'B'], ['f', [3, 4, 5], 'O']]],
+  ['2L (slice like L)', { face: 'L', depth: 2, turns: 1 }, [['f', [1, 4, 7], 'W'], ['d', [1, 4, 7], 'G'], ['b', [1, 4, 7], 'Y'], ['u', [1, 4, 7], 'B']]],
+  ['Fw (F and the slice)', { face: 'F', depth: 2, width: 2, turns: 1 }, [['r', [0, 3, 6, 1, 4, 7], 'W'], ['d', [0, 1, 2, 3, 4, 5], 'R'], ['l', [2, 5, 8, 1, 4, 7], 'Y'], ['u', [6, 7, 8, 3, 4, 5], 'O']]],
+  ['Bw (B and the slice)', { face: 'B', depth: 2, width: 2, turns: 1 }, [['l', [0, 3, 6, 1, 4, 7], 'W'], ['d', [6, 7, 8, 3, 4, 5], 'O'], ['r', [2, 5, 8, 1, 4, 7], 'Y'], ['u', [0, 1, 2, 3, 4, 5], 'R']]],
+  ['Uw (U and the slice)', { face: 'U', depth: 2, width: 2, turns: 1 }, [['l', [0, 1, 2, 3, 4, 5], 'G'], ['b', [0, 1, 2, 3, 4, 5], 'O'], ['r', [0, 1, 2, 3, 4, 5], 'B'], ['f', [0, 1, 2, 3, 4, 5], 'R']]],
+];
+const WHOLE = [
+  ['x (like R)', { face: 'R', depth: 3, width: 3, turns: 1 }, { u: 'G', f: 'Y', d: 'B', b: 'W' }],
+  ["x' (like R')", { face: 'R', depth: 3, width: 3, turns: -1 }, { u: 'B', f: 'W', d: 'G', b: 'Y' }],
+  ['y (like U)', { face: 'U', depth: 3, width: 3, turns: 1 }, { l: 'G', b: 'O', r: 'B', f: 'R' }],
+  ['z (like F)', { face: 'F', depth: 3, width: 3, turns: 1 }, { r: 'W', d: 'R', l: 'Y', u: 'O' }],
+  ['whole like L', { face: 'L', depth: 3, width: 3, turns: 1 }, { f: 'W', d: 'G', b: 'Y', u: 'B' }],
+  ['whole like D', { face: 'D', depth: 3, width: 3, turns: 1 }, { r: 'G', b: 'R', l: 'B', f: 'O' }],
+  ['whole like B', { face: 'B', depth: 3, width: 3, turns: 1 }, { l: 'W', d: 'O', r: 'Y', u: 'R' }],
+];
+test('written-out 3x3 tables for D, F, B, inner slices of every axis and blocks, with the policy any', () => {
+  for (const [name, turn, expected] of TABLES) {
+    const move = cubeTurnToMove(3, turn);
+    assert.equal(move.ok, true, name);
+    const want = expected.flatMap(([f, list, c]) => cells(f, list, c)).sort();
+    assert.deepEqual(changed(turned(3, move.value, 'any'), 3), want, name);
+    // The same move comes back as the same turn's move.
+    assert.deepEqual(cubeTurnToMove(3, moveToCubeTurn(3, move.value).value).value, move.value, `${name} round trip`);
+  }
+});
+test('written-out 3x3 whole-cube rotations for all faces', () => {
+  for (const [name, turn, faces] of WHOLE) {
+    const move = cubeTurnToMove(3, turn);
+    assert.equal(move.ok, true, name);
+    const cube = turned(3, move.value, 'any');
+    for (const f of FACE_KEYS) assert.deepEqual(cube[f], Array(9).fill(faces[f] ?? COLORS[f]), `${name} ${f}`);
+  }
+});
+
+test('face letters are the capitals U R F D L B; options must be an object and the policy one of the two values', () => {
+  for (const face of ['r', 'u', 'f', 'd', 'l', 'b', 'Rw', '', 'X', undefined, null, 1]) assert.equal(cubeTurnToMove(3, { face, depth: 1, turns: 1 }).error?.code, 'InvalidTurn', String(face));
+  for (const face of ['U', 'R', 'F', 'D', 'L', 'B']) assert.equal(cubeTurnToMove(3, { face, depth: 1, turns: 1 }).ok, true, face);
+  for (const options of ['any', null, 5, true, [], ['any']]) assert.deepEqual(cubeStateDocuments(3, solved(3), PALETTE, options), { ok: false, error: { code: 'InvalidPolicy' } }, JSON.stringify(options));
+  for (const movePolicy of [null, 1, 'Any', '']) assert.deepEqual(cubeStateDocuments(3, solved(3), PALETTE, { movePolicy }), { ok: false, error: { code: 'InvalidPolicy' } }, JSON.stringify(movePolicy));
+  for (const options of [undefined, {}, { movePolicy: undefined }, { movePolicy: 'any' }]) assert.equal(cubeStateDocuments(3, solved(3), PALETTE, options).ok, true);
+});

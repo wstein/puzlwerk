@@ -72,11 +72,13 @@ export function cubePresentation(n) {
  * IDs: piece `<faces of the piece in U,R,F,D,L,B order>` (`URF`, `UR`, `U`), from size 4 on followed by `:<x>_<y>_<z>` of its
  * home slot (`m` marks a minus sign, `URF:3_3_3`); sticker `<piece>.<face>`; the viewer prefixes `piece:` / `sticker:`.
  * Every sticker has symmetry C4: a color-only cube has no orientation to preserve.
+ * `options` is `{movePolicy?: 'outer-wide' | 'any'}`; anything else is `InvalidPolicy`.
  * Not covered: `options.colorFrame` (no ColorFrame translation in either direction).
  */
 export function cubeStateDocuments(n, cube, palette, options = {}) {
   if (!validSize(n)) return fail('InvalidSize');
-  const movePolicy = options?.movePolicy ?? 'outer-wide';
+  if (options !== undefined && (options === null || typeof options !== 'object' || Array.isArray(options))) return fail('InvalidPolicy');
+  const movePolicy = options?.movePolicy === undefined ? 'outer-wide' : options.movePolicy;
   if (!MOVE_POLICIES.includes(movePolicy)) return fail('InvalidPolicy');
   if (!cube || typeof cube !== 'object' || FACE_KEYS.some((f) => !Array.isArray(cube[f]) || cube[f].length !== n * n || cube[f].some((t) => typeof t !== 'string'))) return fail('InvalidCubeState');
   if (!palette || typeof palette !== 'object' || Object.entries(palette).some(([, hex]) => typeof hex !== 'string' || !HEX.test(hex))) return fail('InvalidPalette');
@@ -148,7 +150,7 @@ const invalidTurn = () => fail('InvalidTurn');
  */
 export function cubeTurnToMove(n, turn) {
   if (!validSize(n)) return fail('InvalidSize');
-  const face = typeof turn?.face === 'string' ? turn.face.toLowerCase() : undefined;
+  const face = typeof turn?.face === 'string' && /^[URFDLB]$/.test(turn.face) ? turn.face.toLowerCase() : undefined;
   const width = turn?.width ?? 1;
   if (!Object.hasOwn(TURN_AXIS, face) || !Number.isInteger(turn.depth) || !Number.isInteger(width) || !Number.isInteger(turn.turns)) return invalidTurn();
   const outer = turn.depth - width + 1, quarter = ((turn.turns % 4) + 4) % 4;
