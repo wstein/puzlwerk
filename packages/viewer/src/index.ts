@@ -38,7 +38,7 @@ export type {ExposureLights} from './weighted-exposure.js';
 export type {MotionTiming,MotionTimingSource} from './motion-timing.js';
 export {groupZoom} from './zoom-policy.js';
 
-export { standardLayerWidths, STANDARD_CUBE_MEASUREMENTS } from './layer-widths.js';
+export { standardLayerWidths, STANDARD_CUBE_MEASUREMENTS, isEstimatedStandardFactor, LARGE_CUBE_OUTER_FACTOR_ESTIMATE, LARGE_CUBE_FIRST_SIZE } from './layer-widths.js';
 export type { StandardLayerWidthsOptions } from './layer-widths.js';
 export {cubePresentationRadius,presentationCameraRadius} from './presentation-rotation.js';
 export {MIN_CUBE_SIZE,MAX_CUBE_SIZE,ACCEPTED_MAX_SIZE,validCubeSize} from './size-range.js';

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { standardLayerWidths, STANDARD_CUBE_MEASUREMENTS, uniformLayerWidths, thickOuterLayerWidths, layerEdge, layerPlanes, layerCenters } from '../dist/layer-widths.js';
+import { standardLayerWidths, isEstimatedStandardFactor, LARGE_CUBE_OUTER_FACTOR_ESTIMATE, LARGE_CUBE_FIRST_SIZE, STANDARD_CUBE_MEASUREMENTS, uniformLayerWidths, thickOuterLayerWidths, layerEdge, layerPlanes, layerCenters } from '../dist/layer-widths.js';
 import * as viewer from '../dist/index.js';
 
 const TABLE = { 2: 1, 3: 1, 4: 1.1, 5: 1.2, 6: 1.4, 7: 1.6 };
@@ -48,8 +48,8 @@ test('outer overrides the table for one call only', () => {
   for (const bad of [0.99, NaN, Infinity, -1]) assert.throws(() => standardLayerWidths(7, { outer: bad }), /Invalid outer layer width/);
 });
 
-test('without outer, sizes outside 2..7 and non integers are errors', () => {
-  for (const n of [0, 1, 8, 2.5, NaN, -3, Infinity]) assert.throws(() => standardLayerWidths(n), /No standard layer widths for N = .*pass options\.outer/);
+test('without outer, sizes outside 2..64 and non integers are errors', () => {
+  for (const n of [0, 1, 65, 2.5, NaN, -3, Infinity]) assert.throws(() => standardLayerWidths(n), /No standard layer widths for N = .*pass options\.outer/);
 });
 
 test('with outer any integer N >= 2 works, invalid N still fails', () => {
@@ -90,4 +90,36 @@ test('calendar acceptance routes keep their explicit outer=1.8', async () => {
   const text = await readFile(new URL('../../../specs/009-viewer-consolidation/acceptance-routes.json', import.meta.url), 'utf8');
   assert.ok(text.includes('outer=1.8'));
   assert.deepEqual(standardLayerWidths(7, { outer: 1.8 }), [1.8, 1, 1, 1, 1, 1, 1.8]);
+});
+
+// Owner decision 2026-11-18 (E): 8..15 keep the 7x7 outer factor 1.6, an estimate; up to 7 the table stays as it was.
+test('sizes up to 7 keep the previous widths byte for byte', () => {
+  const previous = { 2: [1, 1], 3: [1, 1, 1], 4: [1.1, 1, 1, 1.1], 5: [1.2, 1, 1, 1, 1.2], 6: [1.4, 1, 1, 1, 1, 1.4], 7: [1.6, 1, 1, 1, 1, 1, 1.6] };
+  for (const [n, widths] of Object.entries(previous)) assert.equal(JSON.stringify(standardLayerWidths(Number(n))), JSON.stringify(widths), `N=${n}`);
+});
+
+test('8..15 hold the outer factor 1.6 of the 7x7 and name it an estimate', () => {
+  assert.equal(LARGE_CUBE_OUTER_FACTOR_ESTIMATE, 1.6);
+  assert.equal(LARGE_CUBE_FIRST_SIZE, 8);
+  for (let n = 8; n <= 15; n++) {
+    const w = standardLayerWidths(n);
+    assert.equal(w.length, n);
+    assert.equal(w[0], 1.6, `N=${n}`); assert.equal(w[n - 1], 1.6, `N=${n}`);
+    for (const inner of w.slice(1, -1)) assert.equal(inner, 1, `N=${n}`);
+    assert.ok(Math.abs(layerEdge(w) - (n - 2 + 3.2)) < 1e-12, `N=${n}`);
+    assert.equal(isEstimatedStandardFactor(n), true, `N=${n}`);
+  }
+  assert.deepEqual([2, 3, 4, 5, 6, 7].map(isEstimatedStandardFactor), [false, true, false, false, true, false]);
+});
+
+test('outer factor is monotone and bounded over 2..15; the structure is open to 64', () => {
+  let previous = 1;
+  for (let n = 2; n <= 15; n++) {
+    const f = standardLayerWidths(n)[0];
+    assert.ok(f >= previous, `N=${n} ${f} < ${previous}`);
+    assert.ok(f >= 1 && f <= 1.6, `N=${n} ${f}`);
+    previous = f;
+  }
+  for (const n of [16, 32, 64]) { const w = standardLayerWidths(n); assert.equal(w.length, n); assert.equal(w[0], 1.6); assert.equal(w[n - 1], 1.6); }
+  assert.throws(() => standardLayerWidths(65), /No standard layer widths for N = 65/);
 });
