@@ -377,5 +377,14 @@ test('auto-rotate rejects invalid settings, keeps the previous ones and fails af
  for(const bad of [{radiansPerMs:0},{radiansPerMs:-1},{radiansPerMs:NaN},{radiansPerMs:Infinity},{resumeDelayMs:-1},{resumeDelayMs:NaN}])assert.equal(h.stage.setAutoRotate(true,bad).error.code,'InvalidView');
  assert.equal(h.stage.setAutoRotate('yes').error.code,'InvalidView');h.step(10);assert.ok(Math.abs(yawOf(h)-.01)<1e-9,'rate unchanged after rejected calls');
  assert.deepEqual(h.stage.getAutoRotate(),{enabled:true,radiansPerMs:.001,resumeDelayMs:0});
- h.stage.dispose();assert.equal(h.stage.setAutoRotate(false).error.code,'Disposed');
+ h.stage.dispose();assert.equal(h.stage.setAutoRotate(false).error.code,'Disposed');assert.equal(h.stage.getAutoRotate().enabled,false,'a disposed stage reports auto-rotate as off');
+});
+test('auto-rotate does not spin while a contact holds the view for longer than the resume delay',()=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});h.stage.setRotationMode('free');h.step(0);
+ const document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
+ assert.equal(h.stage.attachInput(canvas,panel,undefined,{now:()=>h.now/1000,document,media,window}).ok,true);
+ h.stage.setAutoRotate(true,{radiansPerMs:.001,resumeDelayMs:100});
+ canvas.pointer('pointerdown',0,0);canvas.pointer('pointermove',50,0);h.step(16);const held=yawOf(h);
+ for(let i=0;i<40;i++)h.step(40);assert.equal(yawOf(h),held,'a contact held for 1600 ms, far beyond the 100 ms resume delay, keeps the view still');
+ canvas.pointer('pointerup',50,0);h.step(16);for(let i=0;i<10;i++)h.step(40);assert.notEqual(yawOf(h),held,'after the release the spin resumes');h.stage.dispose();
 });
