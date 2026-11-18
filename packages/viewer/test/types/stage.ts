@@ -38,3 +38,21 @@ const invalidInteraction:InteractionMode='classic';void invalidInteraction;
 import {cubePresentationRadius,presentationCameraRadius} from '../../src/index.js';
 const fitted:number=presentationCameraRadius(1,cubePresentationRadius(3.5),18);
 void fitted;
+
+// Size range, view presets and external appearance/interaction control.
+import {VIEW_PRESETS,viewPresetOrientation,ACCEPTED_MAX_SIZE,MAX_CUBE_SIZE} from '../../src/index.js';
+import type {ViewPreset,ViewerAppearance,StageChild} from '../../src/index.js';
+declare const anyChild:StageChild;
+import type {PlayPlayer} from '../../src/play-pointer.js';
+declare const anyPlayer:PlayPlayer;
+const presetNames:readonly ViewPreset[]=VIEW_PRESETS;const poseOf:[number,number,number,number]=viewPresetOrientation('iso-back');
+// @ts-expect-error Unknown preset names are rejected by the type.
+const badPreset:ViewPreset='top';void badPreset;
+const sizeLimits:number[]=[ACCEPTED_MAX_SIZE,MAX_CUBE_SIZE];void sizeLimits;
+if(result.ok){
+  const s=result.value;
+  s.setViewPreset('isometric');s.setDisplayOrientation(poseOf);void presetNames;
+  const stickerless:ViewerAppearance={construction:'stickerless',frameColor:null};
+  void s.setAppearance(stickerless).then(r=>r.ok);const current:ViewerAppearance=s.getAppearance();const mode:InteractionMode=s.getInteractionMode();void current;void mode;
+  s.setPlayTarget({child:anyChild,player:anyPlayer,size:15,layerWidths:[1.6,1,1,1,1,1,1,1,1,1,1,1,1,1,1.6]});
+}
