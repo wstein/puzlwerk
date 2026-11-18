@@ -17,8 +17,10 @@ try{
   const box=await page.locator('#stage canvas').boundingBox();
   if(process.env.SHOT_DIR)await page.locator('#stage').screenshot({path:`${process.env.SHOT_DIR}/stage-${String(n).padStart(2,'0')}.png`});
   // Presets: the setter reports the pose through onViewChanged; the pose is the preset.
-  const preset=await page.evaluate(()=>{const {stage,views}=window.sizeRange,out={};for(const name of ['front','right','up','iso-back']){const before=views.length,r=stage.setViewPreset(name);out[name]={ok:r.ok,reported:views.length>before,pose:views.at(-1)}}return out});
-  for(const [name,r] of Object.entries(preset)){assert.equal(r.ok,true,`n=${n} ${name}`);assert.equal(r.reported,true,`n=${n} ${name}`)}
+  // Every preset reports exactly the pose that viewPresetOrientation names (same rotation, q and -q alike); consecutive presets differ, so a stale pose cannot pass.
+  const preset=await page.evaluate(async()=>{const {stage,views}=window.sizeRange,{VIEW_PRESETS,viewPresetOrientation}=await import('/packages/viewer/dist/index.js'),out={};for(const name of VIEW_PRESETS){const before=views.length,r=stage.setViewPreset(name);out[name]={ok:r.ok,reported:views.length>before,pose:views.at(-1),want:viewPresetOrientation(name)}}return out});
+  assert.deepEqual(Object.keys(preset),['up','right','front','down','left','back','isometric','iso-back'],`n=${n} all eight presets`);
+  for(const [name,r] of Object.entries(preset)){assert.equal(r.ok,true,`n=${n} ${name}`);assert.equal(r.reported,true,`n=${n} ${name}`);const dot=Math.abs(r.pose.reduce((s,v,i)=>s+v*r.want[i],0));assert.ok(dot>1-1e-9,`n=${n} ${name} pose ${JSON.stringify(r.pose)} is not ${JSON.stringify(r.want)}`)}
   assert.ok(Math.abs(preset.front.pose[3]-1)<1e-9,`n=${n} front is the identity`);
   // Stickerless from outside; the hidden panel's checkbox follows.
   const sl=await page.evaluate(async()=>{const {stage}=window.sizeRange;const r=await stage.setAppearance({construction:'stickerless',frameColor:null});const box=document.querySelector('input[aria-label="Stickerless"]');return {ok:r.ok,mode:stage.getAppearance().construction,checked:box?.checked,error:r.error}});
