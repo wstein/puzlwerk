@@ -60,11 +60,11 @@ const FACE_AXIS_INDEX = { R: 0, L: 0, U: 1, D: 1, F: 2, B: 2 } as const;
  * `drag` the screen vector since pointer-down. The side is the lean along the layer axis; without a clear lean it is the side of the
  * touched layer.
  */
-export function seamWideBlock(o: { readonly n: number; readonly layerWidths?: LayerWidths; readonly hit: Hit; readonly axes: AxisScreen; readonly seamWide: SeamWide }, axis: Axis, drag: Vec2): [number, number] | null {
+export function seamWideBlock(o: { readonly n: number; readonly layerWidths?: LayerWidths; readonly hit: Hit; readonly axes: AxisScreen; readonly halfExtent?: number; readonly seamWide: SeamWide }, axis: Axis, drag: Vec2): [number, number] | null {
   const k = AXES.indexOf(axis), a = 3 - FACE_AXIS_INDEX[o.hit.face] - k;
   if (k < 0 || a < 0 || a > 2 || a === k) return null;
   const screens = [o.axes.x, o.axes.y, o.axes.z], u = screens[k], v = screens[a], s = o.seamWide;
-  const pxPerUnit = Math.hypot(u[0], u[1]), minLocal = (s.minPx ?? 0) > 0 && pxPerUnit > 1e-9 ? (s.minPx as number) / pxPerUnit : 0;
+  const pxPerUnit = Math.hypot(u[0], u[1]) * (o.halfExtent !== undefined && o.halfExtent > 0 ? o.halfExtent : 1), minLocal = (s.minPx ?? 0) > 0 && pxPerUnit > 1e-9 ? (s.minPx as number) / pxPerUnit : 0;
   const found = seamAt(o.hit.point[k], o.n, o.layerWidths, s.tolerance ?? SEAM_TOLERANCE, minLocal);
   if (!found) return null;
   const swipe = seamSwipe(drag, u, v), clear = swipe !== null && Math.abs(swipe.lean) >= (s.lean ?? SEAM_LEAN) * Math.hypot(swipe.lean, swipe.turn);

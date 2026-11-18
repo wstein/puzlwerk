@@ -1,4 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
+import * as THREE from 'three';import {pickPlayFace} from '../dist/play-picking.js';import {standardLayerWidths} from '../dist/index.js';
 import {seamAt,seamBlock} from '../dist/play-seam.js';
 import {beginGesture,moveGesture,releaseGesture} from '../dist/play-gesture.js';
 // Front view: the F face shows x to the right (screen [100,0]) and y downward (screen [0,100]); a horizontal drag turns about y.
@@ -79,4 +80,27 @@ test('the play route passes the target seamWide option to the gesture: a seam sw
   calls.length=0;const route=createPlayPointer({pick:()=>({hit:{face:'F',point:[0,-.18,1]},axes,n:5,pxPerQuarter:100,player,...(seamWide?{seamWide}:{})})});
   route.down(ev('pointerdown',0,0));route.move(ev('pointermove',60,10));route.end(ev('pointerup',60,10),false);assert.deepEqual(calls,expected,JSON.stringify(seamWide));
  }
+});
+// Picks made by pickPlayFace on a real 15x15 frame: `axes` are screen px per parent unit and `hit.point` is divided by halfExtent, so minPx must be scaled by both.
+const realFrame=()=>{
+ const widths=standardLayerWidths(15),half=widths.reduce((a,b)=>a+b,0)/2,rect={left:0,top:0,width:860,height:860};
+ const camera=new THREE.PerspectiveCamera(28,1,.1,100);camera.position.set(0,0,half*5);camera.lookAt(0,0,0);camera.updateMatrixWorld();camera.updateProjectionMatrix();
+ const parent=new THREE.Group(),mesh=new THREE.Mesh(new THREE.BoxGeometry(2*half,2*half,2*half),new THREE.MeshBasicMaterial());mesh.userData.stickerId='sticker:s';parent.add(mesh);parent.updateMatrixWorld(true);
+ const bound=s=>2*widths.slice(0,s).reduce((a,b)=>a+b,0)/(2*half)-1;
+ const rows=[];for(let r=100;r<=760;r++){const p=pickPlayFace(parent,camera,rect,430,r,half);if(p)rows.push({r,p})}
+ const pxPerLocal=Math.abs(rows[0].p.axes.y[1])*half;
+ const nearest=y=>rows.reduce((best,x)=>Math.abs(x.p.hit.point[1]-y)<Math.abs(best.p.hit.point[1]-y)?x:best);
+ const block=(x,minPx)=>{const g=beginGesture({n:15,layerWidths:widths,hit:x.p.hit,point:[430,x.r],axes:x.p.axes,halfExtent:half,pxPerQuarter:100,seamWide:{minPx}});const m=moveGesture(g,[490,x.r+5]);return [m.lock.from,m.lock.to]};
+ return {widths,half,bound,nearest,pxPerLocal,block,layerPx:0};
+};
+test('minPx is a screen length: with real picks the middle of an inner layer is no seam and the seam reaches minPx from the boundary, not minPx times halfExtent',()=>{
+ const f=realFrame(),inner=f.pxPerLocal*(2*f.widths[7]/(2*f.half));assert.ok(inner>30&&inner<60,`inner layer ${inner} px`);
+ const centre=f.nearest((f.bound(7)+f.bound(8))/2);
+ for(const minPx of [0,4,8]){const b=f.block(centre,minPx);assert.equal(b[0],b[1],`layer centre, minPx ${minPx}: one layer ${b}`)}
+ const tol=.25*inner;assert.ok(tol>9&&tol<12,`default tolerance ${tol} px`);
+ const at=px=>f.nearest(f.bound(7)+px/f.pxPerLocal);
+ assert.equal(f.block(at(tol+2),0).join(),'7,7','just outside the default tolerance: one layer');
+ assert.equal(f.block(at(tol+2),4).join(),'7,7','minPx 4 is below the default tolerance and changes nothing');
+ const wide=f.block(at(tol+2),tol+4);assert.ok(wide[0]<=6&&wide[1]>=7&&wide[1]-wide[0]>=2,`minPx beyond the default tolerance reaches 2 px further out: ${wide}`);
+ assert.equal(f.block(at(tol+6),tol+4).join(),'7,7','but not 6 px further out');
 });
