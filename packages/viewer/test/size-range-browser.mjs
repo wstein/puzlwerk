@@ -1,9 +1,9 @@
 // Run with PLAYWRIGHT_MODULE pointing to the installed Playwright module and the demo server running (npm run dev --workspace @puzlwerk/viewer).
-// Optional: CHROMIUM_PATH=<browser executable> when Playwright expects another build; SHOT_DIR=<dir> writes one screenshot per size; PERF=1 prints a rough frame-time figure per size.
+// Optional: PORT=<port> (the server and this script, default 4179), CHROMIUM_PATH=<browser executable> when Playwright expects another build; SHOT_DIR=<dir> writes one screenshot per size; PERF=1 prints a rough frame-time figure per size.
 // Chromium here renders with SwiftShader (CPU): the figures are an upper-bound approximation, not a GPU measurement.
 import {pathToFileURL} from 'node:url';import {mkdir} from 'node:fs/promises';import assert from 'node:assert/strict';
 const {chromium}=await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
-const sizes=(process.env.SIZES??'2,3,7,9,15').split(',').map(Number),origin='http://127.0.0.1:4179/packages/viewer/demo/size-range.html';
+const sizes=(process.env.SIZES??'2,3,7,9,15').split(',').map(Number),origin=`http://127.0.0.1:${process.env.PORT??4179}/packages/viewer/demo/size-range.html`;
 const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
 const report=[];
 try{
