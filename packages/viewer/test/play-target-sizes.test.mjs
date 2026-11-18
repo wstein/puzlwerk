@@ -97,3 +97,19 @@ test('picking returns the sticker and a hit the gesture core maps to the same ce
     }
   }
 });
+
+// Edge rule on the widths path: a coordinate on an inner layer boundary (and within 1e-9 below it) belongs to the higher layer, 1e-3 below it to the lower one.
+test('with layer widths a coordinate on a boundary belongs to the higher layer', () => {
+  for (const n of [4, 9, 15]) {
+    const widths = standardLayerWidths(n), edge = layerEdge(widths);
+    let at = 0;
+    for (let k = 1; k < n; k++) {
+      at += widths[k - 1];
+      const boundary = 2 * at / edge - 1;
+      assert.equal(cellIndex(boundary, n, widths), k, `n=${n} boundary ${k}`);
+      assert.equal(cellIndex(boundary - 1e-12, n, widths), k, `n=${n} boundary ${k} float noise below`);
+      assert.equal(cellIndex(boundary - 1e-3, n, widths), k - 1, `n=${n} boundary ${k} below`);
+      assert.equal(cellIndex(boundary + 1e-3, n, widths), k, `n=${n} boundary ${k} above`);
+    }
+  }
+});
