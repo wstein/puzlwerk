@@ -105,8 +105,8 @@ try{
   }
   await page.evaluate(()=>{window.sizeRange.stage.setRotationMode('smart');window.sizeRange.stage.setInteractionMode('view')});
   assert.equal(await page.evaluate(()=>window.sizeRange.stage.getInteractionMode()),'view');
-  // setAutoRotate reaches the engine through createCubeStage: the settings read back, an invalid value is an InvalidView result and the stage turns by itself.
-  const auto=await page.evaluate(async()=>{const {stage,views}=window.sizeRange;const set=stage.setAutoRotate(true,{radiansPerMs:.0005,resumeDelayMs:0}),bad=stage.setAutoRotate('yes'),read=stage.getAutoRotate(),before=views.length;await new Promise(r=>setTimeout(r,600));const turned=views.length>before;stage.setAutoRotate(false);return {set:set.ok,bad:bad.error?.code,read,turned,off:stage.getAutoRotate().enabled}});
+  // setAutoRotate reaches the engine through createCubeStage: the settings read back, an invalid value is an InvalidView result and the orientation reported to onViewChanged differs after 600 ms.
+  const auto=await page.evaluate(async()=>{const {stage,views}=window.sizeRange;const set=stage.setAutoRotate(true,{radiansPerMs:.0005,resumeDelayMs:0}),bad=stage.setAutoRotate('yes'),read=stage.getAutoRotate(),before=JSON.stringify(views.at(-1));await new Promise(r=>setTimeout(r,600));const turned=JSON.stringify(views.at(-1))!==before&&views.length>0;stage.setAutoRotate(false);return {set:set.ok,bad:bad.error?.code,read,turned,off:stage.getAutoRotate().enabled}});
   assert.deepEqual({...auto,read:undefined},{set:true,bad:'InvalidView',read:undefined,turned:true,off:false},`n=${n} auto-rotate ${JSON.stringify(auto)}`);assert.deepEqual(auto.read,{enabled:true,radiansPerMs:.0005,resumeDelayMs:0},`n=${n}`);
   let perf;
   if(process.env.PERF){
