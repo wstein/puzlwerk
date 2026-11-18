@@ -34,21 +34,36 @@ export function checkSize(n: number): void {
  * Sticker edge rule: a coordinate on (or within 1e-9 below) an inner boundary belongs to the higher
  * layer; the cube's upper edge belongs to the last layer; overshoot clamps.
  */
-export function cellIndex(coordinate: number, n: number): number {
+export function cellIndex(coordinate: number, n: number, layerWidths?: LayerWidths): number {
   checkSize(n);
   const c = Math.max(-1, Math.min(1, coordinate));
-  return Math.min(n - 1, Math.max(0, Math.floor(((c + 1) * n) / 2 + BOUNDARY_TOLERANCE)));
+  if (layerWidths === undefined) return Math.min(n - 1, Math.max(0, Math.floor(((c + 1) * n) / 2 + BOUNDARY_TOLERANCE)));
+  // Thick outer layers: the layers are not equal, the boundary k lies at the cumulative width of the first k layers.
+  checkWidths(layerWidths, n);
+  const edge = layerWidths.reduce((sum, w) => sum + w, 0);
+  let index = 0, edgeSoFar = 0;
+  for (let k = 0; k < n - 1; k++) {
+    edgeSoFar += layerWidths[k];
+    if (c + 1 >= (2 * edgeSoFar) / edge - BOUNDARY_TOLERANCE) index = k + 1; else break;
+  }
+  return index;
+}
+
+/** Widths of the n layers in the order of the layer index (cube-local scene units; only their ratios count). */
+export type LayerWidths = readonly number[];
+function checkWidths(widths: LayerWidths, n: number): void {
+  if (!Array.isArray(widths) || widths.length !== n || !widths.every((w) => Number.isFinite(w) && w > 0)) throw RangeError(`Invalid layer widths for size ${n}`);
 }
 
 /** Cubie index triple (x, y, z order) [i0, i1, i2] of the touched sticker, or null when the hit is not on the face. */
-export function hitCell(hit: Hit, n: number): [number, number, number] | null {
+export function hitCell(hit: Hit, n: number, layerWidths?: LayerWidths): [number, number, number] | null {
   checkSize(n);
   const [fa, fs] = FACE_AXIS[hit.face];
   const p = hit.point;
   if (!p.every(Number.isFinite)) return null;
   if (Math.abs(p[fa] - fs) > SURFACE_TOLERANCE) return null;
   for (let a = 0; a < 3; a++) if (a !== fa && Math.abs(p[a]) > 1 + SURFACE_TOLERANCE) return null;
-  const cell = [0, 1, 2].map((a) => (a === fa ? (fs > 0 ? n - 1 : 0) : cellIndex(p[a], n)));
+  const cell = [0, 1, 2].map((a) => (a === fa ? (fs > 0 ? n - 1 : 0) : cellIndex(p[a], n, layerWidths)));
   return cell as [number, number, number];
 }
 
@@ -85,8 +100,8 @@ function project(v: Vec3, s: AxisScreen): Vec2 {
  * axes tangent to the face, the one whose screen direction the drag follows most closely wins; an
  * exact tie goes to the lower axis index. The layer is the hit depth along that axis.
  */
-export function mapDrag(hit: Hit, n: number, drag: Vec2, axes: AxisScreen, deadZonePx = DEAD_ZONE_PX): DragDecision | null {
-  const cell = hitCell(hit, n);
+export function mapDrag(hit: Hit, n: number, drag: Vec2, axes: AxisScreen, deadZonePx = DEAD_ZONE_PX, layerWidths?: LayerWidths): DragDecision | null {
+  const cell = hitCell(hit, n, layerWidths);
   if (!cell) return null;
   if (Math.hypot(drag[0], drag[1]) < deadZonePx) return null;
   const [fa, fs] = FACE_AXIS[hit.face];
