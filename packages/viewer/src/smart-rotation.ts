@@ -287,5 +287,21 @@ export class SmartRotation {
     this.residual.identity(); this.levelingRequested = false;
     this.phaseValue = "idle"; this.lastTime = at; this.lastMotion = null; this.anchorCandidate = false;
   }
+  /**
+   * Set the displayed pose from outside (a view preset): immediate, no animation, and it becomes the return target of smart mode.
+   * Free mode keeps the exact quaternion; the other modes show the closest upright Rx(pitch)Ry(yaw), as their drags do.
+   */
+  setOrientation(orientation: Quaternion, at: number): void {
+    this.time(at);
+    if (![orientation.x, orientation.y, orientation.z, orientation.w].every(Number.isFinite) || Math.abs(orientation.length() - 1) > 1e-6)
+      throw Error("Invalid presentation orientation");
+    if (this.disposed) return;
+    this.stop(); this.quaternion.copy(orientation).normalize();
+    this.closestUpright();
+    if (this.modeValue !== "free") this.quaternion.copy(this.upright);
+    this.anchor.copy(this.quaternion); this.anchorPitch = this.pitch; this.anchorYaw = this.yaw;
+    this.residual.identity(); this.levelingRequested = false;
+    this.phaseValue = "idle"; this.lastTime = at; this.lastMotion = null; this.anchorCandidate = false;
+  }
   dispose(): void { this.stop(); this.phaseValue = "idle"; this.disposed = true; }
 }

@@ -42,3 +42,5 @@ export { standardLayerWidths, STANDARD_CUBE_MEASUREMENTS, isEstimatedStandardFac
 export type { StandardLayerWidthsOptions } from './layer-widths.js';
 export {cubePresentationRadius,presentationCameraRadius} from './presentation-rotation.js';
 export {MIN_CUBE_SIZE,MAX_CUBE_SIZE,ACCEPTED_MAX_SIZE,validCubeSize} from './size-range.js';
+export {VIEW_PRESETS,viewPresetOrientation,viewPresetAngles} from './view-presets.js';
+export type {ViewPreset} from './view-presets.js';
