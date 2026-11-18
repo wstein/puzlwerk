@@ -46,3 +46,7 @@ limit is `min(700064, 7 * maxEvaluated + 64)` after validating the assessment bu
 a work-limit stop also marks coverage truncated. Callers atomically install the
 returned review/session and reject stale worker results against their current
 capture context; pure values do not own external application state.
+
+Version 0.4.0 accepts capture sizes 2 through 15 (earlier versions: 2 through 8). The bound is the
+exported constant `maxAcceptedSize`; larger sizes are rejected as `InvalidCapture`. Core structure
+limits (64) are unchanged. No other behavior changes.

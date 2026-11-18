@@ -714,8 +714,9 @@ consumer viewer migration, publication, deployment or merge.
 The first local slice is `core/res/PwCapture.resi`, with compiler-generated
 `PwCapture.gen.ts`, distributed through private `@puzlwerk/capture-recovery`.
 Capture snapshots and candidate handles are distinct from `PwCodec.state`.
-The supported capture/mapping range is N=2..8, preserving existing CubeAssembler
-recovery scope; this does not certify complete reachability above N=3.
+The supported capture/mapping range is N=2..15 (owner decision 2026-11-18; the constant
+`PwCapture.maxAcceptedSize`), widened from the earlier N=2..8; this does not certify complete
+reachability above N=3.
 Candidates require explicit canonical source-ID mappings. `createCandidateFromSlots`
 resolves producer-supplied slots against the immutable snapshot, never colors.
 `canonicalTransform` and the optional legacy transform index record provenance;
