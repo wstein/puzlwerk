@@ -48,6 +48,7 @@ test('a seam swipe turns the block its lean picks; no clear lean takes the half 
  assert.deepEqual(range(gesture(-.22,[60,0],seam)),[0,2],'no lean, touched layer 1, minus half');
  assert.deepEqual(range(gesture(.18,[60,0],seam)),[2,4],'no lean, touch in the plus half at seam 3: plus block');
  assert.deepEqual(range(gesture(-.18,[60,5],seam)),[0,2],'lean 5 of 60.2 is below 0.1: the half decides (minus)');
+ assert.deepEqual(range(gesture(0,[60,0],seam,4)),[1,3],'4x4, a touch exactly on the seam at coordinate 0 belongs to the plus half (CubeAssembler: coordinate >= 0)');
  assert.deepEqual(range(gesture(.13,[60,0],seam,7)),[3,6],'7x7, seam 4 (0.143), touched layer 3 in the plus half: plus block');
  assert.deepEqual(range(gesture(-.13,[60,0],seam,7)),[0,3],'7x7, seam 3, touched layer 3 in the minus half: minus block');
  assert.deepEqual(range(gesture(-.22,[60,7],seam)),[1,4],'lean 7 of 60.4 reaches 0.1');
