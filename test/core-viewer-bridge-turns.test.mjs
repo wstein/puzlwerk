@@ -4,6 +4,7 @@ import * as Codec from '../core/res/PwCodec.res.mjs';
 import * as Move from '../core/res/PwMove.res.mjs';
 import * as Shell from '../core/res/PwShell.res.mjs';
 import * as Validate from '../core/res/PwValidate.res.mjs';
+import { open } from '../packages/core-viewer-bridge/src/index.mjs';
 import { cubeStateDocuments, cubeStateFromWire, cubeTurnToMove, moveToCubeTurn, FACE_KEYS } from '../packages/core-viewer-bridge/src/cube-state.mjs';
 import { ACCEPTED_MAX_SIZE } from '../packages/viewer/dist/size-range.js';
 
@@ -127,4 +128,23 @@ test('a Core move maps back to a CubeAssembler turn that maps to the same move, 
   assert.equal(moveToCubeTurn(5, { axis: 'Z', layers: [], turns: 1 }).error.code, 'InvalidMove');
   assert.equal(moveToCubeTurn(5, { axis: 'Z', layers: [5], turns: 1 }).error.code, 'InvalidMove');
   assert.equal(moveToCubeTurn(5, { axis: 'Z', layers: [0], turns: 3 }).error.code, 'InvalidMove');
+});
+
+test('both policies share the definition id cube<n>; only text and hash differ, and state, appearance and open work with either', () => {
+  for (const n of [2, 3, 7, 15]) {
+    const a = docs(n, 'outer-wide'), b = docs(n, 'any');
+    assert.equal(JSON.parse(a.definition).id, `cube${n}`);
+    assert.equal(JSON.parse(b.definition).id, `cube${n}`);
+    assert.notEqual(a.definition, b.definition);
+    assert.equal(a.definition.replace('"outer-wide"', '"any"'), b.definition, 'only the policy differs');
+    assert.equal(a.state, b.state);
+    assert.equal(a.appearance, b.appearance);
+    for (const d of [a, b]) {
+      assert.deepEqual(cubeStateFromWire(n, d.state, d.appearance).value, solved(n));
+      assert.equal(open(d.definition, d.state, d.appearance, d.options).ok, true);
+    }
+    // The appearance of one policy is accepted by the other definition.
+    assert.equal(open(b.definition, a.state, a.appearance, a.options).ok, true);
+    assert.equal(open(a.definition, b.state, b.appearance, b.options).ok, true);
+  }
 });

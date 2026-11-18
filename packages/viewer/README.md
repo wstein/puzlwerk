@@ -129,3 +129,19 @@ Play parity with the CubeAssembler main view (bridge `@puzlwerk/viewer/bridge/cu
 with the policy `any` that wire-v1 already defines. `paletteArtwork` gives the `setArtwork` argument for a
 new palette without reopening the cube. `CubeStage.setShadowOpacity` sets the floor shadow strength (0..1)
 without a complete lighting.
+
+The definition id stays `cube<n>` for both policies; only the text, and so the hash, differs (`outer-wide` against `any`).
+State and appearance documents of one are accepted with the other. The main-view play mode of CubeAssembler uses `any`
+(inner single layers and whole-cube turns are playable there); the capture-review view keeps the default `outer-wide`.
+The viewer enforces neither: the caller picks the policy when it builds the documents.
+
+```js
+const made = cubeStateDocuments(3, cube, palette, { movePolicy: 'any' });
+const turn = cubeTurnToMove(3, { face: 'R', depth: 2, turns: 1 }); // "2R", an inner slice
+const player = createPlayer(made.value.definition, made.value.state, made.value.appearance, made.value.options, scene);
+await player.value.turn(turn.value.axis, turn.value.layers, turn.value.turns, 200);
+```
+
+The shadow strength is the lighting field `floorOpacity` (default 0.3). `setShadowOpacity(v)` is a thin shortcut that sets
+that one value without a complete lighting; a later `setLighting` sets it again from its own `floorOpacity`. No new
+contract field exists.
