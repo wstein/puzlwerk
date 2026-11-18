@@ -148,3 +148,8 @@ contract field exists.
 
 `cubeStateDocuments` returns `InvalidPolicy` when `options` is not an object (a string such as `'any'` included) or `movePolicy` is neither
 `'outer-wide'` nor `'any'`; `cubeTurnToMove` accepts the capital face letters `U R F D L B` only (`InvalidTurn` otherwise).
+
+Play events: `createCubeStage` takes `onPlayEvent(event)` with the typed `PlayEvent` union: `hover` (sticker ID, absent when the pointer leaves),
+`turn-begin` (the selection: axis, layers and piece IDs about to turn, from a drag or a two-finger gesture), `turn-end` (`committed` with the
+quarter turns, or `cancelled`; exactly one per `turn-begin`) and `error` (a rejected preview or move). A listener that throws does not
+disturb the gesture. The wheel gesture does not emit events yet.
