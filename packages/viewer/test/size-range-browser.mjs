@@ -27,6 +27,9 @@ try{
   assert.deepEqual([sl.ok,sl.mode,sl.checked],[true,'stickerless',true],`n=${n} stickerless ${JSON.stringify(sl)}`);
   assert.equal((await page.evaluate(()=>window.sizeRange.stage.setAppearance({construction:'nope',frameColor:null}).then(r=>r.ok))),false);
   await page.evaluate(()=>window.sizeRange.stage.setAppearance({construction:'stickered',frameColor:null}));
+  // setShadowOpacity reaches the engine through createCubeStage: valid values pass, an invalid one is rejected by the engine (a stub would not).
+  const shadow=await page.evaluate(()=>{const {stage}=window.sizeRange,bad=stage.setShadowOpacity(1.5),ok=[stage.setShadowOpacity(.62).ok,stage.setShadowOpacity(.34).ok];stage.setShadowOpacity(.3);return {ok,bad:bad.ok===false&&bad.error.code}});
+  assert.deepEqual(shadow,{ok:[true,true],bad:'InvalidLighting'},`n=${n} setShadowOpacity ${JSON.stringify(shadow)}`);
   // Interaction: Move layers from outside, then an outer-layer drag on the front face commits one turn (picking, layer widths, gesture core, Core move).
   const before=await page.evaluate(()=>window.sizeRange.player.state());
   const mode=await page.evaluate(()=>{const {stage}=window.sizeRange;stage.setViewPreset('front');const r=stage.setInteractionMode('play');return {ok:r.ok,mode:stage.getInteractionMode()}});
