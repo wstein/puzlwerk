@@ -4,7 +4,7 @@
 // (screen px) and applies the returned commit once, on release.
 import {
   DEAD_ZONE_PX, checkSize, hitCell, mapDrag, wideRangeFromOne,
-  type Axis, type AxisScreen, type DragDecision, type Face, type Hit, type Vec2,
+  type Axis, type LayerWidths, type AxisScreen, type DragDecision, type Face, type Hit, type Vec2,
 } from "./play-gesture-map.js";
 import { MAGNET_DEG, angleFromProgress, displayAngle, netQuarters, reduceQuarters } from "./play-gesture-turn.js";
 
@@ -23,6 +23,8 @@ export interface Lock { readonly axis: Axis; readonly layer: number; readonly fr
 
 export interface GestureOptions {
   readonly n: number;
+  /** Layer widths of a cube with thick outer layers; absent means equal layers. */
+  readonly layerWidths?: LayerWidths;
   readonly hit: Hit;
   /** Pointer-down position in screen px. */
   readonly point: Vec2;
@@ -58,7 +60,7 @@ function toCommit(lock: Lock | null, net: number): Commit | null {
 export function beginGesture(opts: GestureOptions): Gesture {
   checkSize(opts.n);
   angleFromProgress(0, opts.pxPerQuarter); // validates pxPerQuarter
-  const cell = hitCell(opts.hit, opts.n);
+  const cell = hitCell(opts.hit, opts.n, opts.layerWidths);
   return {
     phase: cell ? "pending" : "invalid", opts, pos: opts.point,
     highlight: cell ? { face: opts.hit.face, cell } : null,
@@ -71,7 +73,7 @@ export function moveGesture(g: Gesture, pos: Vec2): Gesture {
   const o = g.opts, drag: Vec2 = [pos[0] - o.point[0], pos[1] - o.point[1]];
   let lock = g.lock, phase: Phase = g.phase;
   if (!lock) {
-    const d: DragDecision | null = mapDrag(o.hit, o.n, drag, o.axes, o.deadZonePx ?? DEAD_ZONE_PX);
+    const d: DragDecision | null = mapDrag(o.hit, o.n, drag, o.axes, o.deadZonePx ?? DEAD_ZONE_PX, o.layerWidths);
     if (!d) return { ...g, pos };
     const [from, to] = o.wide ? wideRangeFromOne(d.layer, o.n) : [d.layer, d.layer];
     lock = { axis: d.axis, layer: d.layer, from, to, screenDir: d.screenDir };
@@ -95,6 +97,7 @@ export function cancelGesture(g: Gesture): Gesture {
 
 export interface PairOptions {
   readonly n: number;
+  readonly layerWidths?: LayerWidths;
   readonly a: { readonly hit: Hit; readonly point: Vec2 };
   readonly b: { readonly hit: Hit; readonly point: Vec2 };
   readonly axes: AxisScreen;
@@ -116,7 +119,7 @@ export interface PairGesture {
 }
 
 export function beginPair(o: PairOptions): PairGesture {
-  const common = { n: o.n, axes: o.axes, pxPerQuarter: o.pxPerQuarter, deadZonePx: o.deadZonePx, magnetDeg: o.magnetDeg };
+  const common = { n: o.n, layerWidths: o.layerWidths, axes: o.axes, pxPerQuarter: o.pxPerQuarter, deadZonePx: o.deadZonePx, magnetDeg: o.magnetDeg };
   const a = beginGesture({ ...common, hit: o.a.hit, point: o.a.point });
   const b = beginGesture({ ...common, hit: o.b.hit, point: o.b.point });
   return derivePair({ phase: "pending", opts: o, a, b, highlights: [], lock: null, rawDeg: 0, displayDeg: 0, netQuarters: 0 });

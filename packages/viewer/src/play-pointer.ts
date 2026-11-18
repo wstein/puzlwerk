@@ -6,7 +6,7 @@ import type {Mesh} from 'three';import type {Hit,AxisScreen} from './play-gestur
 type Result<T>={ok:true;value:T}|{ok:false;error:{code:string;message?:string}};
 export type PlayPreview={readonly pieceIds?:readonly string[];update(angle:number):Result<void>;commit(turns:-1|1|2):Result<void>;cancel():Result<void>};
 export type PlayPlayer={beginPreview(axis:'X'|'Y'|'Z',layers:readonly number[]):Result<PlayPreview>};
-export type PlayPick={hit:Hit;axes:AxisScreen;n:number;pxPerQuarter:number;player:PlayPlayer;stickerId?:string;surface?:Mesh;materialIndex?:number};
+export type PlayPick={hit:Hit;axes:AxisScreen;n:number;layerWidths?:readonly number[];pxPerQuarter:number;player:PlayPlayer;stickerId?:string;surface?:Mesh;materialIndex?:number};
 type Feedback={kind:'hover'|'held';pick:PlayPick}|{kind:'layer';pick:PlayPick;pieceIds:readonly string[]}|undefined;
 export function createPlayPointer(options:{pick(event:PointerEvent):PlayPick|undefined;pickPair?(event:PointerEvent):PlayPick|undefined;onError?(error:{code:string;message?:string}):void;onCommit?():void;onBegin?():boolean;onEnd?():void;onFeedback?(value:Feedback):void;acceptTouch?():boolean;onPairOrbit?(dx:number,dy:number):void;onPairZoom?(scale:number):void}):PointerRoute {
  let gesture:Gesture|undefined,pick:PlayPick|undefined,preview:PlayPreview|undefined,primary:number|undefined,blocked=false,held=false,pairLock:TwoFingerLock='undecided',pairStart:Pair|undefined,pairLast:Pair|undefined,pairPick:PlayPick|undefined,pairGesture:Gesture|undefined,pairEnded=false;const ids=new Set<number>(),touches=new Map<number,readonly [number,number]>();
