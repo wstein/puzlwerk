@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // One routed input stream; puzzle transitions remain Core-owned.
-import {beginGesture,moveGesture,releaseGesture,type Gesture} from './play-gesture.js';
+import type {SeamWide} from './play-seam.js';import {beginGesture,moveGesture,releaseGesture,type Gesture} from './play-gesture.js';
 import {midpoint,spread,twoFingerLock,twoFingerMotion,type Pair,type TwoFingerLock} from './two-finger.js';
 import type {Mesh} from 'three';import type {Hit,AxisScreen} from './play-gesture-map.js';import type {PointerRoute} from './presentation-input.js';
 type Result<T>={ok:true;value:T}|{ok:false;error:{code:string;message?:string}};
 export type PlayPreview={readonly pieceIds?:readonly string[];update(angle:number):Result<void>;commit(turns:-1|1|2):Result<void>;cancel():Result<void>};
 export type PlayPlayer={beginPreview(axis:'X'|'Y'|'Z',layers:readonly number[]):Result<PlayPreview>};
-export type PlayPick={hit:Hit;axes:AxisScreen;n:number;layerWidths?:readonly number[];pxPerQuarter:number;player:PlayPlayer;stickerId?:string;surface?:Mesh;materialIndex?:number};
+export type PlayPick={hit:Hit;axes:AxisScreen;n:number;layerWidths?:readonly number[];seamWide?:SeamWide;pxPerQuarter:number;player:PlayPlayer;stickerId?:string;surface?:Mesh;materialIndex?:number};
 type Feedback={kind:'hover'|'held';pick:PlayPick}|{kind:'layer';pick:PlayPick;pieceIds:readonly string[]}|undefined;
 /** Typed events of the play route. `turn-begin` is the selection: the layers and piece IDs about to turn. `turn-end` follows every `turn-begin` exactly once. */
 export type PlayEvent=

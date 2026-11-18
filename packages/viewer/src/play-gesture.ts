@@ -6,6 +6,7 @@ import {
   DEAD_ZONE_PX, checkSize, hitCell, mapDrag, wideRangeFromOne,
   type Axis, type LayerWidths, type AxisScreen, type DragDecision, type Face, type Hit, type Vec2,
 } from "./play-gesture-map.js";
+import { seamWideBlock, type SeamWide } from "./play-seam.js";
 import { MAGNET_DEG, angleFromProgress, displayAngle, netQuarters, reduceQuarters } from "./play-gesture-turn.js";
 
 export type Phase = "pending" | "turning" | "invalid" | "released" | "cancelled";
@@ -35,6 +36,8 @@ export interface GestureOptions {
   readonly magnetDeg?: number;
   /** Mouse Shift+drag: wide turn from the touched layer to the nearest outer layer. */
   readonly wide?: boolean;
+  /** A swipe that starts on the seam between two layers turns a wide block (see `play-seam.ts`); off when absent; Shift wins. */
+  readonly seamWide?: SeamWide;
 }
 export interface Gesture {
   readonly phase: Phase;
@@ -75,7 +78,7 @@ export function moveGesture(g: Gesture, pos: Vec2): Gesture {
   if (!lock) {
     const d: DragDecision | null = mapDrag(o.hit, o.n, drag, o.axes, o.deadZonePx ?? DEAD_ZONE_PX, o.layerWidths);
     if (!d) return { ...g, pos };
-    const [from, to] = o.wide ? wideRangeFromOne(d.layer, o.n) : [d.layer, d.layer];
+    const [from, to] = o.wide ? wideRangeFromOne(d.layer, o.n) : (o.seamWide && seamWideBlock({ ...o, seamWide: o.seamWide }, d.axis, drag)) || [d.layer, d.layer];
     lock = { axis: d.axis, layer: d.layer, from, to, screenDir: d.screenDir };
     phase = "turning";
   }
