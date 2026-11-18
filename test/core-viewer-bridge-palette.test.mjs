@@ -74,3 +74,14 @@ test('the artwork is accepted by a scene and recolors the drawn stickers without
     scene.dispose();
   }
 });
+
+test('imageId and picture of a sticker are carried over (hand-built projection, the documents of cubeStateDocuments have none)', () => {
+  const d = documents(3), projection = projectionOf(d);
+  const first = projection.pieces[0].stickers[0], picture = { face: 'f', layerIndex: [0, 1, 2] };
+  const built = { ...projection, pieces: projection.pieces.map((p, i) => (i === 0 ? { ...p, stickers: p.stickers.map((s, j) => (j === 0 ? { ...s, imageId: 'img-1', picture } : s)) } : p)) };
+  const art = paletteArtwork(3, d.appearance, NEW, built).value, by = new Map(art.stickers.map((s) => [s.id, s]));
+  assert.equal(by.get(first.id).imageId, 'img-1');
+  assert.deepEqual(by.get(first.id).picture, picture);
+  assert.equal(art.stickers.filter((s) => s.imageId !== undefined || s.picture !== undefined).length, 1, 'only that sticker');
+  assert.equal(by.get(first.id).color, paletteArtwork(3, d.appearance, NEW, projection).value.stickers.find((s) => s.id === first.id).color);
+});
