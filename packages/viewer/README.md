@@ -169,3 +169,5 @@ Swipe tuning, the locked hint and the wide cue (sound, vibration) stay with the 
 Auto-rotate: `CubeStage.setAutoRotate(true, {radiansPerMs, resumeDelayMs})` spins the display about its vertical axis while no contact, coast
 or return moves it, and pauses for `resumeDelayMs` after any interaction (defaults as CubeAssembler: 0.008 rad per 60 Hz frame, 1500 ms).
 It is off by default and does not run with reduced motion; a frame advances at most 50 ms. While it is on, frames run continuously.
+Pointer, touch and wheel contacts pause it while they hold the view; turns the host starts itself (keys, buttons, player transitions) pause it only when the host
+calls `interact()`. A disposed stage reports `getAutoRotate().enabled` as `false`. `radiansPerMs` and `resumeDelayMs` let a host or a test choose another rate or delay.
