@@ -13,7 +13,7 @@ void seam;void badSeam;
 declare const host:HTMLElement;
 const result=createCubeStage(host,options);
 if(result.ok){const stage:CubeStage=result.value;const child=stage.addCube({position:[0,0,0]});if(child.ok){stage.setStickerHighlight(child.value,["sticker:a.U"]);stage.setStickerHighlight(child.value,undefined);}
-if(child.ok){child.value.setPosition([1,0,0]);child.value.setMaterial({specularIntensity:.1,roughness:.65,clearcoat:.01,receiveShadow:true});}stage.resetDisplayOrientation();const shadow:StageResult<void>=stage.setShadowOpacity(.34);void shadow;stage.dispose();}
+if(child.ok){child.value.setPosition([1,0,0]);child.value.setMaterial({specularIntensity:.1,roughness:.65,clearcoat:.01,receiveShadow:true});}stage.resetDisplayOrientation();const shadow:StageResult<void>=stage.setShadowOpacity(.34);void shadow;const spin:StageResult<void>=stage.setAutoRotate(true,{radiansPerMs:.0005});const state:{readonly enabled:boolean;readonly radiansPerMs:number;readonly resumeDelayMs:number}=stage.getAutoRotate();void spin;void state;stage.dispose();}
 
 const body:BodyProfile={kind:'twoRadius',gap:.001,bevelSegments:2};
 const shape:StickerGeometry={referenceSize:[.87,.87],cornerRadius:.055};

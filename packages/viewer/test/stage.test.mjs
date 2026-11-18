@@ -354,3 +354,28 @@ test('setShadowOpacity sets the strength of the floor shadow, rejects invalid va
  assert.equal(h.stage.setShadowOpacity(.5).ok,true);assert.equal(floor.material.opacity,.5);
  h.stage.dispose();assert.equal(h.stage.setShadowOpacity(.5).error.code,'Disposed');
 });
+
+const yawOf=h=>{const q=h.scene.children[0].quaternion;return 2*Math.atan2(q.y,q.w)};
+test('auto-rotate is off by default and spins about the vertical axis, with the frame time capped',()=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});h.step(0);h.step(16);assert.equal(h.frames.size,0);assert.equal(yawOf(h),0);
+ assert.equal(h.stage.setAutoRotate(true,{radiansPerMs:.001,resumeDelayMs:1000}).ok,true);
+ for(let i=0;i<5;i++)h.step(16);assert.ok(Math.abs(yawOf(h)-.08)<1e-9,String(yawOf(h)));assert.equal(h.frames.size,1,'frames continue while it spins');
+ const before=yawOf(h);h.step(1000);assert.ok(Math.abs(yawOf(h)-before-.05)<1e-9,'a long frame advances at most 50 ms');
+ assert.equal(h.stage.setAutoRotate(false).ok,true);const stopped=yawOf(h);h.step(16);h.step(16);assert.equal(yawOf(h),stopped);assert.equal(h.frames.size,0);h.stage.dispose();
+});
+test('auto-rotate pauses for the resume delay after an interaction and not at all with reduced motion',()=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});h.step(0);h.stage.setAutoRotate(true,{radiansPerMs:.001,resumeDelayMs:1000});h.step(16);const a=yawOf(h);assert.ok(a>0);
+ assert.equal(h.stage.beginPlay().ok,true);h.step(16);assert.equal(yawOf(h),a,'no spin while a contact holds the view');h.stage.endPlay();
+ h.step(400);assert.equal(yawOf(h),a,'paused during the delay');h.step(400);assert.equal(yawOf(h),a);
+ h.step(400);const resumed=yawOf(h);assert.ok(resumed>a,'resumes after the delay');
+ assert.equal(h.stage.interact().ok,true);h.step(500);assert.equal(yawOf(h),resumed,'an interaction pauses again');
+ h.stage.setReducedMotion(true);h.step(2000);h.step(16);assert.equal(yawOf(h),resumed,'reduced motion suppresses it');assert.equal(h.frames.size,0);
+ h.stage.setReducedMotion(false);h.step(16);assert.ok(yawOf(h)>resumed,'and lifting it resumes');h.stage.dispose();
+});
+test('auto-rotate rejects invalid settings, keeps the previous ones and fails after dispose',()=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});h.stage.setAutoRotate(true,{radiansPerMs:.001,resumeDelayMs:0});h.step(0);
+ for(const bad of [{radiansPerMs:0},{radiansPerMs:-1},{radiansPerMs:NaN},{radiansPerMs:Infinity},{resumeDelayMs:-1},{resumeDelayMs:NaN}])assert.equal(h.stage.setAutoRotate(true,bad).error.code,'InvalidView');
+ assert.equal(h.stage.setAutoRotate('yes').error.code,'InvalidView');h.step(10);assert.ok(Math.abs(yawOf(h)-.01)<1e-9,'rate unchanged after rejected calls');
+ assert.deepEqual(h.stage.getAutoRotate(),{enabled:true,radiansPerMs:.001,resumeDelayMs:0});
+ h.stage.dispose();assert.equal(h.stage.setAutoRotate(false).error.code,'Disposed');
+});
