@@ -389,21 +389,33 @@ test('auto-rotate does not spin while a contact holds the view for longer than t
  canvas.pointer('pointerup',50,0);h.step(16);for(let i=0;i<10;i++)h.step(40);assert.notEqual(yawOf(h),held,'after the release the spin resumes');h.stage.dispose();
 });
 // The view motion of a release (coasting, then the smart mode's wait, return and leveling) is the controller's: auto-rotate adds nothing to it while it lasts (resume delay 0: the spin may start only once the controller is idle).
-const releaseTrajectory=(mode,drag,rate)=>{
+const releaseTrajectory=(mode,drag,rate,switchToSmart=false)=>{
  const h=harness();h.stage.addCube({position:[0,0,0]});h.stage.setRotationMode(mode);h.step(0);
  const document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
  assert.equal(h.stage.attachInput(canvas,panel,undefined,{now:()=>h.now/1000,document,media,window}).ok,true);
- h.stage.setAutoRotate(true,{radiansPerMs:rate,resumeDelayMs:0});
+ if(!switchToSmart)h.stage.setAutoRotate(true,{radiansPerMs:rate,resumeDelayMs:0});
  canvas.pointer('pointerdown',0,0);for(let i=1;i<=6;i++){h.step(16);canvas.pointer('pointermove',drag[0]*i,drag[1]*i)}canvas.pointer('pointerup',drag[0]*6,drag[1]*6);
+ if(switchToSmart){for(let i=0;i<100;i++)h.step(16);assert.equal(h.stage.setRotationMode('smart').ok,true);h.stage.setAutoRotate(true,{radiansPerMs:rate,resumeDelayMs:0})}
  const samples=[];for(let i=0;i<220;i++){h.step(16);samples.push(h.scene.children[0].quaternion.toArray().map(v=>Math.round(v*1e6)/1e6).join())}
  h.stage.dispose();return samples;
 };
-for(const [mode,drag,label] of [['free',[40,0],'coasting after a fast release'],['smart',[50,50],'the wait, return and leveling after a diagonal release in the smart mode']]){
+// `rest` is the frame (16 ms steps after the release, fake clock) in which the controller comes to rest. The reference run is also stopped early by a mutant that lets auto-rotate move the view during the wait, return or leveling
+// (setting the orientation ends the controller's own motion), so the rest frame is asserted too.
+for(const [mode,drag,rest,label,toSmart] of [['free',[40,0],78,'coasting after a fast release'],['smart',[50,50],164,'the wait and the return after a diagonal release in the smart mode'],['free',[40,30],153,'the leveling after a switch from the free to the smart mode',true]]){
  test(`auto-rotate stays out of the controller motion: ${label}`,()=>{
   // Both runs keep the frames running (auto-rotate on); the reference rate is too small to turn anything, so only the stepping of the frames is common to both.
-  const without=releaseTrajectory(mode,drag,1e-12),withAuto=releaseTrajectory(mode,drag,.001);
+  const without=releaseTrajectory(mode,drag,1e-12,toSmart),withAuto=releaseTrajectory(mode,drag,.001,toSmart);
   let last=0;for(let i=1;i<without.length;i++)if(without[i]!==without[i-1])last=i;
+  assert.equal(last,rest,`the controller motion of the reference run ends in frame ${rest}`);
   assert.ok(new Set(without).size>5&&last>5&&last<without.length-1,`the release moves the view by itself for ${last} frames and then rests`);
   assert.deepEqual(withAuto.slice(0,last),without.slice(0,last),'with no resume delay the poses of the controller motion, up to the frame in which it comes to rest, are those of a rate that turns nothing');
  });
 }
+test('auto-rotate keeps the previous settings when a call gives none or only one of them',()=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});
+ assert.equal(h.stage.setAutoRotate(true,{radiansPerMs:.002,resumeDelayMs:700}).ok,true);
+ assert.equal(h.stage.setAutoRotate(false).ok,true);assert.deepEqual(h.stage.getAutoRotate(),{enabled:false,radiansPerMs:.002,resumeDelayMs:700},'no settings: both kept');
+ assert.equal(h.stage.setAutoRotate(true,{resumeDelayMs:50}).ok,true);assert.deepEqual(h.stage.getAutoRotate(),{enabled:true,radiansPerMs:.002,resumeDelayMs:50},'only the delay given: the rate is kept');
+ assert.equal(h.stage.setAutoRotate(true,{radiansPerMs:.003}).ok,true);assert.deepEqual(h.stage.getAutoRotate(),{enabled:true,radiansPerMs:.003,resumeDelayMs:50},'only the rate given: the delay is kept');
+ h.stage.dispose();
+});
