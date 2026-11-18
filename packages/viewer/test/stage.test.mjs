@@ -388,3 +388,22 @@ test('auto-rotate does not spin while a contact holds the view for longer than t
  for(let i=0;i<40;i++)h.step(40);assert.equal(yawOf(h),held,'a contact held for 1600 ms, far beyond the 100 ms resume delay, keeps the view still');
  canvas.pointer('pointerup',50,0);h.step(16);for(let i=0;i<10;i++)h.step(40);assert.notEqual(yawOf(h),held,'after the release the spin resumes');h.stage.dispose();
 });
+// The view motion of a release (coasting, then the smart mode's wait, return and leveling) is the controller's: auto-rotate adds nothing to it while it lasts (resume delay 0: the spin may start only once the controller is idle).
+const releaseTrajectory=(mode,drag,rate)=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});h.stage.setRotationMode(mode);h.step(0);
+ const document=new EventTarget(),media=new EventTarget(),window=new EventTarget(),panel=new NativeElement('div'),canvas=new NativeElement('canvas');document.hidden=false;document.createElement=tag=>new NativeElement(tag);media.matches=false;
+ assert.equal(h.stage.attachInput(canvas,panel,undefined,{now:()=>h.now/1000,document,media,window}).ok,true);
+ h.stage.setAutoRotate(true,{radiansPerMs:rate,resumeDelayMs:0});
+ canvas.pointer('pointerdown',0,0);for(let i=1;i<=6;i++){h.step(16);canvas.pointer('pointermove',drag[0]*i,drag[1]*i)}canvas.pointer('pointerup',drag[0]*6,drag[1]*6);
+ const samples=[];for(let i=0;i<220;i++){h.step(16);samples.push(h.scene.children[0].quaternion.toArray().map(v=>Math.round(v*1e6)/1e6).join())}
+ h.stage.dispose();return samples;
+};
+for(const [mode,drag,label] of [['free',[40,0],'coasting after a fast release'],['smart',[50,50],'the wait, return and leveling after a diagonal release in the smart mode']]){
+ test(`auto-rotate stays out of the controller motion: ${label}`,()=>{
+  // Both runs keep the frames running (auto-rotate on); the reference rate is too small to turn anything, so only the stepping of the frames is common to both.
+  const without=releaseTrajectory(mode,drag,1e-12),withAuto=releaseTrajectory(mode,drag,.001);
+  let last=0;for(let i=1;i<without.length;i++)if(without[i]!==without[i-1])last=i;
+  assert.ok(new Set(without).size>5&&last>5&&last<without.length-1,`the release moves the view by itself for ${last} frames and then rests`);
+  assert.deepEqual(withAuto.slice(0,last),without.slice(0,last),'with no resume delay the poses of the controller motion, up to the frame in which it comes to rest, are those of a rate that turns nothing');
+ });
+}
