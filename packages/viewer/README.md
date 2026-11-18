@@ -165,3 +165,7 @@ The side is decided when the turn axis is decided; CubeAssembler's later switchi
 Swipe tuning, the locked hint and the wide cue (sound, vibration) stay with the application, which can use the play events.
 
 `indicatorColorsFromFrame(frame)` gives the X, Y and Z colors of `setOrientationIndicator` from `Player.colorFrame()` (R, U and F entries).
+
+Auto-rotate: `CubeStage.setAutoRotate(true, {radiansPerMs, resumeDelayMs})` spins the display about its vertical axis while no contact, coast
+or return moves it, and pauses for `resumeDelayMs` after any interaction (defaults as CubeAssembler: 0.008 rad per 60 Hz frame, 1500 ms).
+It is off by default and does not run with reduced motion; a frame advances at most 50 ms. While it is on, frames run continuously.
