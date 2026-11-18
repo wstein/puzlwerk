@@ -174,3 +174,32 @@ export function moveToCubeTurn(n, move) {
   const turns = move.turns === 2 ? 2 : positive ? -move.turns : move.turns;
   return { ok: true, value: { face, depth: positive ? n - first : last + 1, ...(layers.length > 1 ? { width: layers.length } : {}), turns } };
 }
+
+/**
+ * Sticker colors of a new palette for the scene's current `projection` (from `open` on the documents of `cubeStateDocuments`), as the
+ * `ArtworkReplacement` of `CubeScene.setArtwork`: every sticker gets `palette[token]` of the token in `appearanceText`,
+ * `defaultColor` for a sticker without a token or one the palette lacks (as `cubeStateDocuments`). Appearance, picture and the
+ * per-sticker source face, picture and image of the projection are carried over, because `setArtwork` replaces them by what it gets.
+ * The scene is not reopened and a turn in progress is not disturbed.
+ * Errors: InvalidSize, InvalidPalette, InvalidAppearance, DefinitionMismatch (appearance of another definition or a sticker of the
+ * projection it does not list), InvalidProjection.
+ */
+export function paletteArtwork(n, appearanceText, palette, projection) {
+  if (!validSize(n)) return fail('InvalidSize');
+  if (!palette || typeof palette !== 'object' || Object.entries(palette).some(([, hex]) => typeof hex !== 'string' || !HEX.test(hex))) return fail('InvalidPalette');
+  if (!projection || !Array.isArray(projection.pieces)) return fail('InvalidProjection');
+  const parsed = Json.parse(appearanceText);
+  if (parsed.TAG !== 'Ok') return fail('InvalidAppearance', parsed._0);
+  const doc = JSON.parse(Json.toCanonical(parsed._0));
+  if (!doc || doc.schema !== 'puzlwerk.appearance' || !Array.isArray(doc.stickers) || doc.stickers.some((s) => !s || typeof s.id !== 'string')) return fail('InvalidAppearance');
+  if (doc.definitionId !== `cube${n}`) return fail('DefinitionMismatch', doc.definitionId);
+  const tokens = new Map(doc.stickers.map((s) => [`sticker:${s.id}`, s.color]));
+  const stickers = [];
+  for (const piece of projection.pieces) for (const s of piece.stickers) {
+    if (!tokens.has(s.id)) return fail('DefinitionMismatch', s.id);
+    const token = tokens.get(s.id);
+    stickers.push({ id: s.id, color: typeof token === 'string' && TOKEN.test(token) && Object.hasOwn(palette, token) ? palette[token] : DEFAULT_COLOR,
+      ...(s.imageId === undefined ? {} : { imageId: s.imageId }), ...(s.sourceFace === undefined ? {} : { sourceFace: s.sourceFace }), ...(s.picture === undefined ? {} : { picture: s.picture }) });
+  }
+  return { ok: true, value: { ...(projection.appearance === undefined ? {} : { appearance: projection.appearance }), ...(projection.picture === undefined ? {} : { picture: projection.picture }), stickers } };
+}

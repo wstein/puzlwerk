@@ -1,4 +1,5 @@
 import type { BridgeResult, Options } from './index.mjs';
+import type { CubeProjection } from '../../viewer/src/contract.js';
 /** Facelet arrays of CubeAssembler's CubeState, in the order of the net. */
 export const FACE_KEYS: readonly ['u','r','f','d','l','b'];
 export type FaceKey = 'u'|'r'|'f'|'d'|'l'|'b';
@@ -15,3 +16,6 @@ export type CubeMove = { readonly axis: 'X'|'Y'|'Z'; readonly layers: readonly n
 export function cubeTurnToMove(size: number, turn: CubeTurn): BridgeResult<CubeMove>;
 /** Core move to the CubeAssembler turn of the nearer face; errors InvalidSize, InvalidMove. */
 export function moveToCubeTurn(size: number, move: CubeMove): BridgeResult<CubeTurn>;
+export type PaletteArtwork = { readonly appearance?: CubeProjection['appearance']; readonly picture?: CubeProjection['picture']; readonly stickers: readonly { readonly id: string; readonly color: string; readonly imageId?: string; readonly sourceFace?: CubeProjection['pieces'][number]['stickers'][number]['sourceFace']; readonly picture?: CubeProjection['pieces'][number]['stickers'][number]['picture'] }[] };
+/** Sticker colors of a new palette for the scene's current projection, as the argument of `CubeScene.setArtwork`. Errors: InvalidSize, InvalidPalette, InvalidAppearance, DefinitionMismatch, InvalidProjection. */
+export function paletteArtwork(size: number, appearance: string, palette: Readonly<Record<string, string>>, projection: CubeProjection): BridgeResult<PaletteArtwork>;
