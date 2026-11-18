@@ -8,7 +8,9 @@ import { open } from '../packages/core-viewer-bridge/src/index.mjs';
 import { cubeStateDocuments, cubeStateFromWire, cubePresentation as cubeStatePresentationFor, faceStickerIds, FACE_KEYS } from '../packages/core-viewer-bridge/src/cube-state.mjs';
 import { MAX_CUBE_SIZE } from '../packages/viewer/dist/size-range.js';
 import { validateProjection } from '../packages/viewer/dist/contract.js';
-import { standardLayerWidths } from '../packages/viewer/dist/layer-widths.js';
+// Written out, not computed by the code under test: [f, 1, ..., 1, f] with the outer factor per size (7x7 and larger 1.6, owner decision 2026-11-18).
+const OUTER_FACTOR = { 2: 1, 3: 1, 4: 1.1, 5: 1.2, 6: 1.4 };
+const expectedWidths = (n) => Array.from({ length: n }, (_, i) => (i === 0 || i === n - 1 ? (OUTER_FACTOR[n] ?? 1.6) : 1));
 import { mulberry32 } from './helpers/cube-model.mjs';
 
 const PALETTE = { W: '#f7f6f1', O: '#ff7a1a', G: '#1e9e57', R: '#cf2a3a', B: '#2459d6', Y: '#f2d21b' };
@@ -123,8 +125,8 @@ test('invalid input is rejected with a code', () => {
 test('presentation uses the standard layer widths and their sum as the nominal edge', () => {
   for (const n of [2, 3, 4, 5, 6, 7]) {
     const { options } = documents(n, solved(n));
-    assert.deepEqual(options.presentation.layerWidths, standardLayerWidths(n));
-    assert.ok(Math.abs(options.presentation.nominalEdge - standardLayerWidths(n).reduce((a, b) => a + b, 0)) < 1e-12);
+    assert.deepEqual(options.presentation.layerWidths, expectedWidths(n));
+    assert.ok(Math.abs(options.presentation.nominalEdge - expectedWidths(n).reduce((a, b) => a + b, 0)) < 1e-12);
     assert.equal(options.presentation.size, n);
     assert.equal(options.core.halfExtent, options.presentation.nominalEdge / 2);
   }
@@ -236,7 +238,7 @@ test('every size 2..15 translates there and back, turns an inner layer and opens
     assert.equal(validateProjection(opened.value.projection).ok, true, `${n} projection`);
     assert.equal(opened.value.projection.pieces.length, Shell.slotCount(Shell.makeSize(n)._0));
     assert.equal(opened.value.projection.pieces.flatMap((p) => p.stickers).length, 6 * n * n);
-    assert.deepEqual(opened.value.projection.presentation.layerWidths, standardLayerWidths(n));
+    assert.deepEqual(opened.value.projection.presentation.layerWidths, expectedWidths(n));
     for (const face of FACE_KEYS) assert.equal(faceStickerIds(n, face).length, n * n);
   }
 });
@@ -245,7 +247,7 @@ test('the viewer maximum is Core maxSize, and the body radius stays inside the p
   assert.equal(MAX_CUBE_SIZE, Shell.maxSize);
   for (const n of [2, 15, 16, 25, 26, 40, 64]) { const p = cubeStatePresentationFor(n); assert.ok(p.bodyRadius <= (p.cellSize - p.bodyGap) / 2, `${n}`); assert.ok(p.bodyInnerRadius <= p.bodyRadius); }
   // Up to 15 the radius is the unchanged rule 0.055 * edge / 3.
-  for (const n of ACCEPTED) { const p = cubeStatePresentationFor(n), edge = standardLayerWidths(n).reduce((a, b) => a + b, 0); assert.ok(Math.abs(p.bodyRadius - 0.055 * edge / 3) < 1e-12, `${n}`); }
+  for (const n of ACCEPTED) { const p = cubeStatePresentationFor(n), edge = expectedWidths(n).reduce((a, b) => a + b, 0); assert.ok(Math.abs(p.bodyRadius - 0.055 * edge / 3) < 1e-12, `${n}`); }
 });
 
 test('sizes 16 and 64 are not rejected (structure only, not accepted)', () => {
