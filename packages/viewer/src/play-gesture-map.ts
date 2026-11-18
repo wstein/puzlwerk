@@ -3,6 +3,8 @@
 // Framework-free: no DOM, no WebGL. The caller supplies the raycast hit (cube-local) and the screen
 // projection of the three cube axes, so the same code serves any camera, including inverted views.
 
+import { MIN_CUBE_SIZE, MAX_CUBE_SIZE, validCubeSize } from "./size-range.js";
+
 export type Axis = "x" | "y" | "z";
 export type Face = "R" | "L" | "U" | "D" | "F" | "B";
 export type Vec2 = readonly [number, number];
@@ -15,8 +17,8 @@ export interface AxisScreen { readonly x: Vec2; readonly y: Vec2; readonly z: Ve
 
 export const AXES: readonly Axis[] = ["x", "y", "z"];
 export const DEAD_ZONE_PX = 8;
-export const MIN_SIZE = 2;
-export const MAX_SIZE = 7;
+export const MIN_SIZE = MIN_CUBE_SIZE;
+export const MAX_SIZE = MAX_CUBE_SIZE;
 const FACE_AXIS: Record<Face, readonly [number, 1 | -1]> = {
   R: [0, 1], L: [0, -1], U: [1, 1], D: [1, -1], F: [2, 1], B: [2, -1],
 };
@@ -24,7 +26,7 @@ const SURFACE_TOLERANCE = 1e-6;
 const BOUNDARY_TOLERANCE = 1e-9;
 
 export function checkSize(n: number): void {
-  if (!Number.isInteger(n) || n < MIN_SIZE || n > MAX_SIZE) throw RangeError(`Invalid cube size ${n}; expected an integer ${MIN_SIZE}..${MAX_SIZE}`);
+  if (!validCubeSize(n)) throw RangeError(`Invalid cube size ${n}; expected an integer ${MIN_SIZE}..${MAX_SIZE}`);
 }
 
 /**

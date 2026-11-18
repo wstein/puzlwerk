@@ -59,7 +59,7 @@ test("hitCell rejects hits that are off the face or off the cube", () => {
   assert.equal(hitCell({ face: "F", point: [1.2, 0, 1] }, 3), null, "outside the face");
   assert.equal(hitCell({ face: "F", point: [NaN, 0, 1] }, 3), null);
   assert.throws(() => hitCell({ face: "F", point: [0, 0, 1] }, 1), /size/);
-  assert.throws(() => hitCell({ face: "F", point: [0, 0, 1] }, 8), /size/);
+  assert.throws(() => hitCell({ face: "F", point: [0, 0, 1] }, 65), /size/);
   assert.throws(() => hitCell({ face: "F", point: [0, 0, 1] }, 2.5), /size/);
 });
 

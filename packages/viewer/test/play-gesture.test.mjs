@@ -222,7 +222,7 @@ test("beginGesture rejects an invalid pxPerQuarter and an invalid size", () => {
   assert.throws(() => beginGesture({ ...o, pxPerQuarter: 0 }), /pxPerQuarter/);
   assert.throws(() => beginGesture({ ...o, pxPerQuarter: -5 }), /pxPerQuarter/);
   assert.throws(() => beginGesture({ ...o, pxPerQuarter: NaN }), /pxPerQuarter/);
-  assert.throws(() => beginGesture({ ...o, n: 8, pxPerQuarter: 100 }), /size/);
+  assert.throws(() => beginGesture({ ...o, n: 65, pxPerQuarter: 100 }), /size/);
 });
 
 test("a pair with one finger off the face is invalid and commits nothing", () => {
