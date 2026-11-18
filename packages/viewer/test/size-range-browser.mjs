@@ -43,6 +43,17 @@ try{
    if(await page.evaluate(()=>window.sizeRange.player.state())!==before){played=true;break}
   }
   assert.equal(played,true,`n=${n} the wide drag committed a turn`);
+  // onPlayEvent reaches the stage: the drag reports turn-begin then a committed turn-end, and a turn-end handler that switches the play target does not redirect the commit hook of the target the turn began on.
+  const events=await page.evaluate(()=>window.sizeRange.playEvents.map(e=>e.type+(e.outcome?`:${e.outcome}`:"")).filter(t=>t!=="hover"));
+  assert.equal(events.at(0),"turn-begin",`n=${n} ${events}`);assert.equal(events.at(-1),"turn-end:committed",`n=${n} ${events}`);
+  await page.evaluate(()=>{const {stage,child,player,widths,half,n,hooks}=window.sizeRange;window.commits={a:0,b:0};stage.setInteractionMode("view");const mk=key=>({child,player,size:n,layerWidths:widths,halfExtent:half,onCommit:()=>{window.commits[key]++}});stage.setPlayTarget(mk("a"));hooks.onTurnEnd=()=>{stage.setPlayTarget(mk("b"))};stage.setInteractionMode("play")});
+  await page.waitForTimeout(300);
+  for(const [ox,oy] of [[0,0],[-.03,-.03],[.03,-.03],[-.03,.03],[.03,.03],[-.06,0],[.06,0],[0,-.06],[0,.06]]){
+   const sx=cx+width*ox,sy=cy+height*oy;await page.mouse.move(sx,sy);await page.keyboard.down("Shift");await page.mouse.down();await page.mouse.move(sx+width*.18,sy,{steps:6});await page.mouse.up();await page.keyboard.up("Shift");await page.waitForTimeout(450);
+   if(await page.evaluate(()=>window.commits.a+window.commits.b)>0)break
+  }
+  assert.deepEqual(await page.evaluate(()=>{window.sizeRange.hooks.onTurnEnd=undefined;return window.commits}),{a:1,b:0},`n=${n} the commit hook of the target at turn-begin runs once, the switched target gets none`);
+  await page.evaluate(()=>{const {stage,child,player,widths,half,n}=window.sizeRange;stage.setInteractionMode("view");stage.setPlayTarget({child,player,size:n,layerWidths:widths,halfExtent:half});stage.setInteractionMode("play")});
   // Layer widths reach the gesture core. A plain vertical drag along the middle row turns the column (x layer) it starts in; a spy player records the layer and moves nothing
   // (the move policy would refuse a single inner layer, which does not matter here). The target has no halfExtent, so the stage derives it from the widths.
   // Along the face the layer boundaries are the cumulative widths. Bisection finds the left edge (xmin), the 0/1 boundary (x1) and the (n-2)/(n-1) boundary (x2); the gaps
