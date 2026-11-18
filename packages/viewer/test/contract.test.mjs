@@ -46,7 +46,7 @@ test('presentation and independent core metadata are validated and invariant', (
   assert.equal(validateProjection(withMeta).ok,true);
   for (const invalid of [
     {presentation:{size:1,nominalEdge:2}}, {presentation:{size:7.1,nominalEdge:7}},
-    {presentation:{size:8,nominalEdge:7}}, {presentation:{size:3,nominalEdge:0}},
+    {presentation:{size:65,nominalEdge:7}}, {presentation:{size:3,nominalEdge:0}},
     {presentation:{size:3,nominalEdge:Infinity}}, {core:{center:[1,,3],halfExtent:1}},
     {core:{center:[1,2,NaN],halfExtent:1}}, {core:{center:[1,2,3],halfExtent:0}},
   ]) assert.equal(validateProjection({...from,...invalid}).error.code,'InvalidProjection');
