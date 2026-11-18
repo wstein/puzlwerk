@@ -38,6 +38,8 @@ export interface GestureOptions {
   readonly wide?: boolean;
   /** A swipe that starts on the seam between two layers turns a wide block (see `play-seam.ts`); off when absent; Shift wins. */
   readonly seamWide?: SeamWide;
+  /** Half the cube edge in the unit of `axes` (screen px per parent unit) while `hit.point` is normalized by it: converts `seamWide.minPx` to cube-local units. Default 1 (axes in px per normalized unit). */
+  readonly halfExtent?: number;
 }
 export interface Gesture {
   readonly phase: Phase;
