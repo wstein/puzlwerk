@@ -141,6 +141,6 @@ export function createStageForTest(options:ViewerOptions & {onError?:(error:Stag
    children.add(child);materialReapply.set(child,applyMaterial);placements.set(child,parent);schedule();return ok(child);
   },
   contextLost(){if(disposed||lost)return;controller.suspend(clock.now()/1000);nativeBinding?.cancelContacts();lost=true;clearWake();for(const child of children)(child as StageChild & {contextLost():void}).contextLost();if(frame!==undefined)clock.cancel(frame);frame=undefined;callbacks.clear();},
-  dispose(){if(disposed)return;disposed=true;for(const child of [...children])child.dispose();clearWake();nativeBinding?.dispose();nativeBinding=undefined;controller.dispose();unsubscribe?.();if(frame!==undefined)clock.cancel(frame);frame=undefined;callbacks.clear();visibilityListeners.clear();for(const l of extras){l.target.removeFromParent();l.removeFromParent();}studio.dispose();backend.dispose();}
+  dispose(){if(disposed)return;disposed=true;auto.on=false;for(const child of [...children])child.dispose();clearWake();nativeBinding?.dispose();nativeBinding=undefined;controller.dispose();unsubscribe?.();if(frame!==undefined)clock.cancel(frame);frame=undefined;callbacks.clear();visibilityListeners.clear();for(const l of extras){l.target.removeFromParent();l.removeFromParent();}studio.dispose();backend.dispose();}
  };
 }
