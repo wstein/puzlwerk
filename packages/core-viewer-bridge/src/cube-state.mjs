@@ -45,12 +45,13 @@ const layerIndex = (n, v) => (v + n - 1) / 2;
 const sorted = (v) => (Array.isArray(v) ? v.map(sorted) : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sorted(v[k])])) : v);
 const byId = (a, b) => (a.id < b.id ? -1 : 1);
 
-function definitionText(n) {
+const MOVE_POLICIES = Object.freeze(['outer-wide', 'any']);
+function definitionText(n, movePolicy = 'outer-wide') {
   const pieces = slots(n).map((slot) => ({ home: slot, id: pieceId(slot, n), stickers: facesOf(slot, n).map((f) => ({ id: stickerId(slot, f, n), normal: NORMAL[f], up: UP[f] })).sort(byId) })).sort(byId);
-  return JSON.stringify(sorted({ convention: 'cube-shell-v1', id: `cube${n}`, movePolicy: 'outer-wide', pieces, revision: 1, schema: 'puzlwerk.definition', size: n }));
+  return JSON.stringify(sorted({ convention: 'cube-shell-v1', id: `cube${n}`, movePolicy, pieces, revision: 1, schema: 'puzlwerk.definition', size: n }));
 }
-const definitionOf = (n) => {
-  const decoded = Codec.decodeDefinition(definitionText(n));
+const definitionOf = (n, movePolicy) => {
+  const decoded = Codec.decodeDefinition(definitionText(n, movePolicy));
   return decoded.TAG === 'Ok' ? decoded._0 : undefined;
 };
 const validSize = validCubeSize; // 2..64 (Core PwShell.maxSize); the viewer accepts 2..15, see size-range.js
@@ -73,11 +74,13 @@ export function cubePresentation(n) {
  * Every sticker has symmetry C4: a color-only cube has no orientation to preserve.
  * Not covered: `options.colorFrame` (no ColorFrame translation in either direction).
  */
-export function cubeStateDocuments(n, cube, palette) {
+export function cubeStateDocuments(n, cube, palette, options = {}) {
   if (!validSize(n)) return fail('InvalidSize');
+  const movePolicy = options?.movePolicy ?? 'outer-wide';
+  if (!MOVE_POLICIES.includes(movePolicy)) return fail('InvalidPolicy');
   if (!cube || typeof cube !== 'object' || FACE_KEYS.some((f) => !Array.isArray(cube[f]) || cube[f].length !== n * n || cube[f].some((t) => typeof t !== 'string'))) return fail('InvalidCubeState');
   if (!palette || typeof palette !== 'object' || Object.entries(palette).some(([, hex]) => typeof hex !== 'string' || !HEX.test(hex))) return fail('InvalidPalette');
-  const definition = definitionOf(n);
+  const definition = definitionOf(n, movePolicy);
   if (!definition) return fail('InvalidCubeState');
   const stickers = [];
   for (const slot of slots(n)) {
@@ -90,7 +93,7 @@ export function cubeStateDocuments(n, cube, palette) {
   const state = Codec.encodeState(Codec.homeState(definition));
   const appearance = JSON.stringify(sorted({ definitionId: `cube${n}`, id: `cube-state-${n}`, revision: 1, schema: 'puzlwerk.appearance', stickers: stickers.sort(byId) }));
   const edge = cubePresentation(n).nominalEdge;
-  return { ok: true, value: { definition: definitionText(n), state, appearance, options: { palette: { ...palette }, defaultColor: DEFAULT_COLOR, presentation: cubePresentation(n), core: { center: [0, 0, 0], halfExtent: edge / 2 } } } };
+  return { ok: true, value: { definition: definitionText(n, movePolicy), state, appearance, options: { palette: { ...palette }, defaultColor: DEFAULT_COLOR, presentation: cubePresentation(n), core: { center: [0, 0, 0], halfExtent: edge / 2 } } } };
 }
 
 /** Viewer sticker IDs of the n*n stickers of one face ('u','r','f','d','l','b') in the translated documents, in facelet order. */
@@ -128,4 +131,46 @@ export function cubeStateFromWire(n, stateText, appearanceText) {
     }
   }
   return { ok: true, value: cube };
+}
+
+const TURN_AXIS = { u: 'Y', d: 'Y', r: 'X', l: 'X', f: 'Z', b: 'Z' };
+const POSITIVE_FACE = { X: 'R', Y: 'U', Z: 'F' };
+const NEGATIVE_FACE = { X: 'L', Y: 'D', Z: 'B' };
+const invalidTurn = () => fail('InvalidTurn');
+
+/**
+ * The Core move of a CubeAssembler turn `{face: 'U'|'R'|'F'|'D'|'L'|'B', depth, width?, turns}`: `depth` is the innermost layer
+ * turned, counted from `face` (1 = outer layer); `width` (default 1) layers turn together, ending at `depth`; `turns` are quarter
+ * turns, clockwise seen from `face`, counted modulo four (3 is a counter-clockwise quarter, -2 a half turn). A turn of zero
+ * quarter turns, of layers outside 1..n, or of an unknown face is `InvalidTurn`.
+ * Result `{axis, layers, turns}` as `Player.turn` takes it: layers ascending 0..n-1, turns -1, 1 or 2 about the positive axis.
+ * The definition of `cubeStateDocuments` accepts an inner single layer (`2R`) or the whole cube only with `{movePolicy: 'any'}`.
+ */
+export function cubeTurnToMove(n, turn) {
+  if (!validSize(n)) return fail('InvalidSize');
+  const face = typeof turn?.face === 'string' ? turn.face.toLowerCase() : undefined;
+  const width = turn?.width ?? 1;
+  if (!Object.hasOwn(TURN_AXIS, face) || !Number.isInteger(turn.depth) || !Number.isInteger(width) || !Number.isInteger(turn.turns)) return invalidTurn();
+  const outer = turn.depth - width + 1, quarter = ((turn.turns % 4) + 4) % 4;
+  if (width < 1 || outer < 1 || turn.depth > n || quarter === 0) return invalidTurn();
+  const axis = TURN_AXIS[face], positive = POSITIVE_FACE[axis] === face.toUpperCase();
+  const layers = Array.from({ length: width }, (_, i) => (positive ? n - turn.depth + i : outer - 1 + i));
+  const clockwise = quarter === 1 ? 1 : -1;
+  return { ok: true, value: { axis, layers, turns: quarter === 2 ? 2 : positive ? -clockwise : clockwise } };
+}
+
+/**
+ * The CubeAssembler turn of a Core move `{axis, layers, turns}`: layers must be a contiguous ascending run inside 0..n-1, turns
+ * -1, 1 or 2. The face is the one nearer to the layers (the positive face U, R or F on a tie, also for the whole cube); `width`
+ * is omitted for one layer. `cubeTurnToMove` maps the result back to the same move.
+ */
+export function moveToCubeTurn(n, move) {
+  if (!validSize(n)) return fail('InvalidSize');
+  const layers = move?.layers;
+  if (!Object.hasOwn(POSITIVE_FACE, move?.axis) || ![-1, 1, 2].includes(move?.turns) || !Array.isArray(layers) || layers.length === 0
+    || !layers.every((l, i) => Number.isInteger(l) && l >= 0 && l < n && l === layers[0] + i)) return fail('InvalidMove');
+  const first = layers[0], last = layers[layers.length - 1], positive = n - 1 - last <= first;
+  const face = positive ? POSITIVE_FACE[move.axis] : NEGATIVE_FACE[move.axis];
+  const turns = move.turns === 2 ? 2 : positive ? -move.turns : move.turns;
+  return { ok: true, value: { face, depth: positive ? n - first : last + 1, ...(layers.length > 1 ? { width: layers.length } : {}), turns } };
 }
