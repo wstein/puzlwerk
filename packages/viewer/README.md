@@ -163,3 +163,5 @@ to CubeAssembler: on a 2x2 a seam swipe there turns the whole cube, the viewer h
 tolerance of thin layers to that many screen pixels, never beyond half a layer (a 15x15 inner layer is 6.2 % of the edge). Off by default.
 The side is decided when the turn axis is decided; CubeAssembler's later switching of the side while the pointer stays on the face is not copied.
 Swipe tuning, the locked hint and the wide cue (sound, vibration) stay with the application, which can use the play events.
+
+`indicatorColorsFromFrame(frame)` gives the X, Y and Z colors of `setOrientationIndicator` from `Player.colorFrame()` (R, U and F entries).

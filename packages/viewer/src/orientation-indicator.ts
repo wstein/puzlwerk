@@ -2,6 +2,7 @@
 // Presentation informed by CubeLab cube-gl.ts (b2dfee380bc5060da036940addf07c8d8aa8bbe7)
 // and CubeAssembler axisGizmo.tsx / web/cube3d.css (91fc2144cbcf2734f84ee3a93c70b8ed503a5151).
 import * as THREE from 'three';
+import {fail,ok,type Result} from './contract.js';
 type Quaternion=readonly [number,number,number,number];
 export type OrientationIndicatorInput=Readonly<{physicalOrientation:Quaternion;solverFrame:Quaternion;presentationOrientation:Quaternion;colors:Readonly<{x:number;y:number;z:number}>}>;
 export type OrientationIndicatorOptions=Readonly<{anchor?:readonly [number,number];scale?:number;invalidate?:()=>void}>;
@@ -36,4 +37,11 @@ export function createOrientationIndicator(host:HTMLElement,options:OrientationI
  const resize=(viewport:Readonly<{width:number;height:number}>)=>{if(disposed)return;if(!viewport||![viewport.width,viewport.height].every(v=>Number.isFinite(v)&&v>0))throw Error('Invalid viewport');invalidate();};
  update(defaults);host.append(svg);
  return {update,resize,reset(){update({...current,presentationOrientation:identity});},dispose(){if(disposed)return;disposed=true;svg.remove();invalidate();}};
+}
+
+/** X, Y and Z colors of the indicator from a color frame in U, R, F, D, L, B order (`Player.colorFrame()`): X is the R entry, Y the U entry, Z the F entry. */
+export function indicatorColorsFromFrame(frame:readonly string[]):Result<{x:number;y:number;z:number}>{
+ if(!Array.isArray(frame)||frame.length!==6||!frame.every(c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)))return fail('InvalidProjection','Invalid color frame');
+ const number=(c:string)=>parseInt(c.slice(1),16);
+ return ok({x:number(frame[1]),y:number(frame[0]),z:number(frame[2])});
 }
