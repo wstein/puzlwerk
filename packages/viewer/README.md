@@ -99,3 +99,25 @@ identity, so the appearance carries each slot's color. `CubeStage.setStickerHigh
 stickers (static view; reapply it after `setProjection`).
 `createCubeStage` takes `appearanceControls: 'hidden'` for hosts that supply their own controls (default
 `'floating'`); the panel is still created, only not shown.
+
+## Cube sizes 2 to 15
+
+The viewer is general for cubes from 2x2 to 15x15 (owner decision 2026-11-18). Tests, screenshots and the performance
+figure cover 2..15 (`ACCEPTED_MAX_SIZE`, the one acceptance constant in `size-range.ts`); the structure stays open up to
+Core's `PwShell.maxSize` (64) and larger sizes are not rejected, only not accepted. Layer widths: up to 7x7 the table of
+`standardLayerWidths` (4x4 1.1, 5x5 1.2, 6x6 1.4, 7x7 1.6); 8x8 and larger hold the 7x7 factor 1.6, an estimate
+(`LARGE_CUBE_OUTER_FACTOR_ESTIMATE`, `isEstimatedStandardFactor`). `cubeStageFit(halfExtent)` gives the view policy and caster
+envelope for any size. `setPlayTarget` takes any size and optional `layerWidths` (the gesture core then maps hits with the real
+layer boundaries). The `presentation-preset` radius rule (2x2 and 3x3 keep their radii, larger cubes scale with the edge) is
+size-independent; the bridge caps the body radius at the profile limit, which only matters from about size 25.
+
+`CubeStage` setters for hosts with their own controls: `setViewPreset(name)` (`VIEW_PRESETS`: up, right, front, down, left, back,
+isometric, iso-back; the CubeAssembler poses, zoom unchanged) and `setDisplayOrientation(q)` (both report through `onViewChanged`
+and become the smart-mode return target; outside free mode a rolled pose is projected to upright pitch and yaw),
+`setAppearance({construction, frameColor})` with `getAppearance()` (stickerless), `setInteractionMode('view'|'play')` with
+`getInteractionMode()`. Nothing set from outside is stored.
+
+The demo `demo/size-range.html?n=9` shows a solved CubeState through the packaged bridge. `test/size-range-browser.mjs`
+(`PLAYWRIGHT_MODULE`, demo server running, optional `CHROMIUM_PATH`, `SHOT_DIR`, `PERF=1`) checks sizes 2, 3, 7, 9 and 15 in a
+browser: presets, stickerless, interaction mode and a Shift+drag turn. Its frame-time figure comes from software rendering and is
+a rough upper bound, not a GPU measurement.
