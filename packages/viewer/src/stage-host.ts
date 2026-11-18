@@ -42,8 +42,9 @@ export interface CubeStage {
  setViewPreset(preset:ViewPreset):StageResult<void>;
  /** Sets the opacity (0..1) of the floor shadow; CubeAssembler uses 0.34 on a light and 0.62 on a dark theme. A later `setLighting` sets it again from its `floorOpacity`. */
  setShadowOpacity(opacity:number):StageResult<void>;
- /** Spins the display about its vertical axis while nothing else moves it, as CubeAssembler's auto-rotate (defaults 0.008 rad per 60 Hz frame, 1500 ms resume delay after any interaction). Off by default; not with reduced motion. */
+ /** Spins the display about its vertical axis while nothing else moves it, as CubeAssembler's auto-rotate (defaults 0.008 rad per 60 Hz frame = 0.008 / (1000 / 60) rad per ms, 1500 ms resume delay after any interaction). Off by default; not with reduced motion. `settings` choose another rate or delay (for a host and for tests that must not wait); invalid values are an `InvalidView` result and keep the previous settings. */
  setAutoRotate(enabled:boolean,settings?:Readonly<{radiansPerMs?:number;resumeDelayMs?:number}>):StageResult<void>;
+ /** The current auto-rotate state and settings (a host UI shows it; a disposed stage reports `enabled:false`). */
  getAutoRotate():Readonly<{enabled:boolean;radiansPerMs:number;resumeDelayMs:number}>;
 interact():StageResult<void>;registerInteractionSurface(element:HTMLElement):StageResult<()=>void>;invalidate():StageResult<void>;dispose():void;
 }

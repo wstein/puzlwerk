@@ -170,4 +170,5 @@ Auto-rotate: `CubeStage.setAutoRotate(true, {radiansPerMs, resumeDelayMs})` spin
 or return moves it, and pauses for `resumeDelayMs` after any interaction (defaults as CubeAssembler: 0.008 rad per 60 Hz frame, 1500 ms).
 It is off by default and does not run with reduced motion; a frame advances at most 50 ms. While it is on, frames run continuously.
 Pointer, touch and wheel contacts pause it while they hold the view; turns the host starts itself (keys, buttons, player transitions) pause it only when the host
-calls `interact()`. A disposed stage reports `getAutoRotate().enabled` as `false`. `radiansPerMs` and `resumeDelayMs` let a host or a test choose another rate or delay.
+calls `interact()`. A disposed stage reports `getAutoRotate().enabled` as `false`. The options are part of the contract (owner decision 2026-11-18): `radiansPerMs` (default 0.008 / (1000 / 60) = 0.00048 rad per ms, CubeAssembler's 0.008 rad per 60 Hz frame; finite and above 0) and `resumeDelayMs` (default 1500; finite and 0 or more) let a host choose another rate and a test set the delay without waiting. An invalid value is an `InvalidView` result and keeps the previous settings; a call without `settings` keeps them too.
+`getAutoRotate()` returns `{enabled, radiansPerMs, resumeDelayMs}`, for a host UI that shows the state and for tests; it is a read-only copy of what the stage uses.
