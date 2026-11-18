@@ -15,7 +15,7 @@ test('search is explicit, bounded and never silently substitutes a guide seed',(
  for(const invalid of [{maxEvaluated:0},{maxCandidates:0},{searchId:''},{maxEvaluated:Infinity}])assert.equal(Recovery.findMatchingCube(c,request(invalid),()=>check()).ok,false);
 });
 test('odd centers constrain source binding, even search retains whole-face bijections with immutable IDs',()=>{
- for(let size=2;size<=8;size++){
+ for(let size=2;size<=15;size++){
   const c=capture(size),before=Capture.snapshot(c),centers=faces.map(target=>({target,color:target}));
   const s=success(Recovery.findMatchingCube(c,request({centers,maxCandidates:2}),()=>check()));
   for(const entry of Recovery.describeSession(s).candidates){assert.equal(new Set(entry.candidate.mapping.map(p=>p.photoId)).size,6);if(size%2)for(const p of entry.candidate.mapping)assert.equal(p.photoId,'photo-'+p.target);}
