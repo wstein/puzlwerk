@@ -5,6 +5,11 @@ const badEnd:PlayEvent={type:'turn-end',outcome:'committed'};
 void playEvents;void badEnd;
 import {weightedFaceExposure,type StageResult,type ExposureLights,createCubeStage,type StageOptions,type CubeStage,type BodyProfile,type StickerGeometry} from '../../src/index.js';
 const options:StageOptions={resolveAsset:async()=>({ok:false,error:{code:'UnresolvedAsset',message:'missing'}}),fovDegrees:28,zoom:1,initialOrientation:[0,0,0,1],mode:'smart',sensitivity:.004,dragThreshold:0,reducedMotion:false,viewPolicy:()=>({distance:12,far:100,groupScale:1}),casterEnvelope:{radius:2,clearance:.08}};
+import type {SeamWide} from '../../src/index.js';
+const seam:SeamWide={tolerance:.25,lean:.1,minPx:6};
+// @ts-expect-error minPx is a number
+const badSeam:SeamWide={minPx:'6'};
+void seam;void badSeam;
 declare const host:HTMLElement;
 const result=createCubeStage(host,options);
 if(result.ok){const stage:CubeStage=result.value;const child=stage.addCube({position:[0,0,0]});if(child.ok){stage.setStickerHighlight(child.value,["sticker:a.U"]);stage.setStickerHighlight(child.value,undefined);}

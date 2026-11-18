@@ -154,3 +154,12 @@ Play events: `createCubeStage` takes `onPlayEvent(event)` with the typed `PlayEv
 quarter turns -1, 1 or 2, or `cancelled`; exactly one per `turn-begin`, also when the stage ends the turn by `dispose`, a new play target, a mode change or blur; a committed
 `turn-end` follows the `onCommit` of the play target the turn began on, so a handler may switch the target) and `error` (a rejected preview or move). A listener that throws does not
 disturb the gesture. The wheel gesture does not emit events yet.
+
+Seam-wide turns: `setPlayTarget({..., seamWide: true})` (or `{tolerance, lean, minPx}`) lets a swipe that starts on the seam between two
+layers turn a wide block, as CubeAssembler's "wide turns near gaps", in the viewer's gesture model. The outer quarter of a sticker next to a
+boundary is the seam (`tolerance` 0.25 of the touched layer's width); the block is both layers at the seam and every layer on one side,
+chosen by the lean of the swipe along the layer axis (a lean below `lean` 0.1 of the swipe length does not choose and the side of the touched
+layer is taken); a block of the whole cube switches to the other side; a 2x2 has no seam. Shift keeps its meaning and wins. `minPx` widens the
+tolerance of thin layers to that many screen pixels, never beyond half a layer (a 15x15 inner layer is 6.2 % of the edge). Off by default.
+The side is decided when the turn axis is decided; CubeAssembler's later switching of the side while the pointer stays on the face is not copied.
+Swipe tuning, the locked hint and the wide cue (sound, vibration) stay with the application, which can use the play events.
