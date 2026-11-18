@@ -105,6 +105,9 @@ try{
   }
   await page.evaluate(()=>{window.sizeRange.stage.setRotationMode('smart');window.sizeRange.stage.setInteractionMode('view')});
   assert.equal(await page.evaluate(()=>window.sizeRange.stage.getInteractionMode()),'view');
+  // setAutoRotate reaches the engine through createCubeStage: the settings read back, an invalid value is an InvalidView result and the stage turns by itself.
+  const auto=await page.evaluate(async()=>{const {stage,views}=window.sizeRange;const set=stage.setAutoRotate(true,{radiansPerMs:.0005,resumeDelayMs:0}),bad=stage.setAutoRotate('yes'),read=stage.getAutoRotate(),before=views.length;await new Promise(r=>setTimeout(r,600));const turned=views.length>before;stage.setAutoRotate(false);return {set:set.ok,bad:bad.error?.code,read,turned,off:stage.getAutoRotate().enabled}});
+  assert.deepEqual({...auto,read:undefined},{set:true,bad:'InvalidView',read:undefined,turned:true,off:false},`n=${n} auto-rotate ${JSON.stringify(auto)}`);assert.deepEqual(auto.read,{enabled:true,radiansPerMs:.0005,resumeDelayMs:0},`n=${n}`);
   let perf;
   if(process.env.PERF){
    perf=await page.evaluate(async()=>{const {stage}=window.sizeRange;const times=[];let last=performance.now();window.draws=0;for(let i=0;i<60;i++){stage.setViewPreset(i%2?'isometric':'iso-back');stage.invalidate();await new Promise(r=>requestAnimationFrame(r));const now=performance.now();times.push(now-last);last=now}times.sort((a,b)=>a-b);return {median:times[30],p95:times[57],max:times[59],draws:window.draws/60,loadMs:window.sizeRange.loadMs}});
