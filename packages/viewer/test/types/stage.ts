@@ -1,3 +1,8 @@
+import type {PlayEvent} from '../../src/index.js';
+const playEvents:PlayEvent[]=[{type:'hover'},{type:'turn-begin',axis:'X',layers:[0],pieceIds:[],source:'drag'},{type:'turn-end',outcome:'committed',turns:-1},{type:'turn-end',outcome:'cancelled'},{type:'error',error:{code:'IllegalMove'}}];
+// @ts-expect-error a committed end carries its quarter turns
+const badEnd:PlayEvent={type:'turn-end',outcome:'committed'};
+void playEvents;void badEnd;
 import {weightedFaceExposure,type StageResult,type ExposureLights,createCubeStage,type StageOptions,type CubeStage,type BodyProfile,type StickerGeometry} from '../../src/index.js';
 const options:StageOptions={resolveAsset:async()=>({ok:false,error:{code:'UnresolvedAsset',message:'missing'}}),fovDegrees:28,zoom:1,initialOrientation:[0,0,0,1],mode:'smart',sensitivity:.004,dragThreshold:0,reducedMotion:false,viewPolicy:()=>({distance:12,far:100,groupScale:1}),casterEnvelope:{radius:2,clearance:.08}};
 declare const host:HTMLElement;
