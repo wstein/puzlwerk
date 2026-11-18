@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // One routed input stream; puzzle transitions remain Core-owned.
-import type {SeamWide} from './play-seam.js';import {beginGesture,moveGesture,releaseGesture,type Gesture} from './play-gesture.js';
+import type {SeamWide} from './play-seam.js';
+import {beginGesture,moveGesture,releaseGesture,type Gesture} from './play-gesture.js';
 import {midpoint,spread,twoFingerLock,twoFingerMotion,type Pair,type TwoFingerLock} from './two-finger.js';
 import type {Mesh} from 'three';import type {Hit,AxisScreen} from './play-gesture-map.js';import type {PointerRoute} from './presentation-input.js';
 type Result<T>={ok:true;value:T}|{ok:false;error:{code:string;message?:string}};

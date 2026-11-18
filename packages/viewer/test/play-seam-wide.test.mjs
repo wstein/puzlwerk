@@ -37,14 +37,17 @@ test('seamBlock: both layers at the seam and everything on the chosen side; a bl
  assert.deepEqual(seamBlock(1,3,false),[0,1]);assert.deepEqual(seamBlock(2,3,true),[1,2]);
  assert.deepEqual(seamBlock(7,15,true),[6,14]);assert.deepEqual(seamBlock(7,15,false),[0,7]);
 });
-test('a seam swipe turns the block its lean picks; no clear lean takes the side of the touched layer',()=>{
+test('a seam swipe turns the block its lean picks; no clear lean takes the half of the touch',()=>{
  const seam={seamWide:{}};
  assert.deepEqual(range(gesture(-.18,[60,10],seam)),[1,4],'lean down: toward the plus side');
  assert.deepEqual(range(gesture(-.18,[60,-10],seam)),[0,2],'lean up: toward the minus side');
- assert.deepEqual(range(gesture(-.18,[60,0],seam)),[1,4],'no lean, touched layer 2 is on the plus side of seam 2');
- assert.deepEqual(range(gesture(-.22,[60,0],seam)),[0,2],'no lean, touched layer 1 is on the minus side');
- assert.deepEqual(range(gesture(-.18,[60,5],seam)),[1,4],'lean 5 of 60.2 is below 0.1: default side (plus)');
- assert.deepEqual(range(gesture(-.22,[60,5],seam)),[0,2],'a small lean does not decide: default side (minus)');
+ // Without a clear lean CubeAssembler takes the half of the cube the touch lies in (CubeGesture.res defaultSeamBlock: sign from the coordinate), not the side of the touched layer.
+ assert.deepEqual(range(gesture(-.18,[60,0],seam)),[0,2],'no lean, touch in the minus half of a 5x5 at seam 2: minus block (the touched layer 2 lies on the plus side of the seam)');
+ assert.deepEqual(range(gesture(-.22,[60,0],seam)),[0,2],'no lean, touched layer 1, minus half');
+ assert.deepEqual(range(gesture(.18,[60,0],seam)),[2,4],'no lean, touch in the plus half at seam 3: plus block');
+ assert.deepEqual(range(gesture(-.18,[60,5],seam)),[0,2],'lean 5 of 60.2 is below 0.1: the half decides (minus)');
+ assert.deepEqual(range(gesture(.13,[60,0],seam,7)),[3,6],'7x7, seam 4 (0.143), touched layer 3 in the plus half: plus block');
+ assert.deepEqual(range(gesture(-.13,[60,0],seam,7)),[0,3],'7x7, seam 3, touched layer 3 in the minus half: minus block');
  assert.deepEqual(range(gesture(-.22,[60,7],seam)),[1,4],'lean 7 of 60.4 reaches 0.1');
  assert.equal(gesture(-.18,[60,10],seam).lock.axis,'y');
 });
@@ -55,7 +58,7 @@ test('without a seam, without the option, or with Shift the old rules apply',()=
  assert.deepEqual(range(gesture(-.02,[60,10],{seamWide:{}},2)),[0,0],'a 2x2 has no seam block');
 });
 test('the seam block is what a release commits, in Core terms',()=>{
- const g=gesture(-.18,[100,10],{seamWide:{}});assert.deepEqual(releaseGesture(g).commit,{axis:'y',from:1,to:4,quarters:1});
+ const g=gesture(-.18,[100,20],{seamWide:{}});assert.deepEqual(releaseGesture(g).commit,{axis:'y',from:1,to:4,quarters:1});
 });
 test('minPx widens the seam of thin layers with the screen size of the layer',()=>{
  const widths=[1.6,...Array(13).fill(1),1.6],edge=widths.reduce((a,b)=>a+b),local=2/edge,b=2*(1.6+6)/edge-1; // boundary between layers 6 and 7 of a 15x15
