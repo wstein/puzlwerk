@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { validCubeSize } from "./size-range.js";
 const demand = (condition: boolean, message: string): void => { if (!condition) throw new Error(message); };
 
 /**
@@ -69,9 +70,20 @@ export const STANDARD_CUBE_MEASUREMENTS = Object.freeze([
 /**
  * Outer-layer factor (inner layer = 1) per cube size. The measured overhangs (factor - 1, mean per size: 4x4 0.118, 5x5
  * 0.240, 7x7 0.736) are scaled by 0.6 / 0.736 so that 7x7 is 1.6 (owner balance decision); 6x6 uses the overhang interpolated
- * linearly between 5x5 and 7x7. 3x3 (1) and 6x6 are estimates, to be replaced when measured; 2x2 has no inner layer.
+ * linearly between 5x5 and 7x7. 3x3 (1) and 6x6 are estimates, to be replaced when measured; 2x2 has no inner layer. From 8x8 on the 7x7 factor is held (estimate, `LARGE_CUBE_OUTER_FACTOR_ESTIMATE`).
  */
 const STANDARD_OUTER_FACTORS: Readonly<Record<number, number>> = Object.freeze({ 2: 1, 3: 1, 4: 1.1, 5: 1.2, 6: 1.4, 7: 1.6 });
+
+/** First size without a table entry. Owner decision 2026-11-18 (E): from here on the outer factor of the 7x7 is held. */
+export const LARGE_CUBE_FIRST_SIZE = 8;
+/** ESTIMATE, not a measurement: the outer factor of the 7x7 (1.6) held for 8x8 and larger (up to the structural maximum). Replace when larger cubes are measured. */
+export const LARGE_CUBE_OUTER_FACTOR_ESTIMATE = STANDARD_OUTER_FACTORS[7];
+
+/** True when the standard outer factor of size n is an estimate: 3x3 and 6x6 (not measured) and every size from `LARGE_CUBE_FIRST_SIZE`. */
+export const isEstimatedStandardFactor = (n: number): boolean => n === 3 || n === 6 || n >= LARGE_CUBE_FIRST_SIZE;
+
+const standardOuterFactor = (n: number): number | undefined =>
+  Object.hasOwn(STANDARD_OUTER_FACTORS, n) ? STANDARD_OUTER_FACTORS[n] : validCubeSize(n) && n >= LARGE_CUBE_FIRST_SIZE ? LARGE_CUBE_OUTER_FACTOR_ESTIMATE : undefined;
 
 export interface StandardLayerWidthsOptions {
   /** Outer factor for this call (finite, >= 1); replaces the table and allows any integer N >= 2. */
@@ -81,7 +93,7 @@ export interface StandardLayerWidthsOptions {
 }
 
 /**
- * Standard layer widths `[f, 1, ..., 1, f]` of a real N-cube, 2 <= N <= 7 (any integer N >= 2 with `options.outer`). A helper only: the viewer default stays
+ * Standard layer widths `[f, 1, ..., 1, f]` of a real N-cube, 2 <= N <= 64 (8..64 hold the estimated factor of the 7x7; any integer N >= 2 with `options.outer`). A helper only: the viewer default stays
  * `uniformLayerWidths`. Apps override the factor with `options.outer` or pass their own widths as `profile.layerWidths`.
  */
 export function standardLayerWidths(n: number, options: StandardLayerWidthsOptions = {}): number[] {
@@ -90,6 +102,7 @@ export function standardLayerWidths(n: number, options: StandardLayerWidthsOptio
     demand(Number.isInteger(n) && n >= 2, `No standard layer widths for N = ${String(n)}`);
     return thickOuterLayerWidths(n, options.outer);
   }
-  demand(Number.isInteger(n) && Object.hasOwn(STANDARD_OUTER_FACTORS, n), `No standard layer widths for N = ${String(n)} (pass options.outer)`);
-  return thickOuterLayerWidths(n, STANDARD_OUTER_FACTORS[n]);
+  const factor = standardOuterFactor(n);
+  demand(factor !== undefined, `No standard layer widths for N = ${String(n)} (pass options.outer)`);
+  return thickOuterLayerWidths(n, factor as number);
 }
