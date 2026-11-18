@@ -63,3 +63,38 @@ test('events: a throwing listener does not disturb the turn',()=>{
  const route=createPlayPointer({pick:()=>({hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player}),onEvent(){throw Error('listener')}});
  route.down(event('pointerdown',1));route.move(event('pointermove',1,100));route.end(event('pointerup',1,100),false);assert.equal(commits,1);
 });
+
+test('events: the target onCommit runs before turn-end, so a turn-end handler cannot redirect it',()=>{
+ const log=[],player={beginPreview(){return {ok:true,value:{pieceIds:[],update(){return {ok:true}},commit(){return {ok:true}},cancel(){return {ok:true}}}}}};
+ const route=createPlayPointer({pick:()=>({hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player}),onCommit:()=>log.push('commit'),onEvent:e=>log.push(e.type)});
+ route.down(event('pointerdown',1));route.move(event('pointermove',1,100));route.end(event('pointerup',1,100),false);assert.deepEqual(log,['turn-begin','commit','turn-end']);
+ const throwing=createPlayPointer({pick:()=>({hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player}),onCommit(){throw Error('commit')},onEvent:e=>log.push('t:'+e.type)});
+ log.length=0;throwing.down(event('pointerdown',1));throwing.move(event('pointermove',1,100));assert.throws(()=>throwing.end(event('pointerup',1,100),false));assert.deepEqual(log,['t:turn-begin','t:turn-end'],'turn-end follows even when onCommit throws');
+});
+test('events: end() without an event (dispose, new target, mode change, blur) cancels the open turn exactly once and stays silent otherwise',()=>{
+ const player={beginPreview(){return {ok:true,value:{pieceIds:['p'],update(){return {ok:true}},commit(){return {ok:true}},cancel(){return {ok:true}}}}}},events=[];
+ const route=createPlayPointer({pick:()=>({hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player}),onEvent:e=>events.push(e.type+':'+(e.outcome??''))});
+ route.end();assert.deepEqual(events,[],'nothing open: no event');
+ route.down(event('pointerdown',1));route.end();assert.deepEqual(events,[],'a contact without a turn: no event');
+ route.down(event('pointerdown',1));route.move(event('pointermove',1,40));route.end();assert.deepEqual(events,['turn-begin:','turn-end:cancelled']);
+ route.end();route.end(event('pointerup',1,40),false);assert.equal(events.length,2,'later ends add nothing');
+ events.length=0;route.down(event('pointerdown',2));route.move(event('pointermove',2,100));route.end(event('pointerup',2,100),false);route.end();assert.deepEqual(events,['turn-begin:','turn-end:committed'],'after a commit end() adds no second turn-end');
+});
+test('events: the committed turns are -1, 1 or 2 and a touch pair reports source pair',()=>{
+ const player={beginPreview(){return {ok:true,value:{pieceIds:['p'],update(){return {ok:true}},commit(){return {ok:true}},cancel(){return {ok:true}}}}}},ends=[],begins=[];
+ const route=createPlayPointer({pick:()=>({hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player}),onEvent:e=>{if(e.type==='turn-end')ends.push(e.turns);if(e.type==='turn-begin')begins.push(e.source)}});
+ for(const dx of [100,-100,200]){route.down(event('pointerdown',1));route.move(event('pointermove',1,dx));route.end(event('pointerup',1,dx),false)}
+ assert.deepEqual(ends,[1,-1,2]);assert.deepEqual(begins,['drag','drag','drag']);
+ const pairEvents=[],pick={stickerId:'x',hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player};
+ const touch=createPlayPointer({pick:()=>pick,acceptTouch:()=>true,onEvent:e=>pairEvents.push(e)});const e=(id,x,y)=>({pointerId:id,pointerType:'touch',clientX:x,clientY:y,shiftKey:false});
+ touch.down(e(1,0,0));touch.move(e(1,30,0));touch.down(e(2,0,20));for(let d=5;d<=100;d+=5){touch.move(e(1,30+d,0));touch.move(e(2,d,20))}
+ const begin=pairEvents.find(x=>x.type==='turn-begin'&&x.source==='pair');assert.ok(begin,JSON.stringify(pairEvents));assert.deepEqual(begin.layers,[0,1,2]);
+ touch.end(e(1,100,0),false);touch.end(e(2,100,20),false);const turnEnds=pairEvents.filter(x=>x.type==='turn-end');assert.equal(turnEnds.length,pairEvents.filter(x=>x.type==='turn-begin').length,'one turn-end per turn-begin');
+});
+test('events: leave() reports the end of a hover only when a sticker was hovered, and not during a contact',()=>{
+ const events=[];let hovered=true;const player={beginPreview(){return {ok:true,value:{update(){return {ok:true}},commit(){return {ok:true}},cancel(){return {ok:true}}}}}};
+ const route=createPlayPointer({pick:()=>hovered?{stickerId:'s',hit:{face:'F',point:[0,.9,1]},axes:{x:[100,0],y:[0,100],z:[0,0]},n:3,pxPerQuarter:100,player}:undefined,onEvent:e=>events.push(e)});
+ route.leave();assert.deepEqual(events,[],'nothing hovered');
+ route.hover(event('pointermove',1));route.down(event('pointerdown',1));route.leave();assert.deepEqual(events,[{type:'hover',stickerId:'s'}],'no leave event during a contact');
+ route.end(event('pointerup',1),false);route.leave();assert.deepEqual(events.at(-1),{type:'hover'});assert.equal(events.length,2);route.leave();assert.equal(events.length,2,'once');
+});
