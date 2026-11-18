@@ -345,3 +345,12 @@ test('style default restores each child canonical frame color independently',asy
  assert.equal((await a.setProjection(p('red','#ff0000'))).ok,true);assert.equal((await b.setProjection(p('blue','#0000ff'))).ok,true);assert.equal((await h.stage.setViewerAppearance({construction:'stickered',frameColor:'#00ff00'})).ok,true);h.step(0);assert.equal(h.scene.getObjectByName('red').children[0].material.color.getHexString(),'00ff00');assert.equal(h.scene.getObjectByName('blue').children[0].material.color.getHexString(),'00ff00');
  assert.equal((await h.stage.setViewerAppearance({construction:'stickered',frameColor:null})).ok,true);h.step(0);assert.equal(h.scene.getObjectByName('red').children[0].material.color.getHexString(),'ff0000');assert.equal(h.scene.getObjectByName('blue').children[0].material.color.getHexString(),'0000ff');h.stage.dispose();
 });
+test('setShadowOpacity sets the strength of the floor shadow, rejects invalid values and is overridden by the next lighting',async()=>{
+ const h=harness();h.stage.addCube({position:[0,0,0]});h.step(0);
+ const floor=h.scene.getObjectByName('studio-shadow-receiver');assert.equal(floor.material.opacity,.3);
+ for(const value of [.34,.62,0,1]){const before=h.renders;assert.equal(h.stage.setShadowOpacity(value).ok,true);assert.equal(floor.material.opacity,value);assert.equal(h.frames.size,1);h.step(0);assert.equal(h.renders,before+1);}
+ for(const bad of [-.01,1.01,NaN,Infinity,'.5',undefined]){assert.equal(h.stage.setShadowOpacity(bad).error.code,'InvalidLighting');assert.equal(floor.material.opacity,1);}
+ const cfg=namesLighting();assert.equal(h.stage.setLighting(cfg).ok,true);assert.equal(floor.material.opacity,cfg.floorOpacity);
+ assert.equal(h.stage.setShadowOpacity(.5).ok,true);assert.equal(floor.material.opacity,.5);
+ h.stage.dispose();assert.equal(h.stage.setShadowOpacity(.5).error.code,'Disposed');
+});

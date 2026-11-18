@@ -89,6 +89,11 @@ export function createStageForTest(options:ViewerOptions & {onError?:(error:Stag
    }finally{appearancePending=false;}
   },
   setCasterEnvelope(value:{radius:number;clearance:number}):StageResult<void>{if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');return applyPolicy(policy,undefined,undefined,undefined,exposurePolicy,undefined,value);},
+  setShadowOpacity(value:number):StageResult<void>{
+   if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');
+   if(typeof value!=='number'||!Number.isFinite(value)||value<0||value>1)return {ok:false,error:{code:'InvalidLighting',message:'Invalid shadow opacity'}};
+   studio.floor.material.opacity=value;schedule();return ok(undefined);
+  },
   setLighting(input:StageLighting):StageResult<void>{
    if(disposed)return fail('Disposed','Stage disposed');if(lost)return fail('ContextLost','Context lost');
    let data:StageLighting;try{data=copyLighting(input);if(data.toneMapping==='softShoulder'&&!THREE.ShaderChunk.tonemapping_pars_fragment.includes(SHOULDER_GLSL)&&!THREE.ShaderChunk.tonemapping_pars_fragment.includes('vec3 CustomToneMapping( vec3 color ) { return color; }'))throw Error('Conflicting tone mapping');}catch{return {ok:false,error:{code:'InvalidLighting',message:'Invalid lighting'}};}
