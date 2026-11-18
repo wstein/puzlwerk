@@ -57,8 +57,8 @@ const FACE_AXIS_INDEX = { R: 0, L: 0, U: 1, D: 1, F: 2, B: 2 } as const;
 
 /**
  * The block of a seam swipe, or null when the swipe does not start on a seam. `axis` is the layer (turn) axis the drag decided on,
- * `drag` the screen vector since pointer-down. The side is the lean along the layer axis; without a clear lean it is the side of the
- * touched layer.
+ * `drag` the screen vector since pointer-down. The side is the lean along the layer axis; without a clear lean it is the half of the cube
+ * the touch lies in (CubeAssembler `defaultSeamBlock`).
  */
 export function seamWideBlock(o: { readonly n: number; readonly layerWidths?: LayerWidths; readonly hit: Hit; readonly axes: AxisScreen; readonly halfExtent?: number; readonly seamWide: SeamWide }, axis: Axis, drag: Vec2): [number, number] | null {
   const k = AXES.indexOf(axis), a = 3 - FACE_AXIS_INDEX[o.hit.face] - k;
@@ -68,5 +68,5 @@ export function seamWideBlock(o: { readonly n: number; readonly layerWidths?: La
   const found = seamAt(o.hit.point[k], o.n, o.layerWidths, s.tolerance ?? SEAM_TOLERANCE, minLocal);
   if (!found) return null;
   const swipe = seamSwipe(drag, u, v), clear = swipe !== null && Math.abs(swipe.lean) >= (s.lean ?? SEAM_LEAN) * Math.hypot(swipe.lean, swipe.turn);
-  return seamBlock(found.seam, o.n, clear ? (swipe as { lean: number }).lean > 0 : found.touched >= found.seam);
+  return seamBlock(found.seam, o.n, clear ? (swipe as { lean: number }).lean > 0 : o.hit.point[k] >= 0);
 }
