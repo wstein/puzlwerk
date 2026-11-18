@@ -41,7 +41,7 @@ export function createOrientationIndicator(host:HTMLElement,options:OrientationI
 
 /** X, Y and Z colors of the indicator from a color frame in U, R, F, D, L, B order (`Player.colorFrame()`): X is the R entry, Y the U entry, Z the F entry. */
 export function indicatorColorsFromFrame(frame:readonly string[]):Result<{x:number;y:number;z:number}>{
- if(!Array.isArray(frame)||frame.length!==6||!frame.every(c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)))return fail('InvalidProjection','Invalid color frame');
+ if(!Array.isArray(frame)||frame.length!==6||!Array.from(frame).every(c=>typeof c==='string'&&/^#[0-9a-f]{6}$/i.test(c)))return fail('InvalidProjection','Invalid color frame');
  const number=(c:string)=>parseInt(c.slice(1),16);
  return ok({x:number(frame[1]),y:number(frame[0]),z:number(frame[2])});
 }
