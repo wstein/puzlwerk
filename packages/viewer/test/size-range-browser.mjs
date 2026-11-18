@@ -93,11 +93,13 @@ try{
     await page.waitForTimeout(300);ry=cy;let swiped=null;for(const dy of [0,9,-9,18,-18]){ry=cy+dy;swiped=await seamSwipe();if(swiped)break}
     assert.deepEqual(swiped,expected,`n=${n} seamWide ${seamWide}: the swipe next to the boundary 0/1 turns layers ${expected}`);
    }
-   // minPx is a screen length: 8 px is below a quarter of an inner layer (about 10 px at n=7 and 15), so the middle of layer 1 stays one layer; a minPx that is not divided by halfExtent would make it the seam.
+   // minPx is a screen length: 0.3 of an inner layer is more than the default tolerance (0.25) and less than half a layer, so the middle of layer 1 stays one layer; a minPx that is not divided by halfExtent
+   // is larger by the factor halfExtent (more than 1.7 for n>=7) and reaches the half-layer cap, which makes the middle the seam.
    if(n>=7){
-    await page.evaluate(()=>{const {stage,child,widths,half,n}=window.sizeRange;stage.setInteractionMode('view');const t=stage.setPlayTarget({child,player:window.spyPlayer,size:n,layerWidths:widths,halfExtent:half,seamWide:{minPx:8}});if(!t.ok)throw Error(t.error.message);stage.setInteractionMode('play')});
-    await page.waitForTimeout(300);let middle=null;for(const dy of [0,9,-9,18,-18]){ry=cy+dy;middle=await seamSwipe([.5,.45,.55]);if(middle)break}
-    assert.deepEqual(middle,[1],`n=${n} seamWide minPx 8: a swipe on the middle of layer 1 turns that layer only`);
+    const minPx=Math.round(3*unit)/10;
+    await page.evaluate(minPx=>{const {stage,child,widths,half,n}=window.sizeRange;stage.setInteractionMode('view');const t=stage.setPlayTarget({child,player:window.spyPlayer,size:n,layerWidths:widths,halfExtent:half,seamWide:{minPx}});if(!t.ok)throw Error(t.error.message);stage.setInteractionMode('play')},minPx);
+    await page.waitForTimeout(300);let middle=null;for(const dy of [0,9,-9,18,-18]){ry=cy+dy;middle=await seamSwipe([.42,.4,.45]);if(middle)break}
+    assert.deepEqual(middle,[1],`n=${n} seamWide minPx ${minPx}: a swipe on the middle of layer 1 turns that layer only`);
    }
    await page.evaluate(()=>{const {stage,child,player,widths,half,n}=window.sizeRange;stage.setInteractionMode('view');stage.setPlayTarget({child,player,size:n,layerWidths:widths,halfExtent:half})});
   }
