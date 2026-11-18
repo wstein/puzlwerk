@@ -1,0 +1,130 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import * as Codec from '../core/res/PwCodec.res.mjs';
+import * as Move from '../core/res/PwMove.res.mjs';
+import * as Shell from '../core/res/PwShell.res.mjs';
+import * as Validate from '../core/res/PwValidate.res.mjs';
+import { cubeStateDocuments, cubeStateFromWire, cubeTurnToMove, moveToCubeTurn, FACE_KEYS } from '../packages/core-viewer-bridge/src/cube-state.mjs';
+import { ACCEPTED_MAX_SIZE } from '../packages/viewer/dist/size-range.js';
+
+// Colors of the solved cube, written out: U white, R red, F green, D yellow, L orange, B blue.
+const COLORS = { u: 'W', r: 'R', f: 'G', d: 'Y', l: 'O', b: 'B' };
+const PALETTE = { W: '#f7f6f1', O: '#ff7a1a', G: '#1e9e57', R: '#cf2a3a', B: '#2459d6', Y: '#f2d21b' };
+const solved = (n) => Object.fromEntries(FACE_KEYS.map((f) => [f, Array(n * n).fill(COLORS[f])]));
+const cache = new Map();
+const docs = (n, policy) => {
+  const key = `${n}/${policy}`;
+  if (!cache.has(key)) {
+    const made = cubeStateDocuments(n, solved(n), PALETTE, policy === undefined ? undefined : { movePolicy: policy });
+    assert.equal(made.ok, true, JSON.stringify(made));
+    cache.set(key, made.value);
+  }
+  return cache.get(key);
+};
+// Applies a Core move to the documents' home state with the Core's own move rules and reads the facelets back.
+const turned = (n, move, policy) => {
+  const d = docs(n, policy);
+  const definition = Codec.decodeDefinition(d.definition)._0, state = Codec.decodeState(definition, d.state)._0;
+  const made = Move.make(Shell.makeSize(n)._0, move.axis, move.layers, move.turns);
+  assert.equal(made.TAG, 'Ok');
+  const next = Validate.applyMove(definition, state, made._0);
+  if (next.TAG !== 'Ok') return { rejected: next._0 };
+  const back = cubeStateFromWire(n, Codec.encodeState(next._0), d.appearance);
+  assert.equal(back.ok, true);
+  return back.value;
+};
+const changed = (cube, n) => FACE_KEYS.flatMap((f) => cube[f].flatMap((c, i) => (c !== COLORS[f] ? [`${f}${i}=${c}`] : []))).sort();
+const cells = (f, list, c) => list.map((i) => `${f}${i}=${c}`);
+
+test('CubeAssembler turns of the outer layers move the facelets like the standard notation (written-out 3x3 oracle)', () => {
+  const turn = (face, turns = 1, depth = 1, width) => cubeTurnToMove(3, { face, depth, turns, ...(width ? { width } : {}) });
+  const expectFacelets = (t, expected) => {
+    const made = t; assert.equal(made.ok, true, JSON.stringify(made));
+    assert.deepEqual(changed(turned(3, made.value), 3), expected.sort());
+  };
+  // R: the F column on the right goes up to U, U to B, B to D, D to F.
+  expectFacelets(turn('R'), [...cells('u', [2, 5, 8], 'G'), ...cells('b', [0, 3, 6], 'W'), ...cells('d', [2, 5, 8], 'B'), ...cells('f', [2, 5, 8], 'Y')]);
+  // L: U goes to F, F to D, D to B, B to U.
+  expectFacelets(turn('L'), [...cells('f', [0, 3, 6], 'W'), ...cells('d', [0, 3, 6], 'G'), ...cells('b', [2, 5, 8], 'Y'), ...cells('u', [0, 3, 6], 'B')]);
+  // U: the rows move F to L, L to B, B to R, R to F.
+  expectFacelets(turn('U'), [...cells('l', [0, 1, 2], 'G'), ...cells('b', [0, 1, 2], 'O'), ...cells('r', [0, 1, 2], 'B'), ...cells('f', [0, 1, 2], 'R')]);
+  // R' is the inverse of R, R2 equals two R.
+  expectFacelets(turn('R', -1), [...cells('u', [2, 5, 8], 'B'), ...cells('b', [0, 3, 6], 'Y'), ...cells('d', [2, 5, 8], 'G'), ...cells('f', [2, 5, 8], 'W')]);
+  expectFacelets(turn('R', 2), [...cells('u', [2, 5, 8], 'Y'), ...cells('b', [0, 3, 6], 'G'), ...cells('d', [2, 5, 8], 'W'), ...cells('f', [2, 5, 8], 'B')]);
+  // Turns count modulo four, as in CubeAssembler's history: 3 is R', -2 is R2.
+  assert.deepEqual(turn('R', 3).value, turn('R', -1).value);
+  assert.deepEqual(turn('R', -2).value, turn('R', 2).value);
+});
+
+test('inner slices, blocks and whole-cube turns of CubeAssembler need the policy any', () => {
+  const slice = cubeTurnToMove(3, { face: 'R', depth: 2, turns: 1 }); // "2R": the middle slice, same direction as R
+  assert.deepEqual(slice.value, { axis: 'X', layers: [1], turns: -1 });
+  assert.deepEqual(turned(3, slice.value), { rejected: 'IllegalMove' }, 'outer-wide rejects an inner single layer');
+  const any = turned(3, slice.value, 'any');
+  assert.deepEqual(changed(any, 3), [...cells('u', [1, 4, 7], 'G'), ...cells('b', [1, 4, 7], 'W'), ...cells('d', [1, 4, 7], 'B'), ...cells('f', [1, 4, 7], 'Y')].sort());
+  // "Rw" is allowed by both policies; "x" (the whole cube) only by any.
+  const wide = cubeTurnToMove(3, { face: 'R', depth: 2, width: 2, turns: 1 });
+  assert.deepEqual(wide.value, { axis: 'X', layers: [1, 2], turns: -1 });
+  assert.equal(turned(3, wide.value).rejected, undefined);
+  const whole = cubeTurnToMove(3, { face: 'R', depth: 3, width: 3, turns: 1 });
+  assert.deepEqual(whole.value, { axis: 'X', layers: [0, 1, 2], turns: -1 });
+  assert.deepEqual(turned(3, whole.value), { rejected: 'IllegalMove' });
+  const x = turned(3, whole.value, 'any');
+  assert.deepEqual(x.u, Array(9).fill('G'));
+  assert.deepEqual(x.f, Array(9).fill('Y'));
+  assert.deepEqual(x.d, Array(9).fill('B'));
+  assert.deepEqual(x.b, Array(9).fill('W'));
+});
+
+test('the policy any applies to every size 2..15: all inner single layers are accepted, outer-wide rejects n-2 of them', () => {
+  for (let n = 2; n <= ACCEPTED_MAX_SIZE; n++) {
+    let rejected = 0;
+    for (let depth = 1; depth <= n; depth++) {
+      const made = cubeTurnToMove(n, { face: 'F', depth, turns: 1 });
+      assert.equal(made.ok, true);
+      assert.equal(turned(n, made.value, 'any').rejected, undefined, `any ${n} depth ${depth}`);
+      if (turned(n, made.value).rejected) rejected++;
+    }
+    assert.equal(rejected, n - 2, `outer-wide rejects the inner single layers of ${n}`);
+  }
+});
+
+test('the move policy option has two values; the default stays outer-wide', () => {
+  assert.equal(JSON.parse(docs(3).definition).movePolicy, 'outer-wide');
+  assert.equal(JSON.parse(docs(3, 'outer-wide').definition).movePolicy, 'outer-wide');
+  assert.equal(JSON.parse(docs(3, 'any').definition).movePolicy, 'any');
+  assert.deepEqual(cubeStateDocuments(3, solved(3), PALETTE, { movePolicy: 'inner' }), { ok: false, error: { code: 'InvalidPolicy' } });
+});
+
+test('turn mapping rejects what is no turn of the cube', () => {
+  const bad = (n, turn) => cubeTurnToMove(n, turn).error?.code;
+  assert.equal(bad(3, { face: 'R', depth: 1, turns: 0 }), 'InvalidTurn');
+  assert.equal(bad(3, { face: 'R', depth: 1, turns: 4 }), 'InvalidTurn');
+  assert.equal(bad(3, { face: 'R', depth: 0, turns: 1 }), 'InvalidTurn');
+  assert.equal(bad(3, { face: 'R', depth: 4, turns: 1 }), 'InvalidTurn');
+  assert.equal(bad(3, { face: 'R', depth: 1, width: 2, turns: 1 }), 'InvalidTurn');
+  assert.equal(bad(3, { face: 'X', depth: 1, turns: 1 }), 'InvalidTurn');
+  assert.equal(bad(1, { face: 'R', depth: 1, turns: 1 }), 'InvalidSize');
+  assert.equal(bad(3, { face: 'R', depth: 1.5, turns: 1 }), 'InvalidTurn');
+});
+
+test('a Core move maps back to a CubeAssembler turn that maps to the same move, for all sizes 2..15', () => {
+  for (let n = 2; n <= ACCEPTED_MAX_SIZE; n++) {
+    for (const axis of ['X', 'Y', 'Z']) for (const turns of [-1, 1, 2]) {
+      for (const [first, last] of [[0, 0], [n - 1, n - 1], [0, n - 1], [Math.floor(n / 2), Math.floor(n / 2)], [1, Math.min(2, n - 1)]]) {
+        const layers = Array.from({ length: last - first + 1 }, (_, i) => first + i);
+        const turn = moveToCubeTurn(n, { axis, layers, turns });
+        assert.equal(turn.ok, true, JSON.stringify([n, axis, layers, turns, turn]));
+        assert.deepEqual(cubeTurnToMove(n, turn.value).value, { axis, layers, turns }, JSON.stringify([n, axis, layers, turns, turn.value]));
+      }
+    }
+  }
+  // The face is the nearer one; on a tie the positive one (U, R, F).
+  assert.deepEqual(moveToCubeTurn(3, { axis: 'X', layers: [1], turns: -1 }).value, { face: 'R', depth: 2, turns: 1 });
+  assert.deepEqual(moveToCubeTurn(5, { axis: 'Y', layers: [1], turns: 1 }).value, { face: 'D', depth: 2, turns: 1 });
+  assert.deepEqual(moveToCubeTurn(5, { axis: 'Z', layers: [3, 4], turns: 2 }).value, { face: 'F', depth: 2, width: 2, turns: 2 });
+  assert.equal(moveToCubeTurn(5, { axis: 'Z', layers: [0, 2], turns: 1 }).error.code, 'InvalidMove');
+  assert.equal(moveToCubeTurn(5, { axis: 'Z', layers: [], turns: 1 }).error.code, 'InvalidMove');
+  assert.equal(moveToCubeTurn(5, { axis: 'Z', layers: [5], turns: 1 }).error.code, 'InvalidMove');
+  assert.equal(moveToCubeTurn(5, { axis: 'Z', layers: [0], turns: 3 }).error.code, 'InvalidMove');
+});
