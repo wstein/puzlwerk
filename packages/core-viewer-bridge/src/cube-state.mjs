@@ -62,7 +62,7 @@ const MAX_BODY_RADIUS = (1 - 0.01) / 2;
 /** Presentation profile of the shared viewer for an n-cube: standard layer widths, two bevel radii. */
 export function cubePresentation(n) {
   const widths = standardLayerWidths(n), edge = widths.reduce((a, b) => a + b, 0), radius = Math.min(0.055 * edge / 3, MAX_BODY_RADIUS);
-  return { cellSize: 1, bodyGap: 0.01, bodyRadius: radius, bodyInnerRadius: 0.6 * radius, bodyKind: 'twoRadius', bodyBevelSegments: 2, size: n, nominalEdge: edge, layerWidths: widths, stickerWidth: 0.87, stickerRadius: 0.055, stickerOffset: 0.502 };
+  return { cellSize: 1, bodyGap: 0.01, bodyRadius: radius, bodyInnerRadius: 0.6 * radius, bodyKind: 'twoRadius', bodyBevelSegments: 2, miterCutFaces: true, size: n, nominalEdge: edge, layerWidths: widths, stickerWidth: 0.87, stickerRadius: 0.055, stickerOffset: 0.502 };
 }
 
 /**
