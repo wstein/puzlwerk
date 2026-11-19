@@ -262,3 +262,30 @@ test('sizes 16 and 64 are not rejected (structure only, not accepted)', () => {
   }
   assert.equal(cubeStateDocuments(65, solved(2), PALETTE).error.code, 'InvalidSize');
 });
+
+test('a CubeState projection switches the mitre cut faces on for sizes 2 to 15, as profile data', () => {
+  for (let n = 2; n <= MAX_CUBE_SIZE; n++) {
+    const d = documents(n, solved(n));
+    assert.equal(d.options.presentation.miterCutFaces, true, `${n} profile`);
+    const opened = open(d.definition, d.state, d.appearance, d.options);
+    assert.equal(opened.ok, true, `${n}`);
+    assert.equal(opened.value.projection.appearance.miterCutFaces, true, `${n} appearance`);
+    assert.equal(validateProjection(opened.value.projection).ok, true, `${n} contract`);
+  }
+});
+
+test('a presentation profile without the flag opens without mitre cut faces', () => {
+  const d = documents(3, solved(3)), { miterCutFaces, ...profile } = d.options.presentation;
+  assert.equal(miterCutFaces, true);
+  const opened = open(d.definition, d.state, d.appearance, { ...d.options, presentation: profile });
+  assert.equal(Object.hasOwn(opened.value.projection.appearance, 'miterCutFaces'), false);
+});
+
+test('a presentation profile with a non-boolean mitre flag is rejected', () => {
+  const d = documents(3, solved(3));
+  for (const bad of ['yes', 1, null]) {
+    const opened = open(d.definition, d.state, d.appearance, { ...d.options, presentation: { ...d.options.presentation, miterCutFaces: bad } });
+    assert.equal(opened.ok, false, String(bad));
+    assert.equal(opened.error.code, 'InvalidPresentation', String(bad));
+  }
+});

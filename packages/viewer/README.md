@@ -95,7 +95,7 @@ self-contained apart from `three` and `@rescript/runtime`). The latter adds `cub
 which turns CubeAssembler's CubeState (six facelet arrays, sizes 2 to 64; 2 to 15 are tested and accepted) into wire-v1 definition, home state,
 appearance and `open` options with the standard layer widths; `cubeStateFromWire` reads the facelets back after
 turns; `faceStickerIds(size, face)` lists the viewer sticker IDs of one face. A facelet-only state has no piece
-identity, so the appearance carries each slot's color. `CubeStage.setStickerHighlight(child, ids)` outlines those
+identity, so the appearance carries each slot's color. The presentation profile carries `miterCutFaces: true`, which `open` copies into `projection.appearance`: in the stickerless view each cut face has, along every edge it shares with an exterior face, the color of that face, split diagonally where two exterior faces meet (`presentation.miterCutFaces?: boolean`; any other value is `InvalidPresentation`). `CubeStage.setStickerHighlight(child, ids)` outlines those
 stickers (static view; reapply it after `setProjection`).
 `createCubeStage` takes `appearanceControls: 'hidden'` for hosts that supply their own controls (default
 `'floating'`); the panel is still created, only not shown.
