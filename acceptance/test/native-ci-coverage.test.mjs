@@ -9,3 +9,7 @@ test('CI no longer asserts the retired CubeAssembler source-mesh block',()=>{
  const workflow=readFileSync(new URL('../../.github/workflows/solver.yml',import.meta.url),'utf8');
  assert.ok(!workflow.includes('cube-assembler-blocked-browser.mjs'));
 });
+test('CI runs the native regrip replay and picture fixture tests',()=>{
+ const workflow=readFileSync(new URL('../../.github/workflows/solver.yml',import.meta.url),'utf8');
+ for(const name of ['native-replay.test.mjs','native-picture.test.mjs'])assert.ok(workflow.includes(name),name);
+});

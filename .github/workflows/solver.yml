@@ -18,6 +18,7 @@ jobs:
       - run: npm run check
       - run: node --test acceptance/test/build.test.mjs acceptance/test/local-dev.test.mjs acceptance/test/native-ci-coverage.test.mjs
       - run: node --test acceptance/test/native-cube-assembler.test.mjs acceptance/test/cube-assembler-raw-mesh.test.mjs acceptance/test/cube-assembler-shadow.test.mjs
+      - run: node --test acceptance/test/native-replay.test.mjs acceptance/test/native-picture.test.mjs
       - run: node acceptance/test/cube-assembler-source-profile.mjs
       - run: npm ci --prefix docs/site
       - run: npx playwright install --with-deps chromium
